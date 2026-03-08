@@ -10,8 +10,8 @@
 
     <!-- Active Plan Card -->
     {% if sub %}
-    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-        <div class="flex items-start justify-between flex-wrap gap-4">
+    <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
             <div>
                 <span
                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 mb-3">
@@ -21,6 +21,7 @@
                 <h2 class="text-xl font-bold text-slate-900 dark:text-white">{{ sub.plan_name }}</h2>
                 <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     Payment via <strong>{{ sub.payment_method|title }}</strong>
+                    &nbsp;·&nbsp; {{ sub.interval|title if sub.tier else 'Monthly' }} billing
                 </p>
                 {% if sub.current_period_end %}
                 <p class="text-sm text-slate-500 dark:text-slate-400">
@@ -32,19 +33,75 @@
                 <p class="text-xs text-slate-400 mt-2 font-mono">Ref: {{ sub.gateway_ref_id }}</p>
                 {% endif %}
             </div>
-            <div>
-                <button
-                    class="px-4 py-2 rounded-xl border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+            <form action="{{ url_for('client.cancel_subscription') }}" method="POST"
+                onsubmit="return confirm('Are you sure you want to cancel your subscription?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button type="submit"
+                    class="px-4 py-2 rounded-lg border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                     Cancel Subscription
                 </button>
+            </form>
+        </div>
+
+        <!-- Plan Limits Usage -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <!-- Articles -->
+            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Articles / Month</p>
+                {% if article_limit == -1 %}
+                <p class="text-lg font-bold text-slate-800 dark:text-white">Unlimited</p>
+                {% else %}
+                <div class="flex justify-between text-xs font-bold mb-1">
+                    <span class="text-slate-600 dark:text-slate-300">{{ article_count }} used</span>
+                    <span class="text-slate-400">{{ article_limit }} max</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+                    <div class="h-1.5 rounded-full {{'bg-red-500' if article_count >= article_limit else 'bg-emerald-500'}}"
+                        style="width:{{ [((article_count/article_limit)*100)|int, 100]|min }}%"></div>
+                </div>
+                {% endif %}
             </div>
+            <!-- Feeds -->
+            <div class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">RSS Feeds</p>
+                {% if feed_limit == -1 %}
+                <p class="text-lg font-bold text-slate-800 dark:text-white">Unlimited</p>
+                {% else %}
+                <div class="flex justify-between text-xs font-bold mb-1">
+                    <span class="text-slate-600 dark:text-slate-300">{{ feed_count }} active</span>
+                    <span class="text-slate-400">{{ feed_limit }} max</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+                    <div class="h-1.5 rounded-full {{'bg-red-500' if feed_count >= feed_limit else 'bg-emerald-500'}}"
+                        style="width:{{ [((feed_count/feed_limit)*100)|int, 100]|min }}%"></div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Auto-renew toggle -->
+        <div
+            class="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+            <div>
+                <p class="text-sm font-semibold text-slate-800 dark:text-white">Auto-Renewal</p>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    {{ 'Your plan will automatically renew on ' + sub.current_period_end.strftime('%B %d, %Y') if
+                    sub.auto_renew else 'Auto-renewal is off. Your plan will expire on ' +
+                    (sub.current_period_end.strftime('%B %d, %Y') if sub.current_period_end else 'period end') }}
+                </p>
+            </div>
+            <button id="autoRenewBtn" onclick="toggleAutoRenew()"
+                class="relative inline-flex items-center w-11 h-6 rounded-full transition-colors {% if sub.auto_renew %}bg-brand-600{% else %}bg-slate-200 dark:bg-slate-600{% endif %}">
+                <span
+                    class="inline-block w-5 h-5 rounded-full bg-white shadow transform transition-transform {% if sub.auto_renew %}translate-x-5{% else %}translate-x-1{% endif %}"></span>
+            </button>
         </div>
     </div>
 
     <!-- Subscription History -->
     {% if all_subs|length > 1 %}
     <div
-        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
             <h2 class="text-sm font-bold text-slate-900 dark:text-white">Subscription History</h2>
         </div>
@@ -80,25 +137,78 @@
     {% endif %}
 
     {% else %}
-    <!-- No subscription CTA -->
+    <!-- No subscription CTA with tier cards -->
     <div
-        class="bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 shadow-sm p-10 text-center">
-        <div
-            class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mx-auto mb-4">
-            <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-            </svg>
-        </div>
+        class="bg-white dark:bg-slate-800 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 shadow-sm p-8 text-center mb-6">
         <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-2">No Active Subscription</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">You're currently on the free tier.
-            Upgrade to unlock full platform access.</p>
-        <a href="{{ url_for('public.index') }}#pricing"
-            class="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
-            View Pricing Plans
-        </a>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">You're on the free tier.
+            Choose a plan below to unlock the full platform.</p>
     </div>
+
+    {% if tiers %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for tier in tiers %}
+        <div
+            class="bg-white dark:bg-slate-800 rounded-lg border {% if loop.index == 2 %}border-brand-400 ring-2 ring-brand-400/20{% else %}border-slate-200 dark:border-slate-700{% endif %} shadow-sm p-6 flex flex-col">
+            {% if loop.index == 2 %}
+            <span class="inline-block mb-3 px-3 py-1 rounded-full text-xs font-bold bg-brand-600 text-white w-fit">Most
+                Popular</span>
+            {% endif %}
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">{{ tier.name }}</h3>
+            <div class="mt-2 mb-4">
+                <span class="text-3xl font-black text-slate-900 dark:text-white">${{ '%.2f'|format(tier.price) }}</span>
+                <span class="text-slate-400 text-sm">/mo</span>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400 flex-1 mb-6">
+                {% for feat in tier.features %}
+                <li class="flex items-start gap-2">
+                    <svg class="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {{ feat.feature_text }}
+                </li>
+                {% endfor %}
+            </ul>
+            <a href="{{ url_for('client.checkout', tier_id=tier.id) }}"
+                class="w-full py-3 text-center font-bold rounded-lg transition-colors {% if loop.index == 2 %}bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-500/20{% else %}border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700{% endif %}">
+                Get {{ tier.name }}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% endif %}
 
 </div>
+
+{% if sub %}
+<script>
+    async function toggleAutoRenew() {
+        const btn = document.getElementById('autoRenewBtn');
+        const knob = btn.querySelector('span');
+        const resp = await fetch("{{ url_for('client.toggle_auto_renew') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data.auto_renew) {
+                btn.classList.remove('bg-slate-200', 'dark:bg-slate-600');
+                btn.classList.add('bg-brand-600');
+                knob.classList.remove('translate-x-1');
+                knob.classList.add('translate-x-5');
+            } else {
+                btn.classList.remove('bg-brand-600');
+                btn.classList.add('bg-slate-200', 'dark:bg-slate-600');
+                knob.classList.remove('translate-x-5');
+                knob.classList.add('translate-x-1');
+            }
+        }
+    }
+</script>
+{% endif %}
 {% endblock %}

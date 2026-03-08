@@ -18,8 +18,9 @@
         </div>
         {% else %}
         <div
-            class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700">
-            System Paused
+            class="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg border border-amber-100 dark:border-amber-800">
+            <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+            Trial Mode
         </div>
         {% endif %}
     </div>
@@ -29,16 +30,14 @@
         <!-- Status Card -->
         <div class="lg:col-span-2 space-y-6">
             <div
-                class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
+                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
                 <div class="flex items-start justify-between mb-8">
                     <div>
                         <h3 class="text-lg font-bold text-slate-900 dark:text-white">General Pipeline</h3>
                         <p class="text-sm text-slate-500 mt-1">Automatically process feeds every 4 hours.</p>
                     </div>
-                    <label
-                        class="relative inline-flex items-center cursor-pointer {% if not sub %}opacity-50 cursor-not-allowed{% endif %}">
-                        <input type="checkbox" value="" class="sr-only peer" {% if not sub %}disabled{% else %}checked{%
-                            endif %}>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="" class="sr-only peer" checked>
                         <div
                             class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-600">
                         </div>
@@ -47,22 +46,22 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div
-                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Last Run</p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% if sub %}2 hours ago{%
-                            else %}Never{% endif %}</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ last_run or 'Never' }}
+                        </p>
                     </div>
                     <div
-                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Next Run</p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% if sub %}In 2 hours{%
-                            else %}N/A{% endif %}</p>
+                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ automation_status|title
+                            }}</p>
                     </div>
                     <div
-                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Drafts Ready</p>
-                        <p class="text-sm font-semibold text-brand-600 dark:text-brand-400">{% if sub %}14 Pending{%
-                            else %}0{% endif %}</p>
+                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pending Articles
+                        </p>
+                        <p class="text-sm font-semibold text-brand-600 dark:text-brand-400">{{ pending_count }}</p>
                     </div>
                 </div>
 
@@ -71,7 +70,7 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         <input type="hidden" name="action" value="run_now" />
                         <button type="submit"
-                            class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-all shadow-md shadow-brand-500/20 flex items-center justify-center gap-2 group">
+                            class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition-all shadow-md shadow-brand-500/20 flex items-center justify-center gap-2 group">
                             <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -85,7 +84,7 @@
 
             <!-- Recent Activity -->
             <div
-                class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                 <div class="px-8 py-5 border-b border-slate-100 dark:border-slate-700">
                     <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Recent Logs
                     </h3>
@@ -112,8 +111,8 @@
                     </div>
                     {% else %}
                     <div class="px-8 py-12 text-center">
-                        <p class="text-xs text-slate-400 italic">No recent activity logs. Please upgrade to start
-                            automation.</p>
+                        <p class="text-xs text-slate-400 italic">No recent activity logs. {% if not sub %}Articles in
+                            trial will appear here.{% else %}Logs will appear here once automation runs.{% endif %}</p>
                     </div>
                     {% endif %}
                 </div>
@@ -123,35 +122,34 @@
         <!-- Sidebar / Settings -->
         <div class="space-y-6">
             <div
-                class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
                     Configurations</h3>
                 <div class="space-y-4">
                     <div
-                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 group">
+                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 group">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tone of Voice</p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% if sub %}Professional &
-                            Insightful{% else %}N/A{% endif %}</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Professional & Insightful
+                        </p>
                     </div>
                     <div
-                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Platforms
                         </p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% if sub %}Blog, LinkedIn{%
-                            else %}N/A{% endif %}</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Blog, WordPress</p>
                     </div>
                 </div>
             </div>
 
             {% if not sub %}
-            <div class="bg-brand-600 rounded-3xl p-6 text-white shadow-xl shadow-brand-500/20 relative overflow-hidden">
+            <div class="bg-brand-600 rounded-lg p-6 text-white shadow-xl shadow-brand-500/20 relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                <h4 class="text-lg font-bold relative z-10">Go Pro</h4>
-                <p class="text-brand-100 text-xs mt-2 mb-4 relative z-10">Get 24/7 automated editorial processing and
-                    high-priority AI queues.</p>
-                <a href="{{ url_for('client.checkout', tier_id=2) }}"
-                    class="w-full py-2.5 bg-white text-brand-700 font-bold text-center block rounded-xl hover:bg-brand-50 transition-colors relative z-10 text-sm">
-                    Upgrade Now
+                <h4 class="text-lg font-bold relative z-10">Premium Editorial</h4>
+                <p class="text-brand-100 text-xs mt-2 mb-4 relative z-10">Upgrade to write up to 20 professional
+                    articles per month and unlock advanced CMS syncing.</p>
+                <a href="{{ url_for('client.subscription') }}"
+                    class="w-full py-2.5 bg-white text-brand-700 font-bold text-center block rounded-lg hover:bg-brand-50 transition-colors relative z-10 text-sm">
+                    View Plans
                 </a>
             </div>
             {% endif %}

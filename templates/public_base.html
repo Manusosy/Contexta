@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Contexta{% endblock %} — AI Editorial Platform</title>
-    <meta name="description" content="Contexta — AI-powered RSS to editorial content automation platform." />
+    <title>{% block title %}{{ Setting.get('site_name', 'Contexta') }}{% endblock %} — AI Editorial Platform</title>
+    <meta name="description"
+        content="{{ Setting.get('site_name', 'Contexta') }} — AI-powered RSS to editorial content automation platform." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -86,6 +87,40 @@
     </div>
 
     {% block content %}{% endblock %}
+
+    <footer
+        class="mt-auto py-12 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors">
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg overflow-hidden">
+                    {% if Setting.get('site_logo') %}
+                    <img src="{{ Setting.get('site_logo') }}" alt="Logo" class="w-full h-full object-contain">
+                    {% else %}
+                    <div class="w-full h-full bg-brand-600 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    {% endif %}
+                </div>
+                <span class="font-bold text-slate-900 dark:text-white">{{ Setting.get('site_name', 'Contexta') }}</span>
+            </div>
+
+            <nav class="flex items-center gap-8 text-sm text-slate-500 dark:text-slate-400">
+                <a href="{{ url_for('public.terms') }}"
+                    class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Terms of Service</a>
+                <a href="{{ url_for('public.privacy') }}"
+                    class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Privacy Policy</a>
+                <a href="mailto:support@contexta.ai"
+                    class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Support</a>
+            </nav>
+
+            <p class="text-sm text-slate-400">&copy; {{ now.year }} {{ Setting.get('site_name', 'Contexta') }}. All
+                rights reserved.</p>
+        </div>
+    </footer>
 
 </body>
 

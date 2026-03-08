@@ -6,7 +6,7 @@
 
     <!-- Welcome Header -->
     <div
-        class="bg-gradient-to-r from-brand-600 to-brand-700 rounded-3xl p-10 text-white shadow-2xl shadow-brand-500/20 relative overflow-hidden group">
+        class="bg-gradient-to-r from-brand-600 to-brand-700 rounded-lg p-10 text-white shadow-2xl shadow-brand-500/20 relative overflow-hidden group">
         <div
             class="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000">
         </div>
@@ -18,132 +18,219 @@
     </div>
 
     <!-- Status Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 
         <!-- Subscription Status -->
         <div
-            class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-shadow">
+            class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-all">
             <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Subscription</p>
             <div class="flex items-center gap-3 mb-3">
                 <div
-                    class="w-3 h-3 rounded-full {% if sub %}bg-emerald-500 animate-pulse{% else %}bg-slate-300{% endif %}">
+                    class="w-3 h-3 rounded-full {% if sub %}bg-emerald-500 animate-pulse{% else %}bg-amber-500 animate-pulse{% endif %}">
                 </div>
                 <span
-                    class="text-xs font-bold {% if sub %}text-emerald-600 dark:text-emerald-400{% else %}text-slate-500{% endif %}">
-                    {% if sub %}{{ sub.status.upper() }}{% else %}NO ACTIVE PLAN{% endif %}
+                    class="text-xs font-bold {% if sub %}text-emerald-600 dark:text-emerald-400{% else %}text-amber-600 dark:text-amber-400{% endif %}">
+                    {% if sub %}{{ sub.status.upper() }}{% else %}FREE TRIAL{% endif %}
                 </span>
             </div>
-            <p class="text-xl font-bold text-slate-900 dark:text-white">{% if sub %}{{ sub.plan_name }}{% else %}Free
-                Tier{% endif %}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                {% if sub %}Renews {{ sub.current_period_end.strftime('%b %d, %Y') }}{% else %}Upgrade for more
-                features{% endif %}
+            <p class="text-xl font-bold text-slate-900 dark:text-white">{% if sub %}{{ sub.plan_name }}{% else %}Starter
+                Trial{% endif %}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-2">
+                {% if sub %}Renews {{ sub.current_period_end.strftime('%b %d, %Y') }}{% else %}2 articles included{%
+                endif %}
             </p>
-            <a href="{{ url_for('client.subscription') }}"
-                class="mt-6 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
-                Manage <span class="ml-1">→</span>
-            </a>
         </div>
 
-        <!-- Billing -->
+        <!-- WordPress Status (Dynamic) -->
         <div
-            class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-shadow">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Last Payment</p>
-            {% if recent_transactions %}
-            {% set tx = recent_transactions[0] %}
-            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ tx.currency }} {{ "%.2f"|format(tx.amount)
-                }}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">via {{ tx.provider|title }} — {{
-                tx.created_at.strftime('%b %d, %Y') }}</p>
-            {% else %}
-            <p class="text-2xl font-bold text-slate-900 dark:text-white">—</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">No payments yet.</p>
-            {% endif %}
-            <a href="{{ url_for('client.billing') }}"
-                class="mt-6 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
-                View History <span class="ml-1">→</span>
-            </a>
-        </div>
-
-        <!-- Profile -->
-        <div
-            class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-shadow">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Your Profile</p>
-            <div class="flex items-center gap-4 mb-3">
-                <div
-                    class="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">
-                    {{ (current_user.full_name or current_user.email or 'U')[0].upper() }}
+            class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-all">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">WordPress Site</p>
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-3 h-3 rounded-full {% if wp_connected %}bg-emerald-500{% else %}bg-slate-300{% endif %}">
                 </div>
-                <div class="min-w-0">
-                    <p class="text-base font-bold text-slate-900 dark:text-white truncate">{{ current_user.full_name or
-                        'Account User' }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ current_user.email }}</p>
+                <span
+                    class="text-xs font-bold {% if wp_connected %}text-emerald-600 dark:text-emerald-400{% else %}text-slate-500{% endif %}">
+                    {% if wp_connected %}CONNECTED{% else %}DISCONNECTED{% endif %}
+                </span>
+            </div>
+            <p class="text-xl font-bold text-slate-900 dark:text-white truncate">
+                {% if wp_connected %}{{ (current_user.wp_url|replace('https://','')|replace('http://','')).rstrip('/')
+                }}{% else %}Not Linked{% endif %}
+            </p>
+            <a href="{{ url_for('client.settings') }}"
+                class="mt-4 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
+                Configure Site <span class="ml-1">→</span>
+            </a>
+        </div>
+
+        <!-- Automation Usage -->
+        <div
+            class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-all">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Usage</p>
+            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ article_count }} <span
+                    class="text-sm font-medium text-slate-400">/ {% if article_limit == -1 %}∞{% else %}{{ article_limit
+                    }}{% endif %}</span></p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-2">Articles generated this month.</p>
+            {% if sub %}
+            <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full mt-4 overflow-hidden">
+                {% set pct = (article_count / article_limit * 100) if article_limit > 0 else 0 %}
+                <div class="h-full bg-brand-500 rounded-full" style="width: {{ pct if pct < 100 else 100 }}%"></div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Feeds -->
+        <div
+            class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-all">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">RSS Channels</p>
+            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ feed_count }} <span
+                    class="text-sm font-medium text-slate-400">/ {% if feed_limit == -1 %}∞{% else %}{{ feed_limit }}{%
+                    endif %}</span></p>
+            <a href="{{ url_for('client.feeds') }}"
+                class="mt-4 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
+                Manage Feeds <span class="ml-1">→</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Activity Feed (Primary) -->
+        <div
+            class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div class="px-8 py-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Recent Activity
+                </h2>
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            </div>
+            <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                {% if recent_activities %}
+                {% for activity in recent_activities %}
+                <div
+                    class="px-8 py-5 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                    <div class="mt-1 w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+                            {% if activity.status == 'success' %}bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400
+                            {% elif activity.status == 'error' %}bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400
+                            {% elif activity.status == 'warning' %}bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400
+                            {% else %}bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400{% endif %}">
+
+                        {% if activity.status == 'success' %}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M5 13l4 4L19 7" />
+                        </svg>
+                        {% elif activity.status == 'error' %}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        {% else %}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ activity.action }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 truncate">{{
+                            activity.message }}</p>
+                    </div>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter shrink-0 pt-1">
+                        {{ activity.timestamp.strftime('%H:%M • %b %d') }}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="px-8 py-20 text-center">
+                    <div
+                        class="w-16 h-16 bg-slate-50 dark:bg-slate-700/30 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <p class="text-sm text-slate-400 font-medium">No recent activities recorded.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Billing (Sidebar Style) -->
+        <div class="space-y-6">
+            <div
+                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+                    <h2 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Payments</h2>
+                </div>
+                <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                    {% if recent_transactions %}
+                    {% for tx in recent_transactions %}
+                    <div class="px-6 py-4">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">{{ tx.created_at.strftime('%b
+                                %d') }}</span>
+                            <span class="text-xs font-bold text-slate-900 dark:text-white">{{ tx.currency }} {{
+                                "%.2f"|format(tx.amount) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-500 dark:text-slate-400">{{ tx.provider|title }}</span>
+                            <span
+                                class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-tighter
+                                    {% if tx.status == 'completed' %}bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400
+                                    {% else %}bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400{% endif %}">
+                                {{ tx.status }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="px-6 py-8 text-center text-xs text-slate-400">No transactions.</div>
+                    {% endif %}
+                </div>
+                <div
+                    class="px-6 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+                    <a href="{{ url_for('client.billing') }}"
+                        class="text-[10px] font-bold text-brand-600 dark:text-brand-400 hover:underline">Full History
+                        →</a>
                 </div>
             </div>
-            <a href="{{ url_for('client.profile') }}"
-                class="mt-4 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
-                Edit Profile <span class="ml-1">→</span>
-            </a>
-        </div>
-    </div>
 
-    <!-- Recent Transactions Table -->
-    {% if recent_transactions %}
-    <div
-        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
-            <h2 class="text-sm font-bold text-slate-900 dark:text-white">Recent Transactions</h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead
-                    class="bg-slate-50 dark:bg-slate-700/50 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                    <tr>
-                        <th class="text-left px-6 py-3">Date</th>
-                        <th class="text-left px-6 py-3">Amount</th>
-                        <th class="text-left px-6 py-3">Via</th>
-                        <th class="text-left px-6 py-3">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
-                    {% for tx in recent_transactions %}
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                        <td class="px-6 py-4 text-slate-600 dark:text-slate-400">{{ tx.created_at.strftime('%b %d, %Y')
-                            }}</td>
-                        <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">{{ tx.currency }} {{
-                            "%.2f"|format(tx.amount) }}</td>
-                        <td class="px-6 py-4 text-slate-600 dark:text-slate-400">{{ tx.provider|title }}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 rounded-full text-xs font-bold
-                {% if tx.status == 'completed' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
-                {% elif tx.status == 'failed' %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
-                {% else %}bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400{% endif %}">
-                                {{ tx.status|title }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="px-6 py-3 border-t border-slate-100 dark:border-slate-700">
-            <a href="{{ url_for('client.billing') }}"
-                class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">
-                View all transactions →
-            </a>
+            <!-- Profile Overview Widget -->
+            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
+                <div class="flex items-center gap-4 mb-4">
+                    <div
+                        class="w-12 h-12 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-brand-500/30">
+                        {{ (current_user.full_name or current_user.email or 'U')[0].upper() }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ current_user.full_name
+                            or 'Account User' }}</p>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ current_user.email }}</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('client.profile') }}"
+                    class="text-[10px] font-bold text-slate-400 hover:text-brand-600 transition-colors uppercase tracking-widest flex items-center gap-2">
+                    Manage Profile <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </a>
+            </div>
         </div>
     </div>
-    {% endif %}
 
     <!-- Free tier upgrade CTA -->
     {% if not sub %}
     <div
-        class="bg-gradient-to-r from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl p-6">
-        <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Upgrade to a Full Plan</h2>
-        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Get unlimited access to all Contexta features. Start
-            automating your editorial pipeline today.</p>
+        class="bg-gradient-to-r from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 border border-brand-200 dark:border-brand-800 rounded-lg p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Upgrade to a Full Plan</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-400">Unlock unlimited articles, more RSS feeds, and
+                automated WordPress publishing.</p>
+        </div>
         <a href="{{ url_for('public.index') }}#pricing"
-            class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
+            class="whitespace-nowrap inline-flex items-center gap-2 px-8 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white text-sm font-bold rounded-lg hover:scale-105 transition-all shadow-xl shadow-slate-900/20">
             View Plans
         </a>
     </div>

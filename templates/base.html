@@ -4,8 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Contexta{% endblock %} — AI Editorial Platform</title>
-  <meta name="description" content="Contexta — AI-powered RSS to editorial content automation platform." />
+  <title>{% block title %}{{ Setting.get('site_name', 'Contexta') }}{% endblock %} — AI Editorial Platform</title>
+  <meta name="description"
+    content="{{ Setting.get('site_name', 'Contexta') }} — AI-powered RSS to editorial content automation platform." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -61,15 +62,21 @@
       <!-- Sidebar Header (Logo) -->
       <div class="flex items-center justify-between h-16 px-4 border-b border-slate-800 shrink-0">
         <a href="{{ url_for('dashboard.index') }}" class="flex items-center gap-3 group focus:outline-none">
-          <div
-            class="w-8 h-8 rounded bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(59,130,246,0.5)] group-hover:shadow-[0_0_20px_rgba(59,130,246,0.7)] transition-all">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all overflow-hidden">
+            {% if Setting.get('site_logo') %}
+            <img src="{{ Setting.get('site_logo') }}" alt="Logo" class="w-full h-full object-contain">
+            {% else %}
+            <div class="w-full h-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                  d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            {% endif %}
           </div>
           <span x-show="sidebarOpen"
-            class="text-xl font-bold text-white tracking-tight leading-none truncate transition-opacity duration-300">Admin
-            Portal</span>
+            class="text-xl font-bold text-white tracking-tight leading-none truncate transition-opacity duration-300">{{
+            Setting.get('site_name', 'Contexta') }}</span>
         </a>
         <!-- Close button mobile only -->
         <button @click="mobileMenuOpen = false"
@@ -340,10 +347,13 @@
 
           {% block content %}{% endblock %}
 
-          <!-- Footer inside main scroll area -->
           <footer
-            class="mt-12 pt-6 border-t border-slate-200 pb-2 flex items-center justify-between text-xs text-slate-400 font-medium tracking-wide">
-            <span>Contexta &copy; {{ now.year }}</span>
+            class="mt-12 pt-6 border-t border-slate-200 pb-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 font-medium tracking-wide gap-4">
+            <div class="flex items-center gap-4">
+              <span>{{ Setting.get('site_name', 'Contexta') }} &copy; {{ now.year }}</span>
+              <a href="{{ url_for('public.terms') }}" class="hover:text-slate-600 transition-colors">Terms</a>
+              <a href="{{ url_for('public.privacy') }}" class="hover:text-slate-600 transition-colors">Privacy</a>
+            </div>
             <span class="font-mono text-slate-300">v{{ app_version }}</span>
           </footer>
         </div>

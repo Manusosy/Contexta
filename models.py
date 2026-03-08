@@ -77,12 +77,17 @@ class Subscription(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    pricing_tier_id = db.Column(db.Integer, db.ForeignKey("pricing_tiers.id"), nullable=True)
     plan_name = db.Column(db.String(100), default="Free")
     status = db.Column(db.String(50), default="inactive") # active, cancelled, expired
     payment_method = db.Column(db.String(50)) # paypal, mpesa
+    preferred_payment_method = db.Column(db.String(50))  # saved preference
+    auto_renew = db.Column(db.Boolean, default=False)
     gateway_ref_id = db.Column(db.String(200)) # paypal_sub_id or mpesa_checkout_id
     current_period_end = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    tier = db.relationship("PricingTier", foreign_keys=[pricing_tier_id], lazy=True)
 
 
 class Transaction(db.Model):
@@ -118,8 +123,12 @@ class PricingTier(db.Model):
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(10), default="USD")
-    interval = db.Column(db.String(20), default="lifetime") # monthly, yearly, lifetime
+    interval = db.Column(db.String(20), default="monthly") # monthly, yearly, lifetime
+    article_limit = db.Column(db.Integer, default=20)  # -1 = unlimited
+    feed_limit = db.Column(db.Integer, default=1)       # -1 = unlimited
     is_active = db.Column(db.Boolean, default=True)
+    is_featured = db.Column(db.Boolean, default=False)  # "Most Popular"
+    has_free_trial = db.Column(db.Boolean, default=False)
     display_order = db.Column(db.Integer, default=0)
 
     features = db.relationship("PricingFeature", backref="tier", lazy=True, cascade="all, delete-orphan")
@@ -174,11 +183,14 @@ class Log(db.Model):
     __tablename__ = "logs"
 
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True) # None = Admin/Global
     action = db.Column(db.String(200), nullable=False)
     # Status: info | success | error | warning
     status = db.Column(db.String(50), default="info")
     message = db.Column(db.Text, default="")
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship("User", backref=db.backref("logs", lazy=True))
 
     def __repr__(self):
         return f"<Log [{self.status}] {self.action}>"
@@ -240,6 +252,13 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_verified = db.Column(db.Boolean, default=False)
     verification_code = db.Column(db.String(10), nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # WordPress Settings (Per User)
+    wp_url = db.Column(db.String(500))
+    wp_user = db.Column(db.String(100))
+    wp_password = db.Column(db.String(200))
+    wp_default_category = db.Column(db.Integer)
 
     feeds = db.relationship("Feed", backref="user", lazy=True, cascade="all, delete-orphan")
     subscriptions = db.relationship("Subscription", backref="user", lazy=True, cascade="all, delete-orphan")

@@ -5,18 +5,26 @@ from models import Setting, db
 from utils.logger import log_event as _log
 
 
-def push_to_wordpress(article) -> dict:
+def push_to_wordpress(article, user=None) -> dict:
     """
     Push an Article instance to WordPress as a draft.
     Returns dict with success bool and optional wp_id.
     """
-    wp_url = Setting.get("wp_url", "").rstrip("/")
-    wp_user = Setting.get("wp_user", "")
-    wp_password = Setting.get("wp_password", "")
-    default_category = int(Setting.get("wp_default_category", "1"))
+    # Use user-specific settings if available, else fallback to global Settings
+    wp_url = (user.wp_url if user and user.wp_url else Setting.get("wp_url", "")).rstrip("/")
+    wp_user = user.wp_user if user and user.wp_user else Setting.get("wp_user", "")
+    wp_password = user.wp_password if user and user.wp_password else Setting.get("wp_password", "")
+    
+    # Use user-specific category if available, else global fallback
+    default_category_raw = user.wp_default_category if user and user.wp_default_category else Setting.get("wp_default_category", "1")
+    try:
+        default_category = int(default_category_raw)
+    except (ValueError, TypeError):
+        default_category = 1
 
     if not all([wp_url, wp_user, wp_password]):
-        _log("WordPress push skipped — credentials not configured", "warning")
+        user_msg = f" for user {user.email}" if user else ""
+        _log(f"WordPress push skipped — credentials not configured{user_msg}", "warning", user_id=user.id if user else None)
         return {"success": False, "error": "WordPress credentials not configured."}
 
     endpoint = f"{wp_url}/wp-json/wp/v2/posts"
@@ -43,22 +51,22 @@ def push_to_wordpress(article) -> dict:
         if response.status_code in (200, 201):
             data = response.json()
             wp_id = data.get("id")
-            _log(f"Pushed to WordPress: '{title}' (WP ID: {wp_id})", "success")
+            _log(f"Pushed to WordPress: '{title}' (WP ID: {wp_id})", "success", user_id=user.id if user else None)
             return {"success": True, "wp_id": wp_id}
         else:
             error_msg = response.text[:200]
-            _log(f"WordPress push failed: {response.status_code}", "error", error_msg)
+            _log(f"WordPress push failed: {response.status_code}", "error", error_msg, user_id=user.id if user else None)
             return {"success": False, "error": f"HTTP {response.status_code}: {error_msg}"}
     except Exception as e:
-        _log("WordPress push exception", "error", str(e))
+        _log("WordPress push exception", "error", str(e), user_id=user.id if user else None)
         return {"success": False, "error": str(e)}
 
 
-def test_connection() -> dict:
+def test_connection(user=None) -> dict:
     """Test WordPress credentials by fetching /wp-json/wp/v2/users/me."""
-    wp_url = Setting.get("wp_url", "").rstrip("/")
-    wp_user = Setting.get("wp_user", "")
-    wp_password = Setting.get("wp_password", "")
+    wp_url = (user.wp_url if user and user.wp_url else Setting.get("wp_url", "")).rstrip("/")
+    wp_user = user.wp_user if user and user.wp_user else Setting.get("wp_user", "")
+    wp_password = user.wp_password if user and user.wp_password else Setting.get("wp_password", "")
 
     if not all([wp_url, wp_user, wp_password]):
         return {"success": False, "error": "WordPress credentials not configured."}
@@ -84,11 +92,11 @@ def test_connection() -> dict:
         return {"success": False, "error": str(e)}
 
 
-def get_categories() -> dict:
+def get_categories(user=None) -> dict:
     """Fetch categories from WordPress via REST API."""
-    wp_url = Setting.get("wp_url", "").rstrip("/")
-    wp_user = Setting.get("wp_user", "")
-    wp_password = Setting.get("wp_password", "")
+    wp_url = (user.wp_url if user and user.wp_url else Setting.get("wp_url", "")).rstrip("/")
+    wp_user = user.wp_user if user and user.wp_user else Setting.get("wp_user", "")
+    wp_password = user.wp_password if user and user.wp_password else Setting.get("wp_password", "")
 
     if not all([wp_url, wp_user, wp_password]):
         return {"success": False, "error": "WordPress credentials not configured."}

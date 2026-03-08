@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}My Account{% endblock %} — Contexta</title>
-    <meta name="description" content="Contexta — Manage your subscription and account." />
+    <title>{% block title %}My Account{% endblock %} — {{ Setting.get('site_name', 'Contexta') }}</title>
+    <meta name="description"
+        content="{{ Setting.get('site_name', 'Contexta') }} — Manage your subscription and account." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -46,15 +47,22 @@
         <div class="h-16 flex items-center px-4 border-b border-slate-100 dark:border-slate-800"
             :class="sidebarOpen ? 'justify-between' : 'justify-center'">
             <a href="{{ url_for('client.index') }}" class="flex items-center gap-3">
-                <div
-                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shrink-0 shadow-sm">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                            d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                    {% if Setting.get('site_logo') %}
+                    <img src="{{ Setting.get('site_logo') }}" alt="Logo" class="w-full h-full object-contain">
+                    {% else %}
+                    <div
+                        class="w-full h-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    {% endif %}
                 </div>
                 <span x-show="sidebarOpen"
-                    class="text-lg font-bold text-slate-900 dark:text-white tracking-tight transition-opacity duration-300">Contexta</span>
+                    class="text-lg font-bold text-slate-900 dark:text-white tracking-tight transition-opacity duration-300">{{
+                    Setting.get('site_name', 'Contexta') }}</span>
             </a>
 
             <!-- Mobile Close Button -->
@@ -153,7 +161,7 @@
 
             <a href="{{ url_for('client.profile') }}"
                 class="flex items-center gap-3 p-2.5 rounded-xl font-medium transition-all duration-200 group
-                {% if 'profile' in request.endpoint %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+                {% if request.endpoint == 'client.profile' %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
                 {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100{% endif %}"
                 :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Profile">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,6 +169,20 @@
                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Profile Defaults</span>
+            </a>
+
+            <a href="{{ url_for('client.settings') }}"
+                class="flex items-center gap-3 p-2.5 rounded-xl font-medium transition-all duration-200 group
+                {% if request.endpoint == 'client.settings' %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+                {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100{% endif %}"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Settings">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Settings</span>
             </a>
 
         </nav>
@@ -333,8 +355,14 @@
 
                 <!-- Footer inside main space -->
                 <footer
-                    class="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 pb-2 flex items-center justify-between text-xs text-slate-400 font-medium tracking-wide">
-                    <span>Contexta &copy; {{ now.year }}</span>
+                    class="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 pb-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 font-medium tracking-wide gap-4">
+                    <div class="flex items-center gap-4">
+                        <span>{{ Setting.get('site_name', 'Contexta') }} &copy; {{ now.year }}</span>
+                        <a href="{{ url_for('public.terms') }}"
+                            class="hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Terms</a>
+                        <a href="{{ url_for('public.privacy') }}"
+                            class="hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Privacy</a>
+                    </div>
                     <span class="font-mono text-slate-300 dark:text-slate-600">v{{ app_version }}</span>
                 </footer>
             </div>

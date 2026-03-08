@@ -45,6 +45,7 @@ FORMATTING REQUIREMENTS:
 - Use `<h2>` and `<h3>` tags for section headings.
 - Use `<p>` tags for all paragraphs.
 - Do NOT wrap your response in markdown code blocks (e.g. ```html). Output pure HTML only.
+
 {style_instructions}
 {custom_prompt}
 
@@ -97,19 +98,34 @@ def check_relevance(content: str) -> bool:
         return True
 
 
-def generate_article(content: str) -> str:
+def generate_article(content: str, is_trial: bool = False) -> str:
     """
     Call OpenRouter API to generate an editorial article.
     Returns the generated HTML string, or empty string on failure.
+    
+    If is_trial is True, it enforces a 300-word limit and uses a free model.
     """
     api_key = Setting.get("ai_api_key")
     if not api_key:
         _log("AI generation skipped — no API key configured", "warning")
         return ""
 
-    model = Setting.get("ai_model", "openai/gpt-4o-mini")
-    temperature = float(Setting.get("ai_temperature", "0.7"))
-    max_tokens = int(Setting.get("ai_max_tokens", "2000"))
+    if is_trial:
+        # Use trial-specific model or fallback to Gemini Flash Free
+        model = Setting.get("ai_trial_model", "google/gemini-2.0-flash:free")
+        temperature = 0.7
+        max_tokens = 1000
+    else:
+        # Premium logic
+        model = Setting.get("ai_model", "openai/gpt-4o-mini")
+        
+        # Smart Selection / Auto Model Logic
+        if model == "auto":
+            # Select best model for premium editorial work
+            model = "openai/gpt-4o"
+            
+        temperature = float(Setting.get("ai_temperature", "0.7"))
+        max_tokens = int(Setting.get("ai_max_tokens", "2000"))
 
     # Step 1: Context Extraction
     context_prompt = CONTEXT_PROMPT_TEMPLATE.format(content=content[:4000])
@@ -154,8 +170,13 @@ def generate_article(content: str) -> str:
 
     style_instructions = "\n".join(style_parts)
     
-    word_count_min = Setting.get("ai_word_count_min", "350")
-    word_count_target = Setting.get("ai_word_count_target", "600")
+    if is_trial:
+        word_count_min = "200"
+        word_count_target = "300"
+    else:
+        # Journalistic guidelines: 800 - 1200 words
+        word_count_min = Setting.get("ai_word_count_min", "800")
+        word_count_target = Setting.get("ai_word_count_target", "1200")
     
     custom_prompt_raw = Setting.get("ai_custom_prompt", "")
     custom_prompt = f"USER CUSTOM INSTRUCTIONS:\n{custom_prompt_raw}" if custom_prompt_raw else ""
@@ -187,11 +208,15 @@ def generate_article(content: str) -> str:
         return ""
 
 
-def list_available_models() -> tuple[list[dict], bool]:
-    """Fetch available models from OpenRouter (best-effort). Returns (models, fallback_used)."""
+def list_available_models() -> tuple[dict, bool]:
+    """Fetch available models from OpenRouter (best-effort). Returns {recommended: [], others: []}, fallback_used."""
+    curated = _default_models()
+    curated_ids = {m["id"] for m in curated}
+    
     api_key = Setting.get("ai_api_key")
     if not api_key:
-        return _default_models(), True
+        return {"recommended": curated, "others": []}, True
+        
     try:
         resp = requests.get(
             "https://openrouter.ai/api/v1/models",
@@ -199,20 +224,46 @@ def list_available_models() -> tuple[list[dict], bool]:
             timeout=10,
         )
         resp.raise_for_status()
-        models = resp.json().get("data", [])
-        return [{"id": m["id"], "name": m.get("name", m["id"])} for m in models[:50]], False
+        data = resp.json().get("data", [])
+        
+        # Add models from API that are not in our curated list
+        api_models = []
+        for m in data:
+            mid = m["id"]
+            if mid not in curated_ids:
+                name = m.get("name", mid)
+                if mid.endswith(":free") and "(Free)" not in name:
+                    name += " (Free)"
+                api_models.append({"id": mid, "name": name})
+        
+        # Return grouped data
+        return {"recommended": curated, "others": api_models}, False
     except Exception:
-        return _default_models(), True
+        return {"recommended": curated, "others": []}, True
 
 
 def _default_models() -> list[dict]:
     return [
-        {"id": "google/gemini-2.0-flash:free", "name": "Gemini 2.0 Flash (Free)"},
+        # --- PREMIUM TOOLS ---
+        {"id": "auto", "name": "✨ Smart Selection (Auto-Select Best Model)"},
+        
+        # --- FREE MODELS (Prioritized for Writing/SEO) ---
+        {"id": "google/gemini-2.0-flash:free", "name": "Gemini 2.0 Flash (Free) - Fast & Modern"},
+        {"id": "google/gemini-2.0-pro-exp-02-05:free", "name": "Gemini 2.0 Pro (Free) - High Quality"},
+        {"id": "deepseek/deepseek-r1:free", "name": "DeepSeek R1 (Free) - Great Reasoning"},
         {"id": "mistralai/mistral-7b-instruct:free", "name": "Mistral 7B Instruct (Free)"},
         {"id": "mistralai/pixtral-12b:free", "name": "Pixtral 12B (Free)"},
-        {"id": "google/gemini-2.0-pro-exp-02-05:free", "name": "Gemini 2.0 Pro (Free)"},
-        {"id": "deepseek/deepseek-r1:free", "name": "DeepSeek R1 (Free)"},
-        {"id": "openai/gpt-4o-mini", "name": "GPT-4o Mini (Best for SEO)"},
-        {"id": "anthropic/claude-3.5-sonnet", "name": "Claude 3.5 Sonnet (Premium)"},
+        {"id": "microsoft/phi-3-medium-128k-instruct:free", "name": "Phi-3 Medium (Free)"},
+        {"id": "qwen/qwen-2-72b-instruct:free", "name": "Qwen 2 72B (Free)"},
+        {"id": "meta-llama/llama-3-8b-instruct:free", "name": "Llama 3 8B (Free)"},
+        
+        # --- TOP-TIER PAID MODELS (SEO & Professional) ---
+        {"id": "openai/gpt-4o-mini", "name": "GPT-4o Mini (Best for SEO & Speed)"},
+        {"id": "openai/gpt-4o", "name": "GPT-4o (Professional & Reliable)"},
+        {"id": "anthropic/claude-3.5-sonnet", "name": "Claude 3.5 Sonnet (Premium/Creative)"},
+        {"id": "anthropic/claude-3-haiku", "name": "Claude 3 Haiku (Fast/Affordable)"},
+        {"id": "google/gemini-pro-1.5", "name": "Gemini 1.5 Pro (Large Context)"},
         {"id": "mistralai/mistral-large", "name": "Mistral Large (High Quality)"},
+        {"id": "deepseek/deepseek-chat", "name": "DeepSeek V3 (Competitive Paid)"},
+        {"id": "meta-llama/llama-3.1-405b", "name": "Llama 3.1 405B (Powerhouse)"},
     ]

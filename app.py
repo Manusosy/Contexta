@@ -72,13 +72,17 @@ def create_app():
                 return redirect(url_for("onboarding.index"))
 
     @app.context_processor
-    def inject_now():
+    def inject_globals():
         from datetime import datetime
-        from models import Announcement
+        from models import Announcement, Setting, User
+        from flask_wtf.csrf import generate_csrf
         return {
             'now': datetime.utcnow(),
             'app_version': Setting.get('app_version', '1.1.0'),
-            'Announcement': Announcement
+            'Announcement': Announcement,
+            'Setting': Setting,
+            'User': User,
+            'csrf_token': generate_csrf
         }
 
     # Create tables and seed defaults
@@ -128,6 +132,8 @@ def _seed_defaults():
         "seo_auto_slug": "true",
         "schedule_enabled": "false",
         "schedule_frequency": "60",
+        "site_name": "Contexta",
+        "site_logo": "/static/img/logo.png",
         "last_run": "",
         "automation_status": "idle",
         "ai_word_count_min": "350",
@@ -146,21 +152,90 @@ def _seed_pricing():
     """Insert default pricing tiers and features if they don't exist."""
     from models import PricingTier, PricingFeature
     if PricingTier.query.count() == 0:
-        enterprise = PricingTier(name="Enterprise Core", price=399.0, interval="lifetime")
-        db.session.add(enterprise)
-        db.session.flush()
-
-        features = [
-            "Unlimited RSS Aggregation pipelines",
-            "Native OpenRouter + LLM Integration",
-            "Native Auto-Publishing APIs to WordPress",
-            "SEO JSON-LD schema generation tooling"
+        tiers_data = [
+            {
+                "name": "Starter", "price": 3.50, "currency": "USD", "interval": "monthly",
+                "article_limit": 20, "feed_limit": 1, "is_featured": False, "has_free_trial": True,
+                "display_order": 1,
+                "features": [
+                    "2 Articles Free Trial",
+                    "1 Active RSS Feed",
+                    "Automation Heartbeat",
+                    "WP Integration",
+                    "Standard Support"
+                ],
+            },
+            {
+                "name": "Starter Annual", "price": 35.0, "currency": "USD", "interval": "yearly",
+                "article_limit": 20, "feed_limit": 1, "is_featured": False, "has_free_trial": False,
+                "display_order": 2,
+                "features": [
+                    "20 Articles / Mo",
+                    "1 Active RSS Feed",
+                    "2 Months Free",
+                    "WP Integration",
+                    "Standard Support"
+                ],
+            },
+            {
+                "name": "Growth", "price": 9.50, "currency": "USD", "interval": "monthly",
+                "article_limit": 100, "feed_limit": 5, "is_featured": True, "has_free_trial": False,
+                "display_order": 3,
+                "features": [
+                    "100 Articles / Mo",
+                    "5 Active RSS Feeds",
+                    "Priority Processing",
+                    "SEO Optimization",
+                    "Premium Support"
+                ],
+            },
+            {
+                "name": "Growth Annual", "price": 95.0, "currency": "USD", "interval": "yearly",
+                "article_limit": 100, "feed_limit": 5, "is_featured": False, "has_free_trial": False,
+                "display_order": 4,
+                "features": [
+                    "100 Articles / Mo",
+                    "5 Active RSS Feeds",
+                    "SEO Optimization",
+                    "2 Months Free",
+                    "Priority Support"
+                ],
+            },
+            {
+                "name": "Pro", "price": 19.0, "currency": "USD", "interval": "monthly",
+                "article_limit": -1, "feed_limit": -1, "is_featured": False, "has_free_trial": False,
+                "display_order": 5,
+                "features": [
+                    "Unlimited Articles",
+                    "Unlimited RSS Feeds",
+                    "White-label Branding",
+                    "Custom Logic",
+                    "24/7 VIP Support"
+                ],
+            },
+            {
+                "name": "Pro Annual", "price": 190.0, "currency": "USD", "interval": "yearly",
+                "article_limit": -1, "feed_limit": -1, "is_featured": False, "has_free_trial": False,
+                "display_order": 6,
+                "features": [
+                    "Unlimited Articles",
+                    "Unlimited RSS Feeds",
+                    "White-label Branding",
+                    "Custom Logic",
+                    "24/7 VIP Support"
+                ],
+            }
         ]
-        for f in features:
-            db.session.add(PricingFeature(tier_id=enterprise.id, feature_text=f))
-        
+        for td in tiers_data:
+            feats = td.pop("features")
+            tier = PricingTier(**td)
+            db.session.add(tier)
+            db.session.flush()
+            for i, text in enumerate(feats):
+                db.session.add(PricingFeature(tier_id=tier.id, feature_text=text, display_order=i))
+
         db.session.commit()
-        print("[Contexta] Default pricing tiers and features seeded.")
+        print("[Contexta] Default pricing tiers seeded: Starter, Growth, Pro.")
 
 
 app = create_app()

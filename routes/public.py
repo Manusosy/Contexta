@@ -18,3 +18,11 @@ def index():
     tiers = PricingTier.query.filter_by(is_active=True).order_by(PricingTier.display_order).all()
     currency = Setting.get("currency", "USD")
     return render_template("public/index.html", tiers=tiers, currency=currency)
+@public_bp.route("/terms")
+def terms():
+    return render_template("public/terms.html")
+
+
+@public_bp.route("/privacy")
+def privacy():
+    return render_template("public/privacy.html")

@@ -9,6 +9,9 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 class Config:
     """Base configuration."""
     SECRET_KEY = os.environ.get("SECRET_KEY", "contexta-dev-secret-change-in-prod")
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_CHECK_DEFAULT = True  # Ensure it protects all POSTs by default
+    WTF_CSRF_TIME_LIMIT = None     # Disable expiration for now to rule it out
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = False
     TESTING = False

@@ -1,0 +1,57 @@
+{% extends "public_base.html" %}
+{% block title %}Privacy Policy — {{ Setting.get('site_name', 'Contexta') }}{% endblock %}
+
+{% block content %}
+<main class="flex-1 py-16 sm:py-24 bg-white dark:bg-slate-900">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-8">Privacy Policy
+        </h1>
+
+        <div class="prose prose-slate dark:prose-invert max-w-none space-y-6 text-slate-600 dark:text-slate-400">
+            <p class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-10">Last Updated: March 8, 2026</p>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">1. Information We Collect</h2>
+                <p>We collect information you provide directly to us, such as when you create an account, subscribe to a
+                    plan, or contact support. This includes your name, email address, and payment information.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">2. How We Use Your Information</h2>
+                <p>We use your information to provide, maintain, and improve our services, process transactions, and
+                    communicate with you about your account and updates to our platform.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">3. Data Security</h2>
+                <p>We take reasonable measures to protect your information from unauthorized access, loss, or misuse.
+                    Our payment processing is handled by secure third-party providers (M-Pesa, PayPal).</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">4. Data Sharing</h2>
+                <p>We do not sell your personal information to third parties. We may share information with service
+                    providers who perform services on our behalf, or as required by law.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">5. Cookies</h2>
+                <p>We use cookies to enhance your experience on our platform and to analyze site traffic. You can manage
+                    cookie preferences through your browser settings.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">6. Your Rights</h2>
+                <p>You have the right to access, update, or delete your personal information. You can manage your data
+                    through your account profile or by contacting us.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">7. Changes to This Policy</h2>
+                <p>We may update this Privacy Policy from time to time. We will notify you of any significant changes by
+                    posting the new policy on our website.</p>
+            </section>
+        </div>
+    </div>
+</main>
+{% endblock %}

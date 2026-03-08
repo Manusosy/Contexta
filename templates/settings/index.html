@@ -41,6 +41,13 @@
                 </svg>
                 SEO
             </button>
+            <button class="tab-btn" data-tab="branding" onclick="switchTab('branding', this)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Branding
+            </button>
         </nav>
     </div>
 
@@ -48,7 +55,7 @@
     <div id="tab-ai" class="tab-panel">
         <div class="card p-6">
             <form action="{{ url_for('settings.save_ai') }}" method="POST" class="space-y-5">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="md:col-span-2">
@@ -77,7 +84,7 @@
 
                     <div>
                         <label class="label flex items-center justify-between">
-                            <span>AI Model</span>
+                            <span>Premium Users Model</span>
                             {% if fallback and s.get('ai_api_key') %}
                             <span
                                 class="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded tracking-wider uppercase"
@@ -86,11 +93,47 @@
                             {% endif %}
                         </label>
                         <select name="ai_model" class="input-field">
-                            {% for model in models %}
-                            <option value="{{ model.id }}" {{ 'selected' if s.get('ai_model')==model.id }}>{{ model.name
-                                }}</option>
-                            {% endfor %}
+                            <optgroup label="Recommended Models">
+                                {% for model in models.recommended %}
+                                <option value="{{ model.id }}" {{ 'selected' if s.get('ai_model')==model.id }}>{{
+                                    model.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% if models.others %}
+                            <optgroup label="All OpenRouter Models">
+                                {% for model in models.others %}
+                                <option value="{{ model.id }}" {{ 'selected' if s.get('ai_model')==model.id }}>{{
+                                    model.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endif %}
                         </select>
+                        <p class="text-[10px] text-slate-400 mt-1">Used for all accounts with an active subscription.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="label">Trial Users Model</label>
+                        <select name="ai_trial_model" class="input-field">
+                            <optgroup label="Recommended for Trial">
+                                {% for model in models.recommended %}
+                                <option value="{{ model.id }}" {{ 'selected' if
+                                    s.get('ai_trial_model', 'google/gemini-2.0-flash:free' )==model.id }}>
+                                    {{ model.name }}
+                                </option>
+                                {% endfor %}
+                            </optgroup>
+                            {% if models.others %}
+                            <optgroup label="All OpenRouter Models">
+                                {% for model in models.others %}
+                                <option value="{{ model.id }}" {{ 'selected' if s.get('ai_trial_model')==model.id }}>
+                                    {{ model.name }}
+                                </option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endif %}
+                        </select>
+                        <p class="text-[10px] text-slate-400 mt-1">Used for new accounts without a subscription.</p>
                     </div>
 
                     <div>
@@ -156,7 +199,7 @@
     <div id="tab-automation" class="tab-panel hidden">
         <div class="card p-6">
             <form action="{{ url_for('settings.save_automation') }}" method="POST" class="space-y-5">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
@@ -175,19 +218,19 @@
 
                     <div>
                         <label class="label">Minimum Word Count
-                            <span class="text-slate-400 font-normal text-xs ml-1">(min 350)</span>
+                            <span class="text-slate-400 font-normal text-xs ml-1">(recommended 800)</span>
                         </label>
-                        <input type="number" name="ai_word_count_min" value="{{ s.get('ai_word_count_min', '350') }}"
+                        <input type="number" name="ai_word_count_min" value="{{ s.get('ai_word_count_min', '800') }}"
                             class="input-field" min="200" max="2000" step="50" />
                         <p class="text-xs text-slate-400 mt-1">Articles shorter than this will fail verification.</p>
                     </div>
 
                     <div>
                         <label class="label">Target Word Count
-                            <span class="text-slate-400 font-normal text-xs ml-1">(standard 600)</span>
+                            <span class="text-slate-400 font-normal text-xs ml-1">(journalistic 1200)</span>
                         </label>
                         <input type="number" name="ai_word_count_target"
-                            value="{{ s.get('ai_word_count_target', '600') }}" class="input-field" min="350" max="4000"
+                            value="{{ s.get('ai_word_count_target', '1200') }}" class="input-field" min="350" max="4000"
                             step="50" />
                         <p class="text-xs text-slate-400 mt-1">The AI will target this word count when drafting.</p>
                     </div>
@@ -234,7 +277,7 @@
     <div id="tab-wordpress" class="tab-panel hidden">
         <div class="card p-6">
             <form action="{{ url_for('settings.save_wordpress') }}" method="POST" class="space-y-5">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="md:col-span-2">
@@ -316,7 +359,7 @@
     <div id="tab-seo" class="tab-panel hidden">
         <div class="card p-6">
             <form action="{{ url_for('settings.save_seo') }}" method="POST" class="space-y-5">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
@@ -350,6 +393,49 @@
 
                 <div class="flex justify-end pt-2">
                     <button type="submit" class="btn-primary">Save SEO Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Branding Settings Tab -->
+    <div id="tab-branding" class="tab-panel hidden">
+        <div class="card p-6">
+            <form action="{{ url_for('settings.save_branding') }}" method="POST" enctype="multipart/form-data"
+                class="space-y-5">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2">
+                        <label class="label">Site Name</label>
+                        <input type="text" name="site_name" value="{{ s.get('site_name', 'Contexta') }}"
+                            class="input-field" placeholder="Contexta" />
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="label">Site Logo</label>
+                        <div class="flex items-center gap-6">
+                            <div
+                                class="w-20 h-20 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden">
+                                {% if s.get('site_logo') %}
+                                <img src="{{ s.get('site_logo') }}" alt="Logo"
+                                    class="max-w-full max-h-full object-contain" />
+                                {% else %}
+                                <span class="text-slate-300 text-xs text-center px-1">No Logo</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <input type="file" name="site_logo" accept="image/*"
+                                    class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" />
+                                <p class="text-xs text-slate-400 mt-2">Recommended: Transparent PNG or SVG, square or
+                                    horizontal.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="btn-primary">Save Branding</button>
                 </div>
             </form>
         </div>

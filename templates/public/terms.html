@@ -1,0 +1,59 @@
+{% extends "public_base.html" %}
+{% block title %}Terms of Service — {{ Setting.get('site_name', 'Contexta') }}{% endblock %}
+
+{% block content %}
+<main class="flex-1 py-16 sm:py-24 bg-white dark:bg-slate-900">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-8">Terms of Service
+        </h1>
+
+        <div class="prose prose-slate dark:prose-invert max-w-none space-y-6 text-slate-600 dark:text-slate-400">
+            <p class="text-xs uppercase tracking-widest font-bold text-slate-400 mb-10">Last Updated: March 8, 2026</p>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">1. Introduction</h2>
+                <p>Welcome to {{ Setting.get('site_name', 'Contexta') }}. By accessing or using our platform, you agree
+                    to be bound by these Terms of Service. If you do not agree to these terms, please do not use our
+                    services.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">2. Description of Service</h2>
+                <p>{{ Setting.get('site_name', 'Contexta') }} provides AI-powered RSS to editorial content automation
+                    services. We reserve the right to modify or discontinue any part of the service at any time.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">3. User Accounts</h2>
+                <p>You are responsible for maintaining the confidentiality of your account credentials and for all
+                    activities that occur under your account. You must notify us immediately of any unauthorized use.
+                </p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">4. Subscription and Payments</h2>
+                <p>Subscriptions are billed in advance on a recurring basis. All payments are non-refundable unless
+                    required by law. You can cancel your subscription at any time through your account settings.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">5. Acceptable Use</h2>
+                <p>You agree not to use the service for any unlawful purpose or to generate content that violates the
+                    rights of others, including intellectual property rights.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">6. Limitation of Liability</h2>
+                <p>{{ Setting.get('site_name', 'Contexta') }} shall not be liable for any indirect, incidental, or
+                    consequential damages arising out of your use of the service.</p>
+            </section>
+
+            <section class="space-y-4">
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white">7. Governing Law</h2>
+                <p>These terms shall be governed by and construed in accordance with the laws of Kenya, without regard
+                    to its conflict of law principles.</p>
+            </section>
+        </div>
+    </div>
+</main>
+{% endblock %}

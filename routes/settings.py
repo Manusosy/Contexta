@@ -1,6 +1,8 @@
 """Settings routes."""
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+import os
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 from models import db, Setting
 from services.ai_service import list_available_models
 
@@ -16,7 +18,7 @@ def require_admin():
         return redirect(url_for("dashboard.index"))
 
 AI_KEYS = [
-    "ai_api_key", "ai_model", "ai_temperature", "ai_max_tokens",
+    "ai_api_key", "ai_model", "ai_trial_model", "ai_temperature", "ai_max_tokens",
     "ai_style_instructions", "ai_preserve_tone", "ai_avoid_generic",
     "ai_no_long_dashes", "ai_regional_insight",
 ]
@@ -122,3 +124,26 @@ def save_billing():
     flash("Billing configuration saved.", "success")
     # Redirect back to where they came from (Settings or Admin Pricing)
     return redirect(request.referrer or url_for("settings.index"))
+@settings_bp.route("/save-branding", methods=["POST"])
+@login_required
+def save_branding():
+    site_name = request.form.get("site_name")
+    if site_name:
+        Setting.set("site_name", site_name)
+    
+    if "site_logo" in request.files:
+        file = request.files["site_logo"]
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            # Ensure upload folder exists
+            upload_folder = os.path.join(current_app.static_folder, "uploads", "branding")
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            file_path = os.path.join(upload_folder, filename)
+            file.save(file_path)
+            
+            # Save the relative path for the frontend
+            Setting.set("site_logo", f"/static/uploads/branding/{filename}")
+            
+    flash("Branding settings updated.", "success")
+    return redirect(url_for("settings.index") + "#branding")

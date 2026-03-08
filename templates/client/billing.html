@@ -10,7 +10,7 @@
 
     {% if transactions %}
     <div
-        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="bg-slate-50 dark:bg-slate-700/50 text-xs text-slate-500 uppercase tracking-widest">
@@ -21,6 +21,7 @@
                         <th class="text-left px-6 py-3">Payment Method</th>
                         <th class="text-left px-6 py-3">Reference</th>
                         <th class="text-left px-6 py-3">Status</th>
+                        <th class="text-left px-6 py-3">Receipt</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
@@ -44,6 +45,16 @@
                                 {{ tx.status|title }}
                             </span>
                         </td>
+                        <td class="px-6 py-4">
+                            <a href="{{ url_for('client.receipt', tx_id=tx.id) }}"
+                                class="text-xs font-bold text-brand-600 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-300 inline-flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                                </svg>
+                                View
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -53,7 +64,7 @@
 
     {% else %}
     <div
-        class="bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 p-10 text-center">
+        class="bg-white dark:bg-slate-800 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 p-10 text-center">
         <div
             class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mx-auto mb-4">
             <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
