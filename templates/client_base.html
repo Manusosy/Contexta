@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}My Account{% endblock %} — Contexta</title>
+    <meta name="description" content="Contexta — Manage your subscription and account." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af' },
+                    }
+                }
+            }
+        }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+</head>
+
+<body class="min-h-screen font-sans bg-slate-50 text-slate-800 flex overflow-hidden"
+    x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', sidebarOpen: window.innerWidth >= 1024 }" x-init="
+        $watch('darkMode', val => localStorage.setItem('darkMode', val));
+        window.addEventListener('resize', () => { if (window.innerWidth >= 1024) sidebarOpen = true; else sidebarOpen = false; })
+    " :class="{ 'dark': darkMode }">
+
+    <!-- Mobile sidebar backdrop -->
+    <div x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
+        @click="sidebarOpen = false"></div>
+
+    <!-- Sidebar Aside -->
+    <aside :class="sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0 lg:w-20'"
+        class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 transform">
+
+        <!-- Logo Header -->
+        <div class="h-16 flex items-center px-4 border-b border-slate-100 dark:border-slate-800"
+            :class="sidebarOpen ? 'justify-between' : 'justify-center'">
+            <a href="{{ url_for('client.index') }}" class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shrink-0 shadow-sm">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <span x-show="sidebarOpen"
+                    class="text-lg font-bold text-slate-900 dark:text-white tracking-tight transition-opacity duration-300">Contexta</span>
+            </a>
+
+            <!-- Mobile Close Button -->
+            <button @click="sidebarOpen = false"
+                class="lg:hidden p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                x-show="sidebarOpen">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Navigation Menus -->
+        <nav class="flex-1 overflow-y-auto overflow-x-hidden p-3 space-y-1 mt-4 scrollbar-hide">
+
+            <p x-show="sidebarOpen"
+                class="px-3 mb-2 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                Dashboard</p>
+
+            <a href="{{ url_for('client.index') }}"
+                class="flex items-center gap-3 p-2.5 rounded-xl font-medium transition-all duration-200 group
+                {% if request.endpoint == 'client.index' %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+                {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100{% endif %}"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Home">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Home</span>
+            </a>
+
+            <a href="{{ url_for('client.feeds') }}"
+                class="flex items-center gap-3 p-2.5 rounded-xl font-medium transition-all duration-200 group
+                {% if 'feeds' in request.endpoint %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+                {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100{% endif %}"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="RSS Feeds">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">RSS Feeds</span>
+            </a>
+
+            <a href="{{ url_for('client.articles') }}"
+                class="flex items-center gap-3 p-2.5 rounded-xl font-medium transition-all duration-200 group
+                {% if 'articles' in request.endpoint %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+                {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100{% endif %}"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Articles">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-.586-1.414l-4.5-4.5A2 2 0 0012.586 3H12" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Articles</span>
+            </a>
+
+            <a href="{{ url_for('client.automation') }}"
+                class="flex items-center gap-3 p-2.5 rounded-xl font-medium transition-all duration-200 group
+                {% if 'automation' in request.endpoint %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+                {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100{% endif %}"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Automation">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Automation</span>
+            </a>
+
+            <div class="h-6"></div>
+            <p x-show="sidebarOpen"
+                class="px-3 mb-2 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                Account</p>
+
+            <a href="{{ url_for('client.subscription') }}"
+                class="flex items-center gap-3 p-2.5 rounded-xl font-medium transition-all duration-200 group
+                {% if 'subscription' in request.endpoint %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+                {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100{% endif %}"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Subscription">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Subscription</span>
+            </a>
+
+            <a href="{{ url_for('client.billing') }}"
+                class="flex items-center gap-3 p-2.5 rounded-xl font-medium transition-all duration-200 group
+                {% if 'billing' in request.endpoint %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+                {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100{% endif %}"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Billing">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Billing History</span>
+            </a>
+
+            <a href="{{ url_for('client.profile') }}"
+                class="flex items-center gap-3 p-2.5 rounded-xl font-medium transition-all duration-200 group
+                {% if 'profile' in request.endpoint %}bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+                {% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100{% endif %}"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Profile">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Profile Defaults</span>
+            </a>
+
+        </nav>
+
+        <!-- Bottom Actions (Logout & Admin Return) -->
+        <div class="p-3 border-t border-slate-100 dark:border-slate-800 space-y-1">
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('dashboard.index') }}"
+                class="flex items-center gap-3 p-2 rounded-xl text-amber-600 hover:bg-amber-50 dark:text-amber-500 dark:hover:bg-amber-900/20 transition-colors"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Admin Portal">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate font-medium text-sm">Return to Admin</span>
+            </a>
+            {% endif %}
+
+            <a href="{{ url_for('auth.logout') }}"
+                class="flex items-center gap-3 p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-800 dark:hover:text-red-400 transition-colors"
+                :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Logout">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span x-show="sidebarOpen" class="truncate font-medium text-sm">Log out</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'"
+        class="flex-1 flex flex-col h-screen transition-all duration-300 bg-slate-50 dark:bg-slate-900">
+
+        <!-- Header -->
+        <header
+            class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 shrink-0 z-20">
+            <!-- Left: Toggle & Breadcrumb -->
+            <div class="flex items-center gap-4">
+                <button @click="sidebarOpen = !sidebarOpen"
+                    class="p-2 -ml-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors focus:outline-none">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h7" />
+                    </svg>
+                </button>
+                <h1 class="text-lg font-semibold text-slate-800 dark:text-white capitalize hidden sm:block">{{
+                    self.title() }}</h1>
+            </div>
+
+            <!-- Right: Tools & Avatar -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <!-- Theme & Notes Setup same as before -->
+                <div class="flex items-center gap-2" x-data="{ 
+                    notesOpen: false, 
+                    notifications: [], 
+                    unreadCount: 0,
+                    async fetchNotes() {
+                        try {
+                            const res = await fetch('/portal/api/notifications');
+                            this.notifications = await res.json();
+                            this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+                        } catch(e) {}
+                    },
+                    async markRead() {
+                        await fetch('/portal/api/notifications/mark-read', { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token() }}' } });
+                        this.unreadCount = 0;
+                        this.notifications.forEach(n => n.is_read = true);
+                    }
+                }" x-init="fetchNotes(); setInterval(() => fetchNotes(), 60000)">
+
+                    <button @click="darkMode = !darkMode"
+                        class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors">
+                        <svg x-show="!darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                        <svg x-show="darkMode" class="w-5 h-5 hidden" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+
+                    <div class="relative">
+                        <button @click="notesOpen = !notesOpen; if(notesOpen) markRead()"
+                            class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors relative">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <span x-show="unreadCount > 0" x-text="unreadCount"
+                                class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white dark:ring-slate-900"></span>
+                        </button>
+                        <!-- Notes Dropdown -->
+                        <div x-show="notesOpen" @click.away="notesOpen = false" x-transition
+                            class="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-50">
+                            <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-700 flex justify-between">
+                                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase uppercase">
+                                    Notifications</h3>
+                            </div>
+                            <div class="max-h-64 overflow-y-auto">
+                                <template x-for="n in notifications" :key="n.id">
+                                    <div
+                                        class="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-50 dark:border-slate-700/50">
+                                        <p class="text-sm text-slate-700 dark:text-slate-300" x-text="n.message"></p>
+                                        <p class="text-[10px] text-slate-400 mt-1" x-text="n.created_at"></p>
+                                    </div>
+                                </template>
+                                <div x-show="notifications.length === 0"
+                                    class="px-4 py-8 text-center text-slate-400 text-sm">No notifications yet.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-px h-6 bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+
+                <div class="flex items-center gap-3 pl-1 sm:pl-2">
+                    <div
+                        class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 text-sm font-bold shadow-sm">
+                        {{ (current_user.full_name or current_user.email or '?')[0].upper() }}
+                    </div>
+                    <div class="hidden md:block text-left text-sm leading-tight">
+                        <p class="font-medium text-slate-900 dark:text-white">{{ current_user.full_name or 'User' }}</p>
+                        <p class="text-xs text-slate-500 truncate w-32">{{ current_user.email }}</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Scrollable Area -->
+        <div class="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-900 px-4 sm:px-6 py-8 relative">
+
+            <div class="max-w-6xl mx-auto w-full">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="mb-6 space-y-3 z-10 relative">
+                    {% for category, message in messages %}
+                    <div
+                        class="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium shadow-sm transition-colors
+                        {% if category == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800
+                        {% elif category == 'error' %}bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800
+                        {% else %}bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800{% endif %}">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" {% if
+                                    category=='success' %}d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" {% elif
+                                    category=='error' %}d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" {% else
+                                    %}d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" {% endif %} />
+                            </svg>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button onclick="this.parentElement.style.display='none'"
+                            class="p-1 hover:bg-black/5 rounded text-current opacity-70 hover:opacity-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Content Block -->
+                {% block content %}{% endblock %}
+
+                <!-- Footer inside main space -->
+                <footer
+                    class="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 pb-2 flex items-center justify-between text-xs text-slate-400 font-medium tracking-wide">
+                    <span>Contexta &copy; {{ now.year }}</span>
+                    <span class="font-mono text-slate-300 dark:text-slate-600">v{{ app_version }}</span>
+                </footer>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

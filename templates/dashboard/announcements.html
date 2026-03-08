@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Manage Announcements{% endblock %}
+
+{% block content %}
+<div class="space-y-8" x-data="{ showForm: false }">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Site-wide Announcements</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Create and manage broadcasts for the public
+                homepage and subscriber portal.</p>
+        </div>
+        <button @click="showForm = !showForm"
+            class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm flex items-center gap-2">
+            <svg x-show="!showForm" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            <svg x-show="showForm" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4" />
+            </svg>
+            <span x-text="showForm ? 'Cancel' : 'New Announcement'"></span>
+        </button>
+    </div>
+
+    <!-- Create Form -->
+    <div x-show="showForm" x-collapse
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 overflow-hidden">
+        <h2 class="text-base font-bold text-slate-900 dark:text-white mb-5 text-center">Broadcast New Message</h2>
+        <form method="POST" class="max-w-2xl mx-auto space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Announcement
+                        Title</label>
+                    <input type="text" name="title" required placeholder="e.g., Welcome to Contexta!"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Target
+                        Audience</label>
+                    <select name="target"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                        <option value="public">Public Homepage Only</option>
+                        <option value="client">Subscriber Portal Only</option>
+                        <option value="both" selected>Both (Global)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Full Message /
+                    Content</label>
+                <textarea name="content" rows="2" required
+                    placeholder="Keep it short and punchy for the header banner..."
+                    class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Call to Action
+                        (Text)</label>
+                    <input type="text" name="link_text" placeholder="e.g., Learn More &rarr;"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Action URL
+                        (Link)</label>
+                    <input type="text" name="link_url" placeholder="https://..."
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit"
+                    class="w-full px-4 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-all shadow-md">
+                    Publish Announcement
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- List -->
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 dark:bg-slate-700/30 border-b border-slate-200 dark:border-slate-700">
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Announcement</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        Target</th>
+                    <th
+                        class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                        Status</th>
+                    <th
+                        class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">
+                        Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                {% for a in announcements %}
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-900 dark:text-white">{{ a.title }}</div>
+                        <div class="text-xs text-slate-500 truncate max-w-md">{{ a.content }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400 capitalize">
+                        {{ a.target }}
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="toggleAnnouncement({{ a.id }}, this)"
+                            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold transition-all
+                            {{ 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' if a.is_active else 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400' }}">
+                            {{ 'Active' if a.is_active else 'Paused' }}
+                        </button>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button class="text-slate-400 hover:text-red-600 transition-colors p-1" title="Delete">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="px-6 py-12 text-center text-slate-400">
+                        <svg class="w-12 h-12 mx-auto mb-3 opacity-20" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                        </svg>
+                        <p>No announcements found.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    async function toggleAnnouncement(id, btn) {
+        try {
+            const response = await fetch(`/admin-portal/announcement/${id}/toggle`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                btn.textContent = data.is_active ? 'Active' : 'Paused';
+                const activeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+                const inactiveClass = 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400';
+                const baseClass = 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold transition-all';
+                btn.className = baseClass + ' ' + (data.is_active ? activeClass : inactiveClass);
+            }
+        } catch (err) {
+            console.error('Toggle failed:', err);
+        }
+    }
+</script>
+{% endblock %}

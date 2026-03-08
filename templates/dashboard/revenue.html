@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Revenue Analytics{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Revenue & Growth</h1>
+    <p class="text-slate-500 dark:text-slate-400">Monitor your MRR, ARR, and transaction history.</p>
+</div>
+
+<!-- Stats Overview -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Recurring Revenue</span>
+            <div class="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-emerald-600 dark:text-emerald-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+        <div class="text-3xl font-extrabold text-slate-900 dark:text-white">${{ "{:,.2f}".format(metrics.mrr) }}</div>
+        <div class="mt-2 text-xs font-bold text-emerald-600 flex items-center gap-1">
+            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 1L4 9h16l-8-8z" />
+            </svg>
+            <span>+12.5% vs last month</span>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Annual Recurring Revenue</span>
+            <div class="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 dark:text-brand-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="text-3xl font-extrabold text-slate-900 dark:text-white">${{ "{:,.2f}".format(metrics.arr) }}</div>
+        <div class="mt-2 text-xs font-bold text-slate-400">Projected yearly revenue</div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Subscribers</span>
+            <div class="p-2 bg-violet-50 dark:bg-violet-900/20 rounded-xl text-violet-600 dark:text-violet-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+        <div class="text-3xl font-extrabold text-slate-900 dark:text-white">{{ metrics.active_subscribers }}</div>
+        <div class="mt-2 text-xs font-bold text-brand-600">Total paying customers</div>
+    </div>
+</div>
+
+<!-- Transaction History -->
+<div
+    class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <h3 class="font-bold text-slate-900 dark:text-white">Recent Transactions</h3>
+        <button
+            class="text-xs font-bold text-brand-600 uppercase tracking-widest hover:text-brand-700 transition-colors">Export
+            Ledger</button>
+    </div>
+    <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+        <thead class="bg-slate-50 dark:bg-slate-900/50">
+            <tr>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">ID</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">User</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Amount</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Provider</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-800">
+            {% for tx in transactions %}
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-slate-400">#{{ tx.id }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900 dark:text-white">{{
+                    tx.user.username }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900 dark:text-white">${{
+                    "{:.2f}".format(tx.amount) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold 
+                        {% if tx.provider == 'paypal' %}bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400
+                        {% elif tx.provider == 'mpesa' %}bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400{% endif %}">
+                        {{ tx.provider.title() }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if tx.status == 'completed' %}
+                    <span class="text-emerald-600 flex items-center gap-1.5 text-xs font-bold">
+                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Completed
+                    </span>
+                    {% else %}
+                    <span class="text-slate-400 flex items-center gap-1.5 text-xs font-bold">
+                        <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div> {{ tx.status.title() }}
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                    {{ tx.created_at.strftime('%b %d, %H:%M') }}
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not transactions %}
+            <tr>
+                <td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">No transactions recorded yet.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

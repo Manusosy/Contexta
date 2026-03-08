@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header -->
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Settings</h1>
+        <p class="text-slate-500 text-sm mt-1">Configure your AI, WordPress, and SEO preferences.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-slate-200">
+        <nav class="flex gap-1 -mb-px" id="settings-tabs">
+            <button class="tab-btn active" data-tab="ai" onclick="switchTab('ai', this)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                AI Settings
+            </button>
+            <button class="tab-btn" data-tab="automation" onclick="switchTab('automation', this)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Automation
+            </button>
+            <button class="tab-btn" data-tab="wordpress" onclick="switchTab('wordpress', this)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+                WordPress
+            </button>
+            <button class="tab-btn" data-tab="seo" onclick="switchTab('seo', this)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                SEO
+            </button>
+        </nav>
+    </div>
+
+    <!-- AI Settings Tab -->
+    <div id="tab-ai" class="tab-panel">
+        <div class="card p-6">
+            <form action="{{ url_for('settings.save_ai') }}" method="POST" class="space-y-5">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2">
+                        <label class="label flex items-center justify-between">
+                            <span>OpenRouter API Key</span>
+                            {% if s.get('ai_api_key_status') == 'valid' %}
+                            <span
+                                class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Key
+                                Valid</span>
+                            {% elif s.get('ai_api_key_status') == 'invalid' %}
+                            <span
+                                class="text-rose-600 bg-rose-50 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Key
+                                Invalid</span>
+                            {% endif %}
+                        </label>
+                        <input type="password" name="ai_api_key" value="{{ s.get('ai_api_key', '') }}"
+                            class="input-field font-mono {% if s.get('ai_api_key', '').startswith('http') %}border-rose-500 bg-rose-50{% endif %}"
+                            placeholder="sk-or-v1-..." />
+                        {% if s.get('ai_api_key', '').startswith('http') %}
+                        <p class="text-xs text-rose-600 mt-1 font-semibold">⚠️ WARNING: Your API key looks like a URL.
+                            Please paste your actual 'sk-or-v1-...' key here.</p>
+                        {% endif %}
+                        <p class="text-xs text-slate-400 mt-1">Get your key at <a href="https://openrouter.ai"
+                                target="_blank" class="text-brand-600 hover:underline">openrouter.ai</a></p>
+                    </div>
+
+                    <div>
+                        <label class="label flex items-center justify-between">
+                            <span>AI Model</span>
+                            {% if fallback and s.get('ai_api_key') %}
+                            <span
+                                class="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded tracking-wider uppercase"
+                                title="Could not fetch latest models from OpenRouter. Showing default list.">Using
+                                Defaults</span>
+                            {% endif %}
+                        </label>
+                        <select name="ai_model" class="input-field">
+                            {% for model in models %}
+                            <option value="{{ model.id }}" {{ 'selected' if s.get('ai_model')==model.id }}>{{ model.name
+                                }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="label">Max Tokens</label>
+                        <input type="number" name="ai_max_tokens" value="{{ s.get('ai_max_tokens', '2000') }}"
+                            class="input-field" min="500" max="8000" step="100" />
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="label">Temperature
+                            <span class="text-slate-400 font-normal">({{ s.get('ai_temperature', '0.7') }})</span>
+                        </label>
+                        <input type="range" name="ai_temperature" id="temperature-slider"
+                            value="{{ s.get('ai_temperature', '0.7') }}" min="0" max="1" step="0.1"
+                            class="w-full accent-brand-600"
+                            oninput="this.previousElementSibling.querySelector('span').textContent = '(' + this.value + ')'" />
+                        <div class="flex justify-between text-xs text-slate-400 mt-1">
+                            <span>Conservative (0)</span><span>Creative (1)</span>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="label">Writing Style Instructions</label>
+                        <textarea name="ai_style_instructions" class="input-field resize-none h-24"
+                            placeholder="e.g. Write in a conversational but authoritative tone. Use short paragraphs.">{{ s.get('ai_style_instructions', '') }}</textarea>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-5">
+                    <p class="text-sm font-medium text-slate-700 mb-3">AI Behavior</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ai_preserve_tone" {{ 'checked' if
+                                s.get('ai_preserve_tone')=='true' }} class="toggle-input" />
+                            <span>Preserve original tone</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ai_avoid_generic" {{ 'checked' if
+                                s.get('ai_avoid_generic')=='true' }} class="toggle-input" />
+                            <span>Avoid generic AI phrasing</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ai_no_long_dashes" {{ 'checked' if
+                                s.get('ai_no_long_dashes')=='true' }} class="toggle-input" />
+                            <span>No long dashes (em dashes)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ai_regional_insight" {{ 'checked' if
+                                s.get('ai_regional_insight')=='true' }} class="toggle-input" />
+                            <span>Add regional insight</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="btn-primary">Save AI Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Automation Settings Tab -->
+    <div id="tab-automation" class="tab-panel hidden">
+        <div class="card p-6">
+            <form action="{{ url_for('settings.save_automation') }}" method="POST" class="space-y-5">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div>
+                        <label class="label">Articles Per Automation Run
+                            <span class="text-slate-400 font-normal text-xs ml-1">(1–10)</span>
+                        </label>
+                        <input type="number" name="ai_max_articles_per_run"
+                            value="{{ s.get('ai_max_articles_per_run', '1') }}" class="input-field" min="1" max="10"
+                            step="1" />
+                        <p class="text-xs text-slate-400 mt-1">How many pending articles the engine processes per run.
+                        </p>
+                    </div>
+
+                    <div></div>{# spacer #}
+
+                    <div>
+                        <label class="label">Minimum Word Count
+                            <span class="text-slate-400 font-normal text-xs ml-1">(min 350)</span>
+                        </label>
+                        <input type="number" name="ai_word_count_min" value="{{ s.get('ai_word_count_min', '350') }}"
+                            class="input-field" min="200" max="2000" step="50" />
+                        <p class="text-xs text-slate-400 mt-1">Articles shorter than this will fail verification.</p>
+                    </div>
+
+                    <div>
+                        <label class="label">Target Word Count
+                            <span class="text-slate-400 font-normal text-xs ml-1">(standard 600)</span>
+                        </label>
+                        <input type="number" name="ai_word_count_target"
+                            value="{{ s.get('ai_word_count_target', '600') }}" class="input-field" min="350" max="4000"
+                            step="50" />
+                        <p class="text-xs text-slate-400 mt-1">The AI will target this word count when drafting.</p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="label">Custom AI Prompt
+                            <span class="text-slate-400 font-normal text-xs ml-1">(optional)</span>
+                        </label>
+                        <textarea name="ai_custom_prompt" rows="5" class="input-field resize-y" placeholder="Optional. Add any extra editorial instructions here. Examples:
+- Focus on the business implications
+- Ensure a positive and constructive tone
+- Always end with a call to action paragraph">{{ s.get('ai_custom_prompt', '') }}</textarea>
+                        <p class="text-xs text-slate-400 mt-1">These instructions are appended to the internal AI system
+                            prompt for every article generated.</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-5">
+                    <p class="text-sm font-medium text-slate-700 mb-3">Pre-Publish Verification</p>
+                    <div class="space-y-3">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="wp_verify_publish" {{ 'checked' if
+                                s.get('wp_verify_publish', 'true' )=='true' }} class="toggle-input" />
+                            <div>
+                                <span class="block">Enforce Pre-Publish Verification</span>
+                                <span class="text-xs text-slate-400">Before pushing to WordPress, the system checks that
+                                    every article has a title (H1), meta description, slug, and meets the minimum word
+                                    count. Articles that fail are marked <code
+                                        class="bg-rose-50 text-rose-600 px-1 rounded">failed_verification</code> and NOT
+                                    published.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="btn-primary">Save Automation Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- WordPress Settings Tab -->
+    <div id="tab-wordpress" class="tab-panel hidden">
+        <div class="card p-6">
+            <form action="{{ url_for('settings.save_wordpress') }}" method="POST" class="space-y-5">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="md:col-span-2">
+                        <label class="label">WordPress Site URL</label>
+                        <input type="url" name="wp_url" value="{{ s.get('wp_url', '') }}" class="input-field"
+                            placeholder="https://yoursite.com" />
+                    </div>
+
+                    <div>
+                        <label class="label">Username</label>
+                        <input type="text" name="wp_user" value="{{ s.get('wp_user', '') }}" class="input-field"
+                            placeholder="admin" />
+                    </div>
+
+                    <div>
+                        <label class="label">Application Password</label>
+                        <input type="password" name="wp_password" value="{{ s.get('wp_password', '') }}"
+                            class="input-field" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" />
+                        <p class="text-xs text-slate-400 mt-1">Generate in WP Admin → Users → Application Passwords</p>
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="label">Default Category</label>
+                        <div class="flex items-center gap-3">
+                            <select name="wp_default_category" id="wp_default_category" class="input-field max-w-xs">
+                                <option value="{{ s.get('wp_default_category', '1') }}">ID: {{
+                                    s.get('wp_default_category', '1') }}</option>
+                            </select>
+                            <button type="button" onclick="fetchWPCategories()" id="fetch-cats-btn"
+                                class="btn-secondary py-2">
+                                Fetch Categories
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">Categories are fetched dynamically from your WordPress
+                            installation.</p>
+                        <div id="cats-status" class="hidden text-xs mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- Test Connection -->
+                <div class="bg-slate-50 rounded-lg p-4 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-slate-700">Test Connection</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Verify your WordPress credentials before saving.</p>
+                    </div>
+                    <button type="button" onclick="testWPConnection()" id="test-wp-btn"
+                        class="btn-secondary whitespace-nowrap flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Test Connection
+                    </button>
+                </div>
+                <div id="wp-test-result" class="hidden"></div>
+
+                <!-- Verification Toggle -->
+                <div class="border-t border-slate-100 pt-5">
+                    <p class="text-sm font-medium text-slate-700 mb-3">Publishing</p>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="wp_verify_publish" {{ 'checked' if
+                            s.get('wp_verify_publish', 'true' )=='true' }} class="toggle-input" />
+                        <div>
+                            <span class="block">Require Pre-Publish Verification</span>
+                            <span class="text-xs text-slate-400">Only push articles that pass the verification check
+                                (title, meta, slug, word count).</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="btn-primary">Save WordPress Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SEO Settings Tab -->
+    <div id="tab-seo" class="tab-panel hidden">
+        <div class="card p-6">
+            <form action="{{ url_for('settings.save_seo') }}" method="POST" class="space-y-5">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="label">Default Meta Description Length</label>
+                        <input type="number" name="seo_meta_length" value="{{ s.get('seo_meta_length', '160') }}"
+                            class="input-field" min="100" max="300" />
+                        <p class="text-xs text-slate-400 mt-1">Recommended: 140–160 characters</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-5 space-y-3">
+                    <p class="text-sm font-medium text-slate-700">SEO Features</p>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="seo_faq_schema" {{ 'checked' if s.get('seo_faq_schema')=='true' }}
+                            class="toggle-input" />
+                        <div>
+                            <span class="block">Enable FAQ Schema</span>
+                            <span class="text-xs text-slate-400">Generate FAQ structured data markup</span>
+                        </div>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="seo_auto_slug" {{ 'checked' if s.get('seo_auto_slug', 'true'
+                            )=='true' }} class="toggle-input" />
+                        <div>
+                            <span class="block">Auto-generate URL Slug</span>
+                            <span class="text-xs text-slate-400">Automatically create SEO-friendly slugs from
+                                title</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="btn-primary">Save SEO Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function switchTab(tab, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.remove('hidden');
+        btn.classList.add('active');
+        window.location.hash = tab;
+    }
+
+    // Activate tab from URL hash
+    window.addEventListener('DOMContentLoaded', () => {
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+            const btn = document.querySelector(`.tab-btn[data-tab="${hash}"]`);
+            if (btn) switchTab(hash, btn);
+        }
+    });
+
+    async function testWPConnection() {
+        const btn = document.getElementById('test-wp-btn');
+        const result = document.getElementById('wp-test-result');
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Testing...';
+
+        try {
+            const res = await fetch('/api/test-wp', { method: 'POST' });
+            const data = await res.json();
+            result.classList.remove('hidden');
+            if (data.success) {
+                result.innerHTML = `<div class="flash flash-success">✓ Connected successfully! Logged in as: <strong>${data.user}</strong></div>`;
+            } else {
+                result.innerHTML = `<div class="flash flash-error">✗ Connection failed: ${data.error}</div>`;
+            }
+        } catch (e) {
+            result.classList.remove('hidden');
+            result.innerHTML = `<div class="flash flash-error">✗ Network error: ${e.message}</div>`;
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Test Connection';
+    }
+
+    async function fetchWPCategories() {
+        const btn = document.getElementById('fetch-cats-btn');
+        const select = document.getElementById('wp_default_category');
+        const status = document.getElementById('cats-status');
+        const currentVal = select.value;
+
+        btn.disabled = true;
+        btn.innerHTML = 'Fetching...';
+        status.classList.remove('hidden');
+        status.innerHTML = '<span class="text-slate-500">Connecting to WordPress...</span>';
+
+        try {
+            const res = await fetch('/api/wp-categories');
+            const data = await res.json();
+
+            if (data.success && data.categories) {
+                select.innerHTML = '';
+                data.categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.name;
+                    if (cat.id == currentVal) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+                status.innerHTML = `<span class="text-emerald-600">✓ Loaded ${data.categories.length} categories</span>`;
+            } else {
+                status.innerHTML = `<span class="text-rose-600">✗ Failed: ${data.error}</span>`;
+            }
+        } catch (e) {
+            status.innerHTML = `<span class="text-rose-600">✗ Network error: ${e.message}</span>`;
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = 'Refresh Categories';
+    }
+</script>
+{% endblock %}

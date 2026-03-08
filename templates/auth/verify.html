@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify Email — Contexta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="min-h-screen font-sans bg-slate-50 text-slate-800 flex items-center justify-center p-4"
+    x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" :class="{ 'dark': darkMode }">
+
+    <div class="fixed inset-0 -z-10 bg-slate-50 dark:bg-slate-900 overflow-hidden">
+        <div
+            class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%233b82f6\' fill-opacity=\'0.05\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50 dark:opacity-20">
+        </div>
+    </div>
+
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="flex justify-center mb-8">
+            <a href="/" class="flex items-center gap-3 group">
+                <div
+                    class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/30">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Contexta</span>
+            </a>
+        </div>
+
+        <div
+            class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-800 p-8">
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white text-center mb-2">Verify Your Email</h1>
+            <p class="text-sm text-slate-600 dark:text-slate-400 text-center mb-8">
+                We've sent a 6-digit verification code to your email. Enter it below to activate your account.
+                {% if current_user.verification_code %}
+                <br><span class="text-xs text-brand-500 mt-2 block font-mono">Simulated System: Code is {{
+                    current_user.verification_code }}</span>
+                {% endif %}
+            </p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div
+                class="mb-6 p-4 rounded-xl text-sm font-medium {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                <div>
+                    <label for="code" class="sr-only">Verification Code</label>
+                    <input type="text" id="code" name="code" required
+                        class="w-full text-center tracking-[0.5em] font-mono text-2xl py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                        placeholder="••••••" maxlength="6" autocomplete="one-time-code">
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-500/30 transition-all focus:ring-4 focus:ring-brand-500/20">
+                    Verify Account
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Didn't receive the code?
+                    <a href="{{ url_for('auth.resend_verification') }}"
+                        class="font-semibold text-brand-600 dark:text-brand-400 hover:underline">Resend
+                        email</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

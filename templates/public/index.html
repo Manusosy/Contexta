@@ -1,0 +1,287 @@
+{% extends "public_base.html" %}
+
+{% block title %}Contexta — AI Editorial Automation{% endblock %}
+
+{% block content %}
+
+<!-- Navigation Header -->
+<header
+    class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16 sm:h-20">
+            <!-- Logo -->
+            <div class="flex-shrink-0 flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Contexta</span>
+            </div>
+
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex flex-1 justify-center space-x-8">
+                <a href="#features"
+                    class="text-sm font-medium tracking-wide text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Features</a>
+                <a href="#how-it-works"
+                    class="text-sm font-medium tracking-wide text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">How
+                    it Works</a>
+                <a href="#pricing"
+                    class="text-sm font-medium tracking-wide text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Pricing</a>
+            </nav>
+
+            <!-- Auth Buttons -->
+            <div class="hidden sm:flex items-center gap-4">
+                <a href="{{ url_for('auth.login') }}"
+                    class="text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Log
+                    in</a>
+                <a href="{{ url_for('auth.register') }}"
+                    class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 transition-all hover:shadow-brand-500/25 cursor-pointer">
+                    Get Started
+                </a>
+            </div>
+
+            <!-- Mobile menu button -->
+            <div class="flex sm:hidden">
+                <a href="{{ url_for('auth.register') }}"
+                    class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 mr-2">
+                    Start
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<main class="flex-1 pt-20">
+    <div class="relative pt-24 pb-20 sm:pt-32 sm:pb-24 lg:pb-32 overflow-hidden">
+
+        <!-- Abstract gradient background -->
+        <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80 pointer-events-none"
+            aria-hidden="true">
+            <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
+                style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)">
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <div class="mx-auto max-w-3xl">
+                <!-- Badge -->
+                <div class="mb-8 flex justify-center">
+                    <span
+                        class="relative rounded-full px-3 py-1.5 text-xs font-semibold leading-6 text-brand-600 dark:text-brand-400 ring-1 ring-inset ring-brand-600/20 dark:ring-brand-500/20 bg-brand-50 dark:bg-brand-900/10 backdrop-blur-sm">
+                        Enterprise Grade. AI Powered.
+                    </span>
+                </div>
+
+                <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-8">
+                    Turn raw feeds into <span
+                        class="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-indigo-600">curated
+                        editorial</span> content.
+                </h1>
+
+                <p
+                    class="text-lg sm:text-xl text-slate-600 dark:text-slate-300 mb-10 leading-relaxed max-w-2xl mx-auto">
+                    Contexta automatically monitors your RSS pipelines, drafts rich, SEO-optimized articles, applies
+                    structured data, and publishes directly to your CMS.
+                </p>
+
+                <div class="mt-10 flex items-center justify-center gap-x-6">
+                    <a href="{{ url_for('auth.register') }}"
+                        class="rounded-xl bg-brand-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg hover:bg-brand-500 hover:shadow-brand-500/30 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600">
+                        Start your workspace
+                    </a>
+                    <a href="#features"
+                        class="text-base font-semibold leading-6 text-slate-900 dark:text-white hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                        Learn more <span aria-hidden="true" class="ml-1">→</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Dashboard Preview Image mock -->
+            <div class="mt-20 sm:mt-24 lg:mt-28 relative max-w-5xl mx-auto">
+                <div class="rounded-2xl bg-white/5 p-2 ring-1 ring-white/10 ring-inset shadow-2xl backdrop-blur-xl">
+                    <div
+                        class="rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full aspect-video shadow-inner overflow-hidden flex flex-col items-center justify-center relative">
+                        <!-- Simulated Dashboard UI Graphic -->
+                        <div
+                            class="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-[#0b1121]">
+                        </div>
+                        <!-- UI Wireframes elements -->
+                        <div
+                            class="absolute top-0 left-0 bottom-0 w-48 border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 hidden md:block">
+                        </div>
+                        <div
+                            class="absolute top-0 left-0 right-0 h-12 border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
+                        </div>
+                        <div
+                            class="relative z-10 p-8 rounded-lg border border-brand-500/30 bg-brand-50/50 dark:bg-brand-900/20 backdrop-blur w-3/4 shadow-lg flex items-center gap-4">
+                            <div
+                                class="w-10 h-10 rounded-full border-2 border-brand-500 border-t-transparent animate-spin">
+                            </div>
+                            <div class="text-left">
+                                <span class="block text-sm font-bold text-slate-800 dark:text-slate-200">Article
+                                    generation in progress...</span>
+                                <span class="block text-xs text-slate-500 dark:text-slate-400">Contexta AI Engine</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom gradient -->
+        <div class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)] pointer-events-none"
+            aria-hidden="true">
+            <div class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
+                style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)">
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Features Section -->
+<section id="features" class="py-24 bg-white dark:bg-slate-900 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-base font-bold tracking-wide text-brand-600 dark:text-brand-400 uppercase mb-3">Enterprise
+                Standard</h2>
+            <p
+                class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl text-balance">
+                Everything you need to run an automated newsroom.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14">
+
+            <!-- Feature 1 -->
+            <div class="flex flex-col">
+                <div
+                    class="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 text-indigo-600 dark:text-indigo-400">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Automated Aggregation</h3>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">Connect limitless RSS feeds. Our
+                    engine pulls, deduplicates via URL normalization, and intelligently parses dense raw articles to
+                    extract pure facts.</p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="flex flex-col">
+                <div
+                    class="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800/30 text-brand-600 dark:text-brand-400">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Bring Your Own AI Key</h3>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">Plug in your OpenRouter API key.
+                    Configure custom prompts, parameters, and style restraints while bypassing aggressive platform
+                    markups.</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="flex flex-col">
+                <div
+                    class="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 text-emerald-600 dark:text-emerald-400">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">End-to-End Publishing</h3>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">Once generated, validated
+                    narratives are seamlessly pushed to connected WordPress sites mapped to accurate dynamic categories.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="py-24 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-base font-bold tracking-wide text-brand-600 dark:text-brand-400 uppercase mb-3">Pricing</h2>
+            <p
+                class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl text-balance">
+                Transparent and Self-Hosted
+            </p>
+            <p class="mt-4 text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                Contexta provides a lifetime license model to own the pipeline on your own hardware. Zero recurring
+                fees.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            {% for tier in tiers %}
+            <div
+                class="mx-auto w-full bg-white dark:bg-slate-800 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none dark:border dark:border-slate-700 p-8 sm:p-10 ring-1 ring-slate-200 dark:ring-slate-700 text-center relative overflow-hidden flex flex-col">
+                <!-- Decorative corner -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-brand-50 dark:bg-brand-900/20 rounded-bl-[100px] -z-10">
+                </div>
+
+                <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">{{ tier.name }}</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">{{ tier.interval.capitalize() }} access.</p>
+
+                <div class="flex items-baseline justify-center gap-x-2 mb-8">
+                    <span class="text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">{% if currency
+                        == 'EUR' %}€{% elif currency == 'KES' %}Sh{% else %}${% endif %}{{
+                        "{:0,.0f}".format(tier.price) }}</span>
+                    <span class="text-sm font-semibold leading-6 tracking-wide text-slate-500 dark:text-slate-400">/
+                        {{ tier.interval }}</span>
+                </div>
+
+                <ul class="space-y-4 mb-10 text-left text-sm text-slate-600 dark:text-slate-300 flex-1">
+                    {% for feature in tier.features %}
+                    <li class="flex items-center gap-3">
+                        <svg class="h-6 w-5 flex-none text-brand-600 dark:text-brand-400" viewBox="0 0 20 20"
+                            fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        {{ feature.feature_text }}
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <a href="{{ url_for('auth.register', tier=tier.id) }}"
+                    class="block w-full rounded-xl bg-brand-600 px-3 py-3.5 text-center text-sm font-semibold text-white shadow hover:bg-brand-500 focus-visible:outline transition-colors">Buy
+                    License</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-white dark:bg-slate-900 py-12 border-t border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-between gap-6 sm:flex-row">
+        <div class="flex items-center gap-3 opacity-80">
+            <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span class="text-sm font-bold text-slate-900 dark:text-white">Contexta</span>
+        </div>
+        <p class="text-sm text-slate-500 dark:text-slate-400">&copy; {{ now.year }} Contexta. All rights reserved.</p>
+        <div class="flex gap-4">
+            <a href="#" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">Terms</a>
+            <a href="#" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">Privacy</a>
+        </div>
+    </div>
+</footer>
+
+{% endblock %}

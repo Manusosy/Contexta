@@ -1,0 +1,520 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
+        <p class="text-slate-500 text-sm mt-1">Overview of your editorial automation pipeline.</p>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="stat-card">
+            <div class="stat-icon bg-blue-50 text-blue-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z" />
+                </svg>
+            </div>
+            <div>
+                <p class="stat-number">{{ total_feeds }}</p>
+                <p class="stat-label">RSS Feeds</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-violet-50 text-violet-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            <div>
+                <p class="stat-number">{{ queued_articles }}</p>
+                <p class="stat-label">Pending Queue</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-emerald-50 text-emerald-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+            </div>
+            <div>
+                <p class="stat-number">{{ total_articles }}</p>
+                <p class="stat-label">Total Articles</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-amber-50 text-amber-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+            </div>
+            <div>
+                <p class="stat-number text-sm font-semibold truncate max-w-[120px]" title="{{ active_model }}">{{
+                    active_model.split('/')[-1] }}</p>
+                <p class="stat-label">Active AI Model</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Automation Engine & Recent Activity -->
+    <div class="space-y-6">
+
+        <!-- Automation Engine & Recent Activity -->
+        <div class="space-y-6">
+
+            <!-- Automation Engine -->
+            <div
+                class="card p-6 border-slate-200/60 shadow-sm hover:shadow-md transition-shadow bg-white/50 backdrop-blur-sm">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <!-- Left Description -->
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600 shrink-0">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900">Automation Engine</h2>
+                            <p class="text-slate-500 text-sm mt-0.5">Control content generation pipeline</p>
+                        </div>
+                    </div>
+
+                    <!-- Processing Indicator (Live) -->
+                    <div id="processing-indicator"
+                        class="hidden flex items-center gap-3 px-4 py-2 bg-brand-50 rounded-lg border border-brand-100">
+                        <div class="flex space-x-1">
+                            <div class="w-1.5 h-1.5 bg-brand-600 rounded-full animate-bounce"
+                                style="animation-delay: 0s"></div>
+                            <div class="w-1.5 h-1.5 bg-brand-600 rounded-full animate-bounce"
+                                style="animation-delay: 0.2s"></div>
+                            <div class="w-1.5 h-1.5 bg-brand-600 rounded-full animate-bounce"
+                                style="animation-delay: 0.4s"></div>
+                        </div>
+                        <span class="text-xs font-semibold text-brand-700">Writing: <span id="current-processing-title"
+                                class="italic">Analyzing sources...</span></span>
+                    </div>
+
+                    <!-- Right Controls -->
+                    <div class="flex flex-wrap items-center gap-4">
+                        <!-- Run Button -->
+                        <button id="run-btn" onclick="runAutomation()"
+                            class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-6 py-2.5 flex items-center gap-2 transform active:scale-95 transition-all shadow-lg shadow-brand-500/20">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            </svg>
+                            <span id="run-btn-text">Run Automation Now</span>
+                        </button>
+
+                        <div class="h-8 w-px bg-slate-200 hidden md:block mx-1"></div>
+
+                        <!-- Schedule toggle -->
+                        <div class="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="schedule-toggle" {{ 'checked' if schedule_enabled else '' }}
+                                    onchange="toggleSchedule()" class="toggle-input shrink-0" />
+                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Scheduled</span>
+                            </label>
+
+                            <select id="frequency-select" onchange="toggleSchedule()"
+                                class="bg-transparent text-slate-700 border-0 py-0 pl-1 pr-7 rounded-md text-sm font-medium focus:ring-0 cursor-pointer">
+                                <option value="15" {{ 'selected' if schedule_frequency=='15' }}>15m</option>
+                                <option value="30" {{ 'selected' if schedule_frequency=='30' }}>30m</option>
+                                <option value="60" {{ 'selected' if schedule_frequency=='60' }}>1h</option>
+                                <option value="180" {{ 'selected' if schedule_frequency=='180' }}>3h</option>
+                            </select>
+                        </div>
+
+                        <!-- Status Badge (Hidden, managed in top navbar) -->
+                        <div class="flex items-center gap-2">
+                            <div id="engine-status-badge-container" class="hidden">
+                                <div id="status-dot-dashboard"></div>
+                                <span id="engine-status-badge">{{ automation_status | title }}</span>
+                            </div>
+                            <!-- Force Reset Button -->
+                            <button id="force-reset-btn" onclick="resetAutomation()"
+                                class="hidden text-xs font-semibold px-2 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
+                                title="Force reset if stuck">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="p-6 pb-2 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold font-serif text-slate-900">Recent Activity</h2>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <!-- Bulk Actions (Hidden by default) -->
+                        <div id="bulk-actions" class="hidden flex items-center gap-2">
+                            <span id="selected-count"
+                                class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded">0
+                                selected</span>
+                            <button onclick="bulkDelete()"
+                                class="text-xs font-medium text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-md transition-colors flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Delete Selected
+                            </button>
+                        </div>
+                        <a href="{{ url_for('articles.index') }}"
+                            class="text-xs text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap">View all
+                            &rarr;</a>
+                    </div>
+                </div>
+
+                {% if recent_articles %}
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="w-10 text-center px-4">
+                                    <input type="checkbox" id="master-checkbox"
+                                        class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                                        onchange="toggleAllCheckboxes(this)">
+                                </th>
+                                <th>Title</th>
+                                <th>Source Feed</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="articles-tbody">
+                            {% for article in recent_articles %}
+                            <tr class="group hover:bg-slate-50/50 transition-colors" data-article-id="{{ article.id }}">
+                                <td class="text-center px-4 w-10">
+                                    <input type="checkbox"
+                                        class="article-checkbox rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                                        value="{{ article.id }}" onchange="updateBulkActions()">
+                                </td>
+                                <td class="max-w-xs">
+                                    <a href="{{ url_for('articles.view', article_id=article.id) }}"
+                                        class="block truncate font-medium text-slate-800 hover:text-brand-600 transition-colors"
+                                        title="{{ article.generated_title or article.original_title }}">
+                                        {{ (article.generated_title or article.original_title or 'Untitled')[:55] }}{%
+                                        if
+                                        (article.generated_title or article.original_title or '')|length > 55 %}…{%
+                                        endif %}
+                                    </a>
+                                </td>
+                                <td class="text-slate-500 text-xs">{{ article.feed.name if article.feed else '—' }}</td>
+                                <td>
+                                    {% if article.status == 'generated' %}<span
+                                        class="badge badge-blue">Generated</span>
+                                    {% elif article.status == 'pushed' %}<span class="badge badge-green">Pushed</span>
+                                    {% elif article.status == 'failed' %}<span class="badge badge-red">Failed</span>
+                                    {% else %}<span class="badge badge-gray">Pending</span>{% endif %}
+                                </td>
+                                <td class="text-slate-400 text-xs whitespace-nowrap">{{ article.created_at.strftime('%b
+                                    %d,
+                                    %Y') }}</td>
+                                <td class="text-right">
+                                    <a href="{{ url_for('articles.view', article_id=article.id) }}"
+                                        class="text-brand-600 hover:text-brand-800 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state py-12">
+                    <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="text-slate-400 text-sm">No articles yet. Add RSS feeds and run automation.</p>
+                    <a href="{{ url_for('feeds.index') }}"
+                        class="btn-primary mt-4 inline-flex items-center gap-2 text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Your First Feed
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        {% if recent_logs %}
+        <div class="card w-full">
+            <div class="card-header pb-3 flex items-center justify-between border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2 class="card-title">Activity Log</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex bg-slate-100 rounded-lg p-1">
+                        <button onclick="filterLogs('all')" id="log-filter-all"
+                            class="text-xs font-medium px-3 py-1 rounded bg-white text-slate-800 shadow-sm transition-all">All</button>
+                        <button onclick="filterLogs('error')" id="log-filter-error"
+                            class="text-xs font-medium px-3 py-1 rounded text-slate-500 hover:text-slate-700 transition-all">Error</button>
+                        <button onclick="filterLogs('success')" id="log-filter-success"
+                            class="text-xs font-medium px-3 py-1 rounded text-slate-500 hover:text-slate-700 transition-all">Success</button>
+                    </div>
+                    <div class="w-px h-4 bg-slate-200"></div>
+                    <button onclick="clearLogs()"
+                        class="text-xs font-medium text-rose-500 hover:text-rose-600 transition-colors px-2">Clear
+                        All</button>
+                </div>
+            </div>
+            <div class="p-5 space-y-2 max-h-64 overflow-y-auto" id="logs-container">
+                {% for log in recent_logs %}
+                <div class="log-entry flex items-start gap-3 text-sm py-1.5 border-b border-slate-50 last:border-0"
+                    data-type="{{ 'error' if log.status in ['error', 'warning', 'failed'] else 'success' }}">
+                    <span class="log-dot log-{{ log.status }} flex-shrink-0 mt-1.5"></span>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-slate-700">{{ log.action }}</span>
+                        {% if log.message %}<span class="text-slate-400 text-xs ml-2">{{ log.message[:80] }}</span>{%
+                        endif
+                        %}
+                    </div>
+                    <span class="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">{{
+                        log.timestamp.strftime('%H:%M:%S') }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <script>
+        function filterLogs(type) {
+            ['all', 'error', 'success'].forEach(t => {
+                const btn = document.getElementById('log-filter-' + t);
+                if (t === type) {
+                    btn.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+                    btn.classList.remove('text-slate-500');
+                } else {
+                    btn.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
+                    btn.classList.add('text-slate-500');
+                }
+            });
+
+            const logs = document.querySelectorAll('.log-entry');
+            logs.forEach(log => {
+                if (type === 'all' || log.dataset.type === type) {
+                    log.style.display = 'flex';
+                } else {
+                    log.style.display = 'none';
+                }
+            });
+        }
+
+        async function clearLogs() {
+            if (!confirm('Are you sure you want to clear all logs?')) return;
+            try {
+                const res = await fetch('/api/logs/clear', { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Failed to clear logs.');
+                }
+            } catch (e) {
+                alert('Network error.');
+            }
+        }
+
+        async function runAutomation() {
+            const btn = document.getElementById('run-btn');
+            const btnText = document.getElementById('run-btn-text');
+            const autoPush = false;
+
+            btn.disabled = true;
+            btnText.textContent = 'Starting...';
+            updateStatusBadge('running');
+
+            try {
+                const res = await fetch('/api/run-automation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ auto_push: autoPush })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    btnText.textContent = 'Running in background...';
+                    // Poll status every 3 seconds
+                    pollStatus();
+                } else {
+                    btnText.textContent = 'Run Automation Now';
+                    btn.disabled = false;
+                    alert(data.error || 'Failed to start automation.');
+                }
+            } catch (e) {
+                btnText.textContent = 'Run Automation Now';
+                btn.disabled = false;
+                alert('Network error. Try again.');
+            }
+        }
+
+        function updateStatusBadge(status) {
+            const badge = document.getElementById('engine-status-badge');
+            const dot = document.getElementById('status-dot-dashboard');
+            if (!badge) return;
+
+            badge.textContent = status.toUpperCase();
+
+            // Reset classes
+            badge.className = 'text-xs font-bold uppercase tracking-tighter';
+            dot.className = 'w-2 h-2 rounded-full';
+
+            if (status === 'running') {
+                badge.classList.add('text-brand-600');
+                dot.classList.add('bg-brand-500', 'animate-pulse');
+                document.getElementById('processing-indicator').classList.remove('hidden');
+                document.getElementById('force-reset-btn').classList.remove('hidden');
+            } else if (status === 'failed') {
+                badge.classList.add('text-rose-600');
+                dot.classList.add('bg-rose-500');
+                document.getElementById('processing-indicator').classList.add('hidden');
+                document.getElementById('force-reset-btn').classList.add('hidden');
+            } else {
+                badge.classList.add('text-slate-600');
+                dot.classList.add('bg-slate-400');
+                document.getElementById('processing-indicator').classList.add('hidden');
+                document.getElementById('force-reset-btn').classList.add('hidden');
+            }
+        }
+
+        async function resetAutomation() {
+            if (!confirm('Are you sure you want to force reset the automation status? Use this only if the engine is stuck for a long time.')) return;
+            try {
+                const res = await fetch('/api/reset-automation', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Automation status reset to idle.');
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Failed to reset.');
+                }
+            } catch (e) {
+                alert('Network error.');
+            }
+        }
+
+        let pollInterval = null;
+        function pollStatus() {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch('/api/status');
+                    const data = await res.json();
+                    updateStatusBadge(data.status);
+
+                    if (data.current_article) {
+                        document.getElementById('current-processing-title').textContent = data.current_article;
+                    }
+
+                    if (data.status !== 'running') {
+                        clearInterval(pollInterval);
+                        const btn = document.getElementById('run-btn');
+                        const btnText = document.getElementById('run-btn-text');
+                        btn.disabled = false;
+                        btnText.textContent = 'Run Automation Now';
+                        // Optional: Refresh table if new articles generated
+                        // location.reload(); 
+                    }
+                } catch (e) { }
+            }, 2000);
+        }
+
+        async function toggleSchedule() {
+            const enabled = document.getElementById('schedule-toggle').checked;
+            const frequency = document.getElementById('frequency-select').value;
+            try {
+                await fetch('/api/toggle-schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled, frequency: parseInt(frequency) })
+                });
+            } catch (e) { }
+        }
+
+        // Bulk Actions Javascript
+        function toggleAllCheckboxes(masterCheckbox) {
+            const checkboxes = document.querySelectorAll('.article-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = masterCheckbox.checked;
+            });
+            updateBulkActions();
+        }
+
+        function updateBulkActions() {
+            const checkboxes = document.querySelectorAll('.article-checkbox:checked');
+            const bulkDiv = document.getElementById('bulk-actions');
+            const countSpan = document.getElementById('selected-count');
+            const masterCheckbox = document.getElementById('master-checkbox');
+
+            const totalCheckboxes = document.querySelectorAll('.article-checkbox').length;
+
+            if (checkboxes.length > 0) {
+                bulkDiv.classList.remove('hidden');
+                countSpan.textContent = `${checkboxes.length} selected`;
+
+                // Check master if all are checked, otherwise uncheck or indeterminate
+                masterCheckbox.checked = checkboxes.length === totalCheckboxes;
+                masterCheckbox.indeterminate = checkboxes.length > 0 && checkboxes.length < totalCheckboxes;
+            } else {
+                bulkDiv.classList.add('hidden');
+                masterCheckbox.checked = false;
+                masterCheckbox.indeterminate = false;
+            }
+        }
+
+        async function bulkDelete() {
+            const checkboxes = document.querySelectorAll('.article-checkbox:checked');
+            if (checkboxes.length === 0) return;
+
+            if (!confirm(`Are you sure you want to delete ${checkboxes.length} article(s)?`)) return;
+
+            const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            try {
+                const res = await fetch('/api/articles/bulk-delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    // Remove elements from DOM or just reload
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Failed to delete articles.');
+                }
+            } catch (e) {
+                alert('Network error. Try again.');
+            }
+        }
+    </script>
+    {% endblock %}

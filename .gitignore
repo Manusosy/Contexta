@@ -1,0 +1,18 @@
+# Python virtual environment
+venv/
+
+# Cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables
+.env
+
+# Database
+contexta.db
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store

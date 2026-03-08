@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+{% block title %}Articles{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Articles</h1>
+            <p class="text-slate-500 text-sm mt-1">{{ pagination.total }} article{{ 's' if pagination.total != 1 }}
+                total.</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <form action="{{ url_for('articles.index') }}" method="GET" class="relative">
+                <input type="hidden" name="status" value="{{ current_status }}">
+                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search articles..."
+                    class="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+            </form>
+            <div id="bulk-actions"
+                class="hidden flex items-center gap-3 animate-in fade-in slide-in-from-right-4 duration-300">
+                <span class="text-sm font-medium text-slate-500"><span id="selected-count">0</span> selected</span>
+                <button onclick="bulkDelete()"
+                    class="btn-secondary text-red-600 bg-red-50 hover:bg-red-100 border-red-200 py-2 px-4 text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete Selected
+                </button>
+            </div>
+
+            <div class="relative group">
+                <button class="btn-secondary py-2 px-4 text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div
+                    class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div class="py-1">
+                        <a href="{{ url_for('articles.export_csv', status=current_status, q=q) }}"
+                            class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-600">Export
+                            as CSV</a>
+                        <a href="{{ url_for('articles.export_json', status=current_status, q=q) }}"
+                            class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-brand-600">Export
+                            as JSON</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="border-b border-slate-200">
+        <nav class="-mb-px flex space-x-8">
+            <a href="{{ url_for('articles.index', q=q) }}"
+                class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ 'border-brand-500 text-brand-600' if not current_status else 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">All</a>
+            <a href="{{ url_for('articles.index', status='pending', q=q) }}"
+                class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ 'border-brand-500 text-brand-600' if current_status == 'pending' else 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">Pending</a>
+            <a href="{{ url_for('articles.index', status='generated', q=q) }}"
+                class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ 'border-brand-500 text-brand-600' if current_status == 'generated' else 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">Generated</a>
+            <a href="{{ url_for('articles.index', status='pushed', q=q) }}"
+                class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ 'border-brand-500 text-brand-600' if current_status == 'pushed' else 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">Pushed</a>
+            <a href="{{ url_for('articles.index', status='failed', q=q) }}"
+                class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm {{ 'border-brand-500 text-brand-600' if current_status == 'failed' else 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">Failed</a>
+        </nav>
+    </div>
+
+    <!-- Articles Table -->
+    <div class="card overflow-hidden">
+        {% if articles %}
+        <div class="overflow-x-auto">
+            <table class="data-table w-full">
+                <thead>
+                    <tr>
+                        <th class="w-12 text-center">
+                            <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this)"
+                                class="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 transition-all cursor-pointer" />
+                        </th>
+                        <th>Generated Title</th>
+                        <th>Source</th>
+                        <th>SEO Score</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="articles-tbody">
+                    {% for article in articles %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="text-center">
+                            <input type="checkbox" value="{{ article.id }}" onchange="updateSelection()"
+                                class="article-checkbox w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 transition-all cursor-pointer" />
+                        </td>
+                        <td class="max-w-xs">
+                            <a href="{{ url_for('articles.view', article_id=article.id) }}"
+                                class="font-medium text-slate-800 hover:text-brand-600 transition-colors block truncate"
+                                title="{{ article.generated_title or article.original_title }}">
+                                {{ (article.generated_title or article.original_title or 'Untitled')[:65] }}{% if
+                                (article.generated_title or article.original_title or '')|length > 65 %}…{% endif %}
+                            </a>
+                            {% if article.primary_keyword %}
+                            <span
+                                class="text-[10px] font-semibold tracking-wider uppercase text-slate-400 mt-1 block">🔑
+                                {{ article.primary_keyword }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-xs text-slate-500 max-w-[140px]">
+                            <a href="{{ article.source_url }}" target="_blank"
+                                class="hover:text-brand-600 truncate block" title="{{ article.source_url }}">
+                                {{ article.source_url[:45] }}{% if article.source_url|length > 45 %}…{% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            {% set score = article.seo_score %}
+                            <div class="flex items-center gap-2">
+                                <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full {% if score >= 70 %}bg-emerald-500{% elif score >= 40 %}bg-amber-500{% else %}bg-rose-500{% endif %}"
+                                        style="width: {{ score }}%"></div>
+                                </div>
+                                <span
+                                    class="text-xs font-bold {% if score >= 70 %}text-emerald-600{% elif score >= 40 %}text-amber-600{% else %}text-rose-500{% endif %}">
+                                    {{ score }}
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if article.status == 'generated' %}<span class="badge badge-blue">Generated</span>
+                            {% elif article.status == 'pushed' %}<span class="badge badge-green">Pushed</span>
+                            {% elif article.status == 'failed' %}<span class="badge badge-red">Failed</span>
+                            {% elif article.status == 'discarded' %}<span
+                                class="badge badge-gray opacity-60">Discarded</span>
+                            {% else %}<span class="badge badge-gray">Pending</span>{% endif %}
+                            {% if article.wordpress_id %}
+                            <span class="text-[10px] font-semibold text-slate-400 block mt-1">WP #{{
+                                article.wordpress_id }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-slate-400 text-xs whitespace-nowrap">{{ article.created_at.strftime('%b %d, %Y')
+                            }}</td>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ url_for('articles.view', article_id=article.id) }}"
+                                    class="text-brand-600 hover:text-brand-800 transition-colors p-1" title="View/Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </a>
+                                {% if article.status != 'pushed' %}
+                                <form action="{{ url_for('articles.push', article_id=article.id) }}" method="POST"
+                                    class="inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit"
+                                        class="text-emerald-600 hover:text-emerald-800 transition-colors p-1"
+                                        title="Push to WordPress">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                        </svg>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if article.status in ['failed', 'failed_scrape', 'failed_ai', 'failed_verification']
+                                %}
+                                <form action="{{ url_for('articles.retry', article_id=article.id) }}" method="POST"
+                                    class="inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit"
+                                        class="text-amber-500 hover:text-amber-700 transition-colors p-1"
+                                        title="Retry Processing">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <form action="{{ url_for('articles.delete', article_id=article.id) }}" method="POST"
+                                    class="inline" onsubmit="return confirm('Delete this article?')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="text-red-400 hover:text-red-600 transition-colors p-1"
+                                        title="Delete">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="px-6 py-4 flex items-center justify-between border-t border-slate-200">
+            <div class="text-sm text-slate-500">
+                Showing <span class="font-medium">{{ pagination.first_item }}</span> to <span class="font-medium">{{
+                    pagination.last_item }}</span> of <span class="font-medium">{{ pagination.total }}</span> results
+            </div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <a href="{{ url_for('articles.index', page=pagination.prev_num, status=current_status, q=q) if pagination.has_prev else '#' }}"
+                    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 {{ 'pointer-events-none opacity-50' if not pagination.has_prev else '' }}">
+                    <span class="sr-only">Previous</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                        aria-hidden="true">
+                        <path fill-rule="evenodd"
+                            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </a>
+
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                <a href="{{ url_for('articles.index', page=page_num, status=current_status, q=q) }}"
+                    class="relative inline-flex items-center px-4 py-2 border border-slate-300 bg-white text-sm font-medium {{ 'text-brand-600 bg-brand-50 border-brand-500 z-10' if page_num == pagination.page else 'text-slate-700 hover:bg-slate-50' }}">
+                    {{ page_num }}
+                </a>
+                {% else %}
+                <span
+                    class="relative inline-flex items-center px-4 py-2 border border-slate-300 bg-white text-sm font-medium text-slate-700">...</span>
+                {% endif %}
+                {% endfor %}
+
+                <a href="{{ url_for('articles.index', page=pagination.next_num, status=current_status, q=q) if pagination.has_next else '#' }}"
+                    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-slate-300 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 {{ 'pointer-events-none opacity-50' if not pagination.has_next else '' }}">
+                    <span class="sr-only">Next</span>
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                        aria-hidden="true">
+                        <path fill-rule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </a>
+            </nav>
+        </div>
+        {% endif %}
+
+        <script>
+            function toggleSelectAll(master) {
+                const checkboxes = document.querySelectorAll('.article-checkbox');
+                checkboxes.forEach(cb => cb.checked = master.checked);
+                updateSelection();
+            }
+
+            function updateSelection() {
+                const checkboxes = document.querySelectorAll('.article-checkbox:checked');
+                const count = checkboxes.length;
+                const bulkActions = document.getElementById('bulk-actions');
+                const selectedCount = document.getElementById('selected-count');
+                const master = document.getElementById('master-checkbox');
+                const all = document.querySelectorAll('.article-checkbox');
+
+                selectedCount.textContent = count;
+                if (count > 0) {
+                    bulkActions.classList.remove('hidden');
+                } else {
+                    bulkActions.classList.add('hidden');
+                }
+
+                master.checked = (count === all.length && all.length > 0);
+                master.indeterminate = (count > 0 && count < all.length);
+            }
+
+            async function bulkDelete() {
+                const checkboxes = document.querySelectorAll('.article-checkbox:checked');
+                const ids = Array.from(checkboxes).map(cb => cb.value);
+
+                if (!confirm(`Are you sure you want to delete ${ids.length} selected articles?`)) return;
+
+                try {
+                    const response = await fetch('/api/articles/bulk-delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ids: ids })
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const data = await response.json();
+                        alert('Error: ' + (data.error || 'Failed to delete articles'));
+                    }
+                } catch (e) {
+                    alert('Network error: ' + e.message);
+                }
+            }
+        </script>
+        {% else %}
+        <div class="empty-state">
+            <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="text-slate-400 text-sm">No articles generated yet. Run the automation engine to get started.</p>
+            <a href="{{ url_for('dashboard.index') }}" class="btn-primary mt-4 inline-flex items-center gap-2 text-sm">
+                Go to Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

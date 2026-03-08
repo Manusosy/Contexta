@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Search Results</h1>
+    <p class="text-slate-500 dark:text-slate-400">Showing results for "<span
+            class="font-semibold text-brand-600 dark:text-brand-400">{{ query }}</span>"</p>
+</div>
+
+<div class="space-y-8">
+    <!-- Articles -->
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Articles ({{ articles|length }})</h2>
+        {% if articles %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for article in articles %}
+            <a href="{{ url_for('articles.view', article_id=article.id) }}"
+                class="block p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors border border-slate-200 dark:border-slate-600">
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white mb-1">{{ article.original_title[:60] }}...
+                </h3>
+                <span class="text-xs text-slate-500 dark:text-slate-400">{{ article.feed.name if article.feed else
+                    'Manual' }} • {{ article.status.title() }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-slate-400 italic">No articles found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Users -->
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Subscribers ({{ users|length }})</h2>
+        {% if users %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for user in users %}
+            <div
+                class="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                <div
+                    class="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold">
+                    {{ (user.full_name or user.email or 'U')[0].upper() }}
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ user.username }}</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ user.email }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-slate-400 italic">No subscribers found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Logs -->
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-4">System Logs ({{ logs|length }})</h2>
+        {% if logs %}
+        <div class="space-y-3">
+            {% for log in logs %}
+            <div
+                class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 flex items-start gap-3">
+                <div class="mt-0.5">
+                    {% if log.status == 'error' %}
+                    <span class="w-2 h-2 mt-1.5 block rounded-full bg-red-500"></span>
+                    {% elif log.status == 'warning' %}
+                    <span class="w-2 h-2 mt-1.5 block rounded-full bg-amber-500"></span>
+                    {% elif log.status == 'success' %}
+                    <span class="w-2 h-2 mt-1.5 block rounded-full bg-emerald-500"></span>
+                    {% else %}
+                    <span class="w-2 h-2 mt-1.5 block rounded-full bg-blue-500"></span>
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ log.action }}</p>
+                    {% if log.message %}
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">{{ log.message }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-slate-400 italic">No system logs found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

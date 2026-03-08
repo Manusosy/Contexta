@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}{{ article.generated_title or article.original_title or 'Article Editor' }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-sm text-slate-500">
+        <a href="{{ url_for('articles.index') }}" class="hover:text-brand-600">Articles</a>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+        <span class="text-slate-800 font-medium truncate max-w-xs">{{ (article.generated_title or article.original_title
+            or 'Untitled')[:50] }}</span>
+    </div>
+
+    <form action="{{ url_for('articles.save', article_id=article.id) }}" method="POST" id="article-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Main Editor -->
+            <div class="lg:col-span-2 space-y-5">
+
+                <!-- Title -->
+                <div class="card p-5">
+                    <label class="label">Article Title</label>
+                    <input type="text" name="generated_title" id="generated-title"
+                        value="{{ article.generated_title or article.original_title or '' }}"
+                        class="input-field text-lg font-semibold" placeholder="Generated article title..." />
+                </div>
+
+                <!-- Content Editor -->
+                <div class="card p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="label mb-0">Content</label>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="togglePreview()" id="preview-btn"
+                                class="btn-secondary text-xs py-1.5 px-3">Preview</button>
+                        </div>
+                    </div>
+
+                    <!-- Editor Toolbar -->
+                    <div id="editor-toolbar" class="flex gap-1 mb-2 flex-wrap">
+                        <button type="button" onclick="formatText('bold')" class="toolbar-btn" title="Bold">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 4h8a4 4 0 010 8H6V4zm0 8h9a4 4 0 010 8H6v-8z" />
+                            </svg>
+                        </button>
+                        <button type="button" onclick="formatText('italic')" class="toolbar-btn" title="Italic">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M10 4h4l-4 16H6l4-16zm4 0h4L14 20h-4l4-16z" opacity=".5" />
+                                <rect x="10" y="4" width="4" height="16" rx="1" fill="currentColor" opacity="1"
+                                    style="display:none" /><text x="12" y="18" text-anchor="middle" font-style="italic"
+                                    font-size="16" fill="currentColor">I</text>
+                            </svg>
+                        </button>
+                        <div class="w-px bg-slate-200 mx-1"></div>
+                        <button type="button" onclick="insertTag('h2')"
+                            class="toolbar-btn text-xs font-bold px-2">H2</button>
+                        <button type="button" onclick="insertTag('h3')"
+                            class="toolbar-btn text-xs font-bold px-2">H3</button>
+                        <button type="button" onclick="insertTag('p')" class="toolbar-btn text-xs">P</button>
+                    </div>
+
+                    <!-- Raw HTML Textarea -->
+                    <textarea name="content" id="content-editor"
+                        class="input-field font-mono text-xs leading-relaxed min-h-[450px] resize-y"
+                        placeholder="Generated HTML content will appear here...">{{ article.content or '' }}</textarea>
+
+                    <!-- Preview Panel -->
+                    <div id="preview-panel"
+                        class="hidden prose prose-slate max-w-none mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 min-h-[300px]">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-5">
+
+                <!-- Publish Actions -->
+                <div class="card p-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-4">Publish</h3>
+                    <div class="space-y-3">
+                        <button type="submit" class="btn-primary w-full flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                            </svg>
+                            Save Article
+                        </button>
+
+                        {% if article.status != 'pushed' %}
+                        <form action="{{ url_for('articles.push', article_id=article.id) }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn-success w-full flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                Push to WordPress
+                            </button>
+                        </form>
+                        {% else %}
+                        <div class="text-center py-2">
+                            <span class="badge badge-green text-sm px-4 py-1.5">✓ Pushed to WordPress</span>
+                            {% if article.wordpress_id %}
+                            <p class="text-xs text-slate-400 mt-1">WP Post ID: {{ article.wordpress_id }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if article.status in ['failed', 'failed_scrape', 'failed_ai', 'failed_verification'] %}
+                        <form action="{{ url_for('articles.retry', article_id=article.id) }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit"
+                                class="btn-secondary w-full flex items-center justify-center gap-2 mt-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Retry Processing
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <form action="{{ url_for('articles.delete', article_id=article.id) }}" method="POST"
+                            onsubmit="return confirm('Permanently delete this article?')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn-danger w-full mt-2">Delete Article</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Article Info -->
+                <div class="card p-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-4">Article Info</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Status</span>
+                            {% if article.status == 'generated' %}<span class="badge badge-blue">Generated</span>
+                            {% elif article.status == 'pushed' %}<span class="badge badge-green">Pushed</span>
+                            {% elif article.status == 'failed' %}<span class="badge badge-red">Failed</span>
+                            {% else %}<span class="badge badge-gray">Pending</span>{% endif %}
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">SEO Score</span>
+                            <span
+                                class="font-semibold {% if article.seo_score >= 70 %}text-emerald-600{% elif article.seo_score >= 40 %}text-amber-600{% else %}text-red-500{% endif %}">
+                                {{ article.seo_score }}/100
+                            </span>
+                        </div>
+                        {% if article.primary_keyword %}
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Keyword</span>
+                            <span class="text-slate-700 font-medium">{{ article.primary_keyword }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Words</span>
+                            <span class="text-slate-700 font-medium">{{ article.word_count or 0 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Created</span>
+                            <span class="text-slate-700">{{ article.created_at.strftime('%b %d, %Y') }}</span>
+                        </div>
+                        {% if article.source_url %}
+                        <div class="pt-1">
+                            <a href="{{ article.source_url }}" target="_blank"
+                                class="text-brand-600 hover:text-brand-800 text-xs flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                View Source Article
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- SEO Fields -->
+                <div class="card p-5">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-4">SEO</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="label">Meta Description
+                                <span class="text-slate-400 font-normal float-right" id="meta-count">0/160</span>
+                            </label>
+                            <textarea name="meta_description" id="meta-desc"
+                                class="input-field text-sm resize-none h-20"
+                                placeholder="SEO meta description (max 160 chars)" maxlength="160"
+                                oninput="document.getElementById('meta-count').textContent = this.value.length + '/160'">{{ article.meta_description or '' }}</textarea>
+                        </div>
+                        <div>
+                            <label class="label">URL Slug</label>
+                            <input type="text" name="slug" value="{{ article.slug or '' }}"
+                                class="input-field text-sm font-mono" placeholder="url-slug-here" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Initialize meta count
+    const metaDesc = document.getElementById('meta-desc');
+    if (metaDesc) {
+        document.getElementById('meta-count').textContent = metaDesc.value.length + '/160';
+    }
+
+    function togglePreview() {
+        const editor = document.getElementById('content-editor');
+        const preview = document.getElementById('preview-panel');
+        const toolbar = document.getElementById('editor-toolbar');
+        const btn = document.getElementById('preview-btn');
+
+        if (preview.classList.contains('hidden')) {
+            preview.innerHTML = editor.value || '<em class="text-slate-400">No content to preview.</em>';
+            preview.classList.remove('hidden');
+            editor.classList.add('hidden');
+            toolbar.classList.add('hidden');
+            btn.textContent = 'Edit';
+        } else {
+            preview.classList.add('hidden');
+            editor.classList.remove('hidden');
+            toolbar.classList.remove('hidden');
+            btn.textContent = 'Preview';
+        }
+    }
+
+    function formatText(cmd) {
+        document.execCommand(cmd, false, null);
+    }
+
+    function insertTag(tag) {
+        const ta = document.getElementById('content-editor');
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const selected = ta.value.substring(start, end);
+        const replacement = `<${tag}>${selected || 'Text here'}</${tag}>`;
+        ta.value = ta.value.substring(0, start) + replacement + ta.value.substring(end);
+        ta.focus();
+    }
+</script>
+{% endblock %}

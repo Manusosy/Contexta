@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login — Contexta</title>
+    <meta name="description" content="Secure administration portal access." />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 800: '#1e293b', 900: '#0f172a' },
+                        // Distinct color scheme for Admin (Teal/Emerald vibes to distinguish from Brand Blue)
+                        brand: { 50: '#f0fdfa', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body
+    class="min-h-screen font-sans bg-slate-900 text-slate-100 flex items-center justify-center p-4 relative overflow-y-auto">
+
+    <!-- Subtle Background Elements for Admin Portal -->
+    <div class="absolute inset-0 z-0">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-900/40 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-800/30 rounded-full blur-[100px]"></div>
+    </div>
+
+    <div class="w-full max-w-md relative z-10">
+        <!-- Secure Header -->
+        <div class="flex flex-col items-center mb-8">
+            <div
+                class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 shadow-xl shadow-brand-900/50 flex items-center justify-center mb-4 border border-brand-500/30">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight text-white mb-1">Admin Portal</h1>
+            <p class="text-sm text-slate-400 font-medium">Restricted Access Control</p>
+        </div>
+
+        <!-- Login Form Container -->
+        <div class="bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-700/50 p-8">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div
+                class="mb-6 p-4 rounded-xl text-sm font-medium {% if category == 'error' %}bg-red-900/30 text-red-400 border border-red-800/50{% else %}bg-brand-900/30 text-brand-400 border border-brand-800/50{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('auth.admin_login') }}" class="space-y-5">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                <div class="space-y-1.5">
+                    <label for="email" class="block text-sm font-medium text-slate-300">Administrator Email</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                            </svg>
+                        </div>
+                        <input type="email" id="email" name="email" required placeholder="admin@email.com"
+                            class="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm outline-none">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5 pt-1">
+                    <div class="flex items-center justify-between">
+                        <label for="password" class="block text-sm font-medium text-slate-300">Master Password</label>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <input type="password" id="password" name="password" required placeholder="••••••••"
+                            class="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm outline-none">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <div class="flex items-center">
+                        <input id="remember" name="remember" type="checkbox"
+                            class="h-4 w-4 bg-slate-900 border-slate-700 rounded text-brand-600 focus:ring-brand-500 focus:ring-offset-slate-800">
+                        <label for="remember" class="ml-2 block text-sm text-slate-300">
+                            Trust this device
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit"
+                        class="w-full py-3.5 px-4 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-900/50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-slate-800">
+                        Authenticate Access
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="mt-8 text-center">
+            <p class="text-sm text-slate-500">
+                Authorized Personnel Only • <a href="{{ url_for('auth.admin_register') }}"
+                    class="text-brand-400 hover:text-brand-300 underline underline-offset-2">Request Admin Account</a>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

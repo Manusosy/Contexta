@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Discounts & Coupons{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Coupons & Discounts</h1>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Create promotional codes with optional expiry dates.
+            Expired coupons are auto-deactivated.</p>
+    </div>
+    <button onclick="document.getElementById('addCouponModal').classList.remove('hidden')"
+        class="bg-brand-600 text-white font-bold py-2 px-6 rounded-xl hover:bg-brand-500 transition-all shadow-md">
+        + Create Coupon
+    </button>
+</div>
+
+<div
+    class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+        <thead class="bg-slate-50 dark:bg-slate-900/50">
+            <tr>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Code</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Discount</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Expires</th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Created</th>
+                <th class="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-800">
+            {% for coupon in coupons %}
+            {% set is_expired = coupon.expires_at and coupon.expires_at < now %} <tr
+                class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                        class="px-3 py-1 bg-slate-100 dark:bg-slate-700 rounded-full font-mono font-bold text-slate-900 dark:text-white text-sm tracking-wider">
+                        {{ coupon.code }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">{{
+                        coupon.discount_percent }}%</span>
+                    <span class="text-xs text-slate-400 ml-1">OFF</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if is_expired %}
+                    <span
+                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                        Expired
+                    </span>
+                    {% elif coupon.is_active %}
+                    <span
+                        class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active
+                    </span>
+                    {% else %}
+                    <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
+                        Disabled
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    {% if coupon.expires_at %}
+                    <span
+                        class="{% if is_expired %}text-red-500 dark:text-red-400 font-bold{% else %}text-slate-600 dark:text-slate-400{% endif %}">
+                        {{ coupon.expires_at.strftime('%b %d, %Y') }}
+                    </span>
+                    {% else %}
+                    <span class="text-slate-400 dark:text-slate-500 italic">No expiry</span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                    {{ coupon.created_at.strftime('%b %d, %Y') }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div class="flex items-center justify-end gap-3">
+                        {% if not is_expired %}
+                        <form action="{{ url_for('dashboard.pricing_discounts') }}" method="POST" class="inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="toggle_id" value="{{ coupon.id }}">
+                            <button type="submit"
+                                class="text-brand-600 dark:text-brand-400 hover:text-brand-800 font-bold text-xs">
+                                {{ 'Disable' if coupon.is_active else 'Enable' }}
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form action="{{ url_for('dashboard.pricing_discounts') }}" method="POST" class="inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="delete_id" value="{{ coupon.id }}">
+                            <button type="submit" class="text-rose-500 hover:text-rose-700 font-bold text-xs"
+                                onclick="return confirm('Delete coupon {{ coupon.code }}?')">Delete</button>
+                        </form>
+                    </div>
+                </td>
+                </tr>
+                {% endfor %}
+                {% if not coupons %}
+                <tr>
+                    <td colspan="6" class="px-6 py-20 text-center text-slate-400 italic">No coupons created yet. Click
+                        "Create Coupon" to add one.</td>
+                </tr>
+                {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Summary Stats -->
+{% if coupons %}
+<div class="mt-4 grid grid-cols-3 gap-4 text-center text-sm">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
+        <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ coupons|length }}</p>
+        <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Total Coupons</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
+        <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{
+            coupons|selectattr('is_active')|list|length }}</p>
+        <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Active</p>
+    </div>
+    <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
+        <p class="text-2xl font-bold text-red-500 dark:text-red-400">{{
+            coupons|selectattr('expires_at')|selectattr('expires_at', 'lt', now)|list|length }}</p>
+        <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Expired</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Add Coupon Modal -->
+<div id="addCouponModal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div
+        class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-700">
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Create New Coupon</h3>
+        <form action="{{ url_for('dashboard.pricing_discounts') }}" method="POST" class="space-y-5">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Coupon Code</label>
+                <input type="text" name="code" required
+                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 py-2.5 px-4 dark:text-white uppercase tracking-widest font-mono"
+                    placeholder="e.g. LAUNCH50" oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Discount Percent
+                    (%)</label>
+                <input type="number" name="discount_percent" required min="1" max="100"
+                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 py-2.5 px-4 dark:text-white"
+                    placeholder="e.g. 25">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Expiry Date <span
+                        class="text-slate-400 font-normal">(optional)</span></label>
+                <input type="date" name="expires_at"
+                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 py-2.5 px-4 dark:text-white">
+                <p class="text-xs text-slate-400 mt-1">Leave blank for a coupon that never expires.</p>
+            </div>
+            <div class="flex gap-4 pt-2">
+                <button type="button" onclick="document.getElementById('addCouponModal').classList.add('hidden')"
+                    class="flex-1 py-3 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
+                <button type="submit"
+                    class="flex-1 py-3 text-sm font-bold text-white bg-brand-600 rounded-xl hover:bg-brand-500 transition-colors shadow-lg">
+                    Save Coupon
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

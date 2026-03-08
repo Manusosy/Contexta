@@ -1,0 +1,161 @@
+{% extends "client_base.html" %}
+
+{% block title %}Automation Center{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Automation Center</h1>
+            <p class="text-slate-500 dark:text-slate-400">Configure and monitor your AI editorial agents.</p>
+        </div>
+        {% if sub %}
+        <div
+            class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-lg border border-emerald-100 dark:border-emerald-800">
+            <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+            System Online
+        </div>
+        {% else %}
+        <div
+            class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-bold rounded-lg border border-slate-200 dark:border-slate-700">
+            System Paused
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main Automation Controls -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Status Card -->
+        <div class="lg:col-span-2 space-y-6">
+            <div
+                class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
+                <div class="flex items-start justify-between mb-8">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">General Pipeline</h3>
+                        <p class="text-sm text-slate-500 mt-1">Automatically process feeds every 4 hours.</p>
+                    </div>
+                    <label
+                        class="relative inline-flex items-center cursor-pointer {% if not sub %}opacity-50 cursor-not-allowed{% endif %}">
+                        <input type="checkbox" value="" class="sr-only peer" {% if not sub %}disabled{% else %}checked{%
+                            endif %}>
+                        <div
+                            class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-600">
+                        </div>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div
+                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Last Run</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% if sub %}2 hours ago{%
+                            else %}Never{% endif %}</p>
+                    </div>
+                    <div
+                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Next Run</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% if sub %}In 2 hours{%
+                            else %}N/A{% endif %}</p>
+                    </div>
+                    <div
+                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Drafts Ready</p>
+                        <p class="text-sm font-semibold text-brand-600 dark:text-brand-400">{% if sub %}14 Pending{%
+                            else %}0{% endif %}</p>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <form method="POST" action="{{ url_for('client.automation') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <input type="hidden" name="action" value="run_now" />
+                        <button type="submit"
+                            class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-all shadow-md shadow-brand-500/20 flex items-center justify-center gap-2 group">
+                            <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Run Automation Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                <div class="px-8 py-5 border-b border-slate-100 dark:border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Recent Logs
+                    </h3>
+                </div>
+                <div class="p-0">
+                    {% if sub %}
+                    <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                        <div class="px-8 py-4 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-3">
+                                <span class="text-slate-400">14:02</span>
+                                <span class="text-slate-700 dark:text-slate-300 font-medium">Successfully processed 5
+                                    articles from TechCrunch</span>
+                            </div>
+                            <span class="text-emerald-500 font-bold uppercase tracking-wider">Success</span>
+                        </div>
+                        <div class="px-8 py-4 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-3">
+                                <span class="text-slate-400">10:01</span>
+                                <span class="text-slate-700 dark:text-slate-300 font-medium">AI Rewriting agent
+                                    completed 12 tasks</span>
+                            </div>
+                            <span class="text-emerald-500 font-bold uppercase tracking-wider">Success</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="px-8 py-12 text-center">
+                        <p class="text-xs text-slate-400 italic">No recent activity logs. Please upgrade to start
+                            automation.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar / Settings -->
+        <div class="space-y-6">
+            <div
+                class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
+                    Configurations</h3>
+                <div class="space-y-4">
+                    <div
+                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 group">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tone of Voice</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% if sub %}Professional &
+                            Insightful{% else %}N/A{% endif %}</p>
+                    </div>
+                    <div
+                        class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Platforms
+                        </p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{% if sub %}Blog, LinkedIn{%
+                            else %}N/A{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if not sub %}
+            <div class="bg-brand-600 rounded-3xl p-6 text-white shadow-xl shadow-brand-500/20 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+                <h4 class="text-lg font-bold relative z-10">Go Pro</h4>
+                <p class="text-brand-100 text-xs mt-2 mb-4 relative z-10">Get 24/7 automated editorial processing and
+                    high-priority AI queues.</p>
+                <a href="{{ url_for('client.checkout', tier_id=2) }}"
+                    class="w-full py-2.5 bg-white text-brand-700 font-bold text-center block rounded-xl hover:bg-brand-50 transition-colors relative z-10 text-sm">
+                    Upgrade Now
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

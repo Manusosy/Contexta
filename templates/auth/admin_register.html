@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Register — Contexta</title>
+    <meta name="description" content="Secure administration portal registration." />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 800: '#1e293b', 900: '#0f172a' },
+                        brand: { 50: '#f0fdfa', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body
+    class="min-h-screen font-sans bg-slate-900 text-slate-100 flex items-center justify-center p-4 py-12 relative overflow-y-auto">
+
+    <!-- Subtle Background Elements -->
+    <div class="absolute inset-0 z-0">
+        <div class="absolute top-1/4 right-1/4 w-96 h-96 bg-brand-900/40 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-1/4 left-1/4 w-96 h-96 bg-brand-800/30 rounded-full blur-[100px]"></div>
+    </div>
+
+    <div class="w-full max-w-md relative z-10">
+
+        <div class="flex flex-col items-center mb-8">
+            <div
+                class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 shadow-xl shadow-brand-900/50 flex items-center justify-center mb-4 border border-brand-500/30">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight text-white mb-1">System Provisioning</h1>
+            <p class="text-sm text-slate-400 font-medium">Create Administrator Access</p>
+        </div>
+
+        <div class="bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-700/50 p-8">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div
+                class="mb-6 p-4 rounded-xl text-sm font-medium {% if category == 'error' %}bg-red-900/30 text-red-400 border border-red-800/50{% else %}bg-brand-900/30 text-brand-400 border border-brand-800/50{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+
+
+            <form method="POST" action="{{ url_for('auth.admin_register') }}" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                <div class="space-y-1.5">
+                    <label for="full_name" class="block text-sm font-medium text-slate-300">Authorized Name</label>
+                    <input type="text" id="full_name" name="full_name" required placeholder="John Doe"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm outline-none">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="email" class="block text-sm font-medium text-slate-300">Administrator Email</label>
+                    <input type="email" id="email" name="email" required placeholder="admin@email.com"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm outline-none font-mono">
+                </div>
+
+                <div class="space-y-1.5 pt-1">
+                    <label for="password" class="block text-sm font-medium text-slate-300">Secure Password</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••" minlength="8"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm outline-none">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="confirm_password" class="block text-sm font-medium text-slate-300">Verify
+                        Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required placeholder="••••••••"
+                        minlength="8"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm outline-none">
+                </div>
+
+                <div class="pt-5">
+                    <button type="submit"
+                        class="w-full py-3.5 px-4 bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-brand-900/50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-slate-800">
+                        Provision Administrator Account
+                    </button>
+                    <p class="text-center text-xs text-brand-400 mt-4">* Email OTP verification strictly required after
+                        submission.</p>
+                </div>
+            </form>
+        </div>
+
+        <div class="mt-8 text-center text-sm text-slate-500">
+            Existing Administrator? <a href="{{ url_for('auth.admin_login') }}"
+                class="text-white hover:text-brand-300 font-medium underline underline-offset-2">Authenticate</a>
+        </div>
+    </div>
+</body>
+
+</html>

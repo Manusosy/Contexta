@@ -1,0 +1,153 @@
+{% extends "client_base.html" %}
+{% block title %}My Account — Contexta{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Welcome Header -->
+    <div
+        class="bg-gradient-to-r from-brand-600 to-brand-700 rounded-3xl p-10 text-white shadow-2xl shadow-brand-500/20 relative overflow-hidden group">
+        <div
+            class="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000">
+        </div>
+        <div class="relative z-10">
+            <h1 class="text-3xl font-extrabold tracking-tight">Welcome back, {{ current_user.full_name or "Subscriber"
+                }}!</h1>
+            <p class="text-brand-100 mt-2 text-lg opacity-90">Here's a snapshot of your Contexta account.</p>
+        </div>
+    </div>
+
+    <!-- Status Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <!-- Subscription Status -->
+        <div
+            class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-shadow">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Subscription</p>
+            <div class="flex items-center gap-3 mb-3">
+                <div
+                    class="w-3 h-3 rounded-full {% if sub %}bg-emerald-500 animate-pulse{% else %}bg-slate-300{% endif %}">
+                </div>
+                <span
+                    class="text-xs font-bold {% if sub %}text-emerald-600 dark:text-emerald-400{% else %}text-slate-500{% endif %}">
+                    {% if sub %}{{ sub.status.upper() }}{% else %}NO ACTIVE PLAN{% endif %}
+                </span>
+            </div>
+            <p class="text-xl font-bold text-slate-900 dark:text-white">{% if sub %}{{ sub.plan_name }}{% else %}Free
+                Tier{% endif %}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                {% if sub %}Renews {{ sub.current_period_end.strftime('%b %d, %Y') }}{% else %}Upgrade for more
+                features{% endif %}
+            </p>
+            <a href="{{ url_for('client.subscription') }}"
+                class="mt-6 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
+                Manage <span class="ml-1">→</span>
+            </a>
+        </div>
+
+        <!-- Billing -->
+        <div
+            class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-shadow">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Last Payment</p>
+            {% if recent_transactions %}
+            {% set tx = recent_transactions[0] %}
+            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ tx.currency }} {{ "%.2f"|format(tx.amount)
+                }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">via {{ tx.provider|title }} — {{
+                tx.created_at.strftime('%b %d, %Y') }}</p>
+            {% else %}
+            <p class="text-2xl font-bold text-slate-900 dark:text-white">—</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">No payments yet.</p>
+            {% endif %}
+            <a href="{{ url_for('client.billing') }}"
+                class="mt-6 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
+                View History <span class="ml-1">→</span>
+            </a>
+        </div>
+
+        <!-- Profile -->
+        <div
+            class="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-shadow">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Your Profile</p>
+            <div class="flex items-center gap-4 mb-3">
+                <div
+                    class="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">
+                    {{ (current_user.full_name or current_user.email or 'U')[0].upper() }}
+                </div>
+                <div class="min-w-0">
+                    <p class="text-base font-bold text-slate-900 dark:text-white truncate">{{ current_user.full_name or
+                        'Account User' }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ current_user.email }}</p>
+                </div>
+            </div>
+            <a href="{{ url_for('client.profile') }}"
+                class="mt-4 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
+                Edit Profile <span class="ml-1">→</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Transactions Table -->
+    {% if recent_transactions %}
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white">Recent Transactions</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead
+                    class="bg-slate-50 dark:bg-slate-700/50 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                    <tr>
+                        <th class="text-left px-6 py-3">Date</th>
+                        <th class="text-left px-6 py-3">Amount</th>
+                        <th class="text-left px-6 py-3">Via</th>
+                        <th class="text-left px-6 py-3">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for tx in recent_transactions %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                        <td class="px-6 py-4 text-slate-600 dark:text-slate-400">{{ tx.created_at.strftime('%b %d, %Y')
+                            }}</td>
+                        <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">{{ tx.currency }} {{
+                            "%.2f"|format(tx.amount) }}</td>
+                        <td class="px-6 py-4 text-slate-600 dark:text-slate-400">{{ tx.provider|title }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded-full text-xs font-bold
+                {% if tx.status == 'completed' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
+                {% elif tx.status == 'failed' %}bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
+                {% else %}bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400{% endif %}">
+                                {{ tx.status|title }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-3 border-t border-slate-100 dark:border-slate-700">
+            <a href="{{ url_for('client.billing') }}"
+                class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">
+                View all transactions →
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Free tier upgrade CTA -->
+    {% if not sub %}
+    <div
+        class="bg-gradient-to-r from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl p-6">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Upgrade to a Full Plan</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Get unlimited access to all Contexta features. Start
+            automating your editorial pipeline today.</p>
+        <a href="{{ url_for('public.index') }}#pricing"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
+            View Plans
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

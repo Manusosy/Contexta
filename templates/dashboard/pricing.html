@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing Management{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Pricing & Tiers</h1>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage what subscription plans are available and
+            visible on your landing page.</p>
+    </div>
+    <button onclick="document.getElementById('addTierModal').classList.remove('hidden')"
+        class="bg-brand-600 text-white font-bold py-2 px-6 rounded-xl hover:bg-brand-500 transition-all shadow-md">
+        + Add Tier
+    </button>
+</div>
+
+<!-- Pricing Tiers (from DB) -->
+<div>
+    <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-700">
+        <h3 class="font-bold text-slate-900 dark:text-white mb-6">Active Tiers</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for tier in tiers %}
+            <div class="p-6 rounded-3xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-bold text-slate-900 dark:text-white text-lg">{{ tier.name }}</span>
+                    <span class="text-brand-600 dark:text-brand-400 font-bold text-xl">${{ "%.2f"|format(tier.price)
+                        }}</span>
+                </div>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 capitalize">{{ tier.interval }} · {% if
+                    tier.is_active %}<span class="text-emerald-500 font-bold">Visible</span>{% else %}<span
+                        class="text-slate-400">Hidden</span>{% endif %}</p>
+
+                <div class="flex gap-4">
+                    <form method="POST" class="flex-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="action" value="toggle_tier">
+                        <input type="hidden" name="tier_id" value="{{ tier.id }}">
+                        <button type="submit"
+                            class="w-full py-2 bg-slate-200 dark:bg-slate-600 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors">
+                            {{ 'Hide' if tier.is_active else 'Show' }}
+                        </button>
+                    </form>
+                    <form method="POST" class="flex-1"
+                        onsubmit="return confirm('Delete this tier and all its features?')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="action" value="delete_tier">
+                        <input type="hidden" name="tier_id" value="{{ tier.id }}">
+                        <button type="submit"
+                            class="w-full py-2 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-xl text-sm font-bold hover:bg-rose-200 dark:hover:bg-rose-900/50 transition-colors">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not tiers %}
+        <p class="text-sm text-slate-400 italic text-center py-12">No tiers yet. Click "+ Add Tier" to create your first
+            plan.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Tier Modal -->
+<div id="addTierModal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div
+        class="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-700">
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Create New Pricing Tier</h3>
+        <form method="POST" class="space-y-5">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="action" value="add_tier">
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Plan Name</label>
+                <input type="text" name="name" required
+                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 py-2.5 px-4 dark:text-white"
+                    placeholder="e.g. Enterprise Core">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Price ($)</label>
+                <input type="number" name="price" step="0.01" min="0" required
+                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 py-2.5 px-4 dark:text-white"
+                    placeholder="399.00">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Billing
+                    Interval</label>
+                <select name="interval"
+                    class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 py-2.5 px-4 dark:text-white">
+                    <option value="lifetime">Lifetime (One-time)</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+            </div>
+            <div class="flex gap-4 pt-2">
+                <button type="button" onclick="document.getElementById('addTierModal').classList.add('hidden')"
+                    class="flex-1 py-3 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
+                <button type="submit"
+                    class="flex-1 py-3 text-sm font-bold text-white bg-brand-600 rounded-xl hover:bg-brand-500 transition-colors shadow-lg">
+                    Create Tier
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

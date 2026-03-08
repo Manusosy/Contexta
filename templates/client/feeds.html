@@ -1,0 +1,177 @@
+{% extends "client_base.html" %}
+
+{% block title %}RSS Feeds{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">RSS Feeds</h1>
+            <p class="text-slate-500 dark:text-slate-400">Manage the sources for your automated content pipeline.</p>
+        </div>
+        <button onclick="toggleAddFeedModal()"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-brand-500/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add New Feed
+        </button>
+    </div>
+
+    <!-- Feeds List -->
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Feed Name</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">URL</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Articles</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                    {% for feed in feeds %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-semibold text-slate-900 dark:text-white">{{ feed.name }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-xs text-slate-500 font-mono truncate max-w-[200px] block">{{ feed.url
+                                }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                <span class="w-1 h-1 rounded-full bg-current"></span>
+                                Active
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm text-slate-600 dark:text-slate-400">{{ range(5, 50) | random }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button
+                                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                </svg>
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center">
+                                <div
+                                    class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-400 mb-3">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white">No feeds found</h3>
+                                <p class="text-xs text-slate-500 mt-1">Connect an RSS feed to start generating content.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Upgrade Banner for Free Users -->
+    {% if not sub and feeds|length >= 1 %}
+    <div
+        class="bg-gradient-to-r from-brand-600 to-brand-800 rounded-2xl p-6 text-white shadow-lg shadow-brand-500/20 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group">
+        <div
+            class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700">
+        </div>
+        <div class="relative z-10">
+            <h3 class="text-lg font-bold">Unlock Unlimited Source Feeds</h3>
+            <p class="text-brand-100 text-sm mt-1 max-w-lg">You are currently on the free tier (1 feed limit reached).
+                Upgrade to a Pro plan to
+                track unlimited feeds and access advanced automation tools.</p>
+        </div>
+        <a href="{{ url_for('public.index', _anchor='pricing') }}"
+            class="relative z-10 px-6 py-2.5 bg-white text-brand-700 font-bold rounded-xl hover:bg-brand-50 transition-colors shadow-sm whitespace-nowrap">
+            View Plans
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Feed Modal (Locked for Free Users) -->
+<div id="addFeedModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div
+        class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-8 border border-slate-200 dark:border-slate-700 transform transition-all relative">
+        {% if not sub and feeds|length >= 1 %}
+        <!-- Lock State -->
+        <div class="text-center">
+            <div
+                class="w-16 h-16 bg-brand-50 dark:bg-brand-900/20 rounded-2xl flex items-center justify-center text-brand-600 dark:text-brand-400 mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">Limit Reached</h3>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-2 mb-6">Free accounts are limited to 1 RSS feed.
+                Upgrade your account to track unlimited sources.</p>
+            <div class="flex flex-col gap-3">
+                <a href="{{ url_for('client.subscription') }}"
+                    class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-all shadow-md shadow-brand-500/20 block">
+                    Upgrade to Pro
+                </a>
+                <button onclick="toggleAddFeedModal()"
+                    class="w-full py-3 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 font-semibold text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <!-- Active State -->
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Add New Source</h3>
+        <form method="POST" action="{{ url_for('client.feeds') }}" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Feed Name</label>
+                <input type="text" name="name" required
+                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm outline-none focus:ring-2 focus:ring-brand-500/20"
+                    placeholder="e.g. Tech News Daily" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">RSS URL</label>
+                <input type="url" name="url" required
+                    class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm outline-none focus:ring-2 focus:ring-brand-500/20"
+                    placeholder="https://example.com/rss" />
+            </div>
+            <div class="pt-4 flex gap-3">
+                <button type="submit"
+                    class="flex-1 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-all shadow-md shadow-brand-500/20">
+                    Add Feed
+                </button>
+                <button type="button" onclick="toggleAddFeedModal()"
+                    class="flex-1 py-3 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                    Cancel
+                </button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function toggleAddFeedModal() {
+        const modal = document.getElementById('addFeedModal');
+        modal.classList.toggle('hidden');
+    }
+</script>
+{% endblock %}

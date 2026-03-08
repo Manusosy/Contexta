@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register — Contexta</title>
+    <meta name="description" content="Create an account on Contexta AI Editorial Platform." />
+    <!-- Reusing same aesthetic as Login -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 2s infinite',
+                        'float-slow': 'float 8s ease-in-out 1s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .dark .glass-card {
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-auth {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            color: #1e293b;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .dark .input-auth {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .input-auth::placeholder {
+            color: #94a3b8;
+        }
+
+        .dark .input-auth::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .input-auth:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-auth {
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+            letter-spacing: 0.01em;
+        }
+
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.5);
+            filter: brightness(1.05);
+        }
+
+        .btn-auth:active {
+            transform: translateY(0px);
+        }
+
+        .carousel-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -20;
+            opacity: 0;
+            transition: opacity 3s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .dark .carousel-bg {
+            display: none;
+        }
+
+        .carousel-bg.active {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen font-sans bg-slate-950 flex flex-col items-center justify-center p-4 overflow-y-auto">
+
+    <!-- Carousel Backgrounds (Dark Overlay for visibility) -->
+    <div id="carousel-1" class="carousel-bg active"
+        style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2070&auto=format&fit=crop');">
+    </div>
+    <div id="carousel-2" class="carousel-bg"
+        style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop');">
+    </div>
+    <div id="carousel-3" class="carousel-bg"
+        style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?q=80&w=2072&auto=format&fit=crop');">
+    </div>
+
+    <!-- Background Accents -->
+    <div class="absolute inset-0 bg-slate-950/20 -z-10"></div>
+
+    <!-- container -->
+    <div class="relative z-10 w-full max-w-4xl py-8">
+
+        <!-- Logo mark -->
+        <div class="flex flex-col items-center mb-10">
+            <div
+                class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.6)] mb-4">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-white tracking-tight">Contexta</h1>
+            <p class="text-slate-400 text-sm mt-1.5 text-center">AI Editorial Automation Platform</p>
+        </div>
+
+        <!-- Card -->
+        <div class="glass-card rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
+
+            <!-- Left Side: Social Login -->
+            <div
+                class="w-full md:w-5/12 p-8 md:p-12 flex flex-col justify-center bg-white border-b md:border-b-0 md:border-r border-slate-200">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Create an account</h2>
+                    <p class="text-slate-600 text-sm">Join the platform in seconds using your
+                        preferred account.</p>
+                </div>
+
+                <button type="button"
+                    class="w-full flex items-center justify-center gap-3 px-6 py-3.5 border border-slate-200 rounded-2xl bg-white hover:bg-slate-50 transition-all text-sm font-bold text-slate-700 shadow-sm group">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24">
+                        <path fill="#4285F4"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#EA4335"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                    </svg>
+                    Continue with Google
+                </button>
+
+                <div class="mt-8 text-center md:text-left">
+                    <p class="text-xs text-slate-400 leading-relaxed uppercase tracking-widest font-bold mb-4">Why
+                        Contexta?</p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                            <svg class="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            Automated Content Pipeline
+                        </li>
+                        <li class="flex items-center gap-2 text-sm text-slate-600">
+                            <svg class="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            AI Editorial Intelligence
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Right Side: Email Signup -->
+            <div class="flex-1 p-8 md:p-12 bg-white">
+
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for category, message in messages %}
+                    <div class="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium
+              {% if category == 'success' %}bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/25
+              {% else %}bg-red-500/15 text-red-600 dark:text-red-300 border border-red-500/25{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('auth.register') }}" class="space-y-5">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <div class="grid grid-cols-1 gap-5">
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Full
+                                Name</label>
+                            <input type="text" name="full_name" id="full_name" required class="input-auth"
+                                placeholder="John Doe" />
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Email
+                                Address</label>
+                            <input type="email" name="email" id="email" required class="input-auth"
+                                placeholder="john@company.com" />
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Password</label>
+                            <div class="relative">
+                                <input type="password" name="password" id="password" required
+                                    autocomplete="new-password" class="input-auth pr-11"
+                                    placeholder="Create a strong password" />
+                                <button type="button" onclick="togglePassword('password')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Confirm
+                                Password</label>
+                            <input type="password" name="confirm_password" id="confirm_password" required
+                                class="input-auth" placeholder="Repeat your password" />
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="btn-auth">Create Account</button>
+                    </div>
+
+                    <p class="text-center text-slate-500 dark:text-slate-400 text-sm mt-6">
+                        Already have an account? <a href="{{ url_for('auth.login') }}"
+                            class="text-brand-600 dark:text-brand-400 hover:underline font-bold">Log in here</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <p class="text-center text-slate-500 text-xs mt-8">Contexta &copy; {{ now.year }} &mdash; Built with
+            Intelligence</p>
+    </div>
+
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
+        }
+
+        // Background Carousel Logic
+        let currentIdx = 1;
+        const totalIdx = 3;
+
+        function rotateBackground() {
+            const current = document.getElementById(`carousel-${currentIdx}`);
+            if (current) current.classList.remove('active');
+
+            currentIdx = currentIdx === totalIdx ? 1 : currentIdx + 1;
+
+            const next = document.getElementById(`carousel-${currentIdx}`);
+            if (next) next.classList.add('active');
+        }
+
+        setInterval(rotateBackground, 10000);
+
+        // Auto-focus full_name
+        window.addEventListener('load', () => {
+            const userField = document.getElementById('full_name');
+            if (userField) userField.focus();
+        });
+    </script>
+</body>
+
+</html>

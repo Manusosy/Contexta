@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Contexta{% endblock %} — AI Editorial Platform</title>
+    <meta name="description" content="Contexta — AI-powered RSS to editorial content automation platform." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' },
+                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+</head>
+
+<body
+    class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col relative w-full selection:bg-brand-500 selection:text-white">
+
+    <!-- Announcement Bar -->
+    {% set global_announcement = Announcement.query.filter_by(is_active=True).filter(Announcement.target.in_(['public',
+    'both'])).order_by(Announcement.created_at.desc()).first() %}
+    {% if global_announcement %}
+    <div
+        class="bg-brand-600 text-white py-2 px-4 text-center text-[11px] sm:text-xs font-bold tracking-wide relative z-50 shadow-sm border-b border-white/10">
+        <span class="opacity-95">{{ global_announcement.title }}: {{ global_announcement.content }}</span>
+        {% if global_announcement.link_url %}
+        <a href="{{ global_announcement.link_url }}" class="ml-2 underline hover:text-brand-100 transition-colors">
+            {{ global_announcement.link_text or 'Learn more' }} &rarr;
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Flash Messages Alert Banner overlay -->
+    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 pointer-events-none">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="space-y-3 pointer-events-auto shadow-2xl drop-shadow">
+            {% for category, message in messages %}
+            <div
+                class="flash flash-{{ category }} flex items-start gap-3 border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur shadow-xl rounded-xl p-4">
+                {% if category == 'success' %}
+                <div class="p-1 rounded-full bg-emerald-100 text-emerald-600 shrink-0 mt-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                {% else %}
+                <div class="p-1 rounded-full bg-red-100 text-red-600 shrink-0 mt-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                {% endif %}
+                <span class="font-medium text-slate-800 dark:text-slate-100 pt-0.5">{{ message }}</span>
+                <button onclick="this.parentElement.style.display='none'"
+                    class="ml-auto text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    {% block content %}{% endblock %}
+
+</body>
+
+</html>
