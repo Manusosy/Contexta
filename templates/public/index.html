@@ -42,6 +42,12 @@
 
             <!-- Auth Buttons -->
             <div class="hidden sm:flex items-center gap-4">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('client.index') }}"
+                    class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 transition-all hover:shadow-brand-500/25 cursor-pointer">
+                    Go to Dashboard
+                </a>
+                {% else %}
                 <a href="{{ url_for('auth.login') }}"
                     class="text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Log
                     in</a>
@@ -49,13 +55,14 @@
                     class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 transition-all hover:shadow-brand-500/25 cursor-pointer">
                     Get Started
                 </a>
+                {% endif %}
             </div>
 
             <!-- Mobile menu button -->
             <div class="flex sm:hidden">
-                <a href="{{ url_for('auth.register') }}"
+                <a href="{{ url_for('client.index') if current_user.is_authenticated else url_for('auth.register') }}"
                     class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 mr-2">
-                    Start
+                    {{ 'Dashboard' if current_user.is_authenticated else 'Start' }}
                 </a>
             </div>
         </div>

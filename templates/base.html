@@ -9,354 +9,286 @@
     content="{{ Setting.get('site_name', 'Contexta') }} — AI-powered RSS to editorial content automation platform." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
-          colors: {
-            brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' },
-            slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
+          fontFamily: {
+            mono: ['DM Mono', 'monospace'],
+            sans: ['DM Mono', 'monospace'],
+            syne: ['Syne', 'sans-serif'],
+            fraunces: ['Fraunces', 'serif'],
           }
         }
       }
     }
   </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+
+  <style>
+    body { background: #f5f0e8; color: #0e0e0e; font-family: 'DM Mono', monospace; }
+    aside { background: #0e0e0e; }
+  </style>
 </head>
 
-<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex overflow-hidden">
+<body class="min-h-screen flex overflow-hidden" style="background:#f5f0e8;">
 
-  <!-- Alpine.js for Sidebar state management -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <!-- App Container -->
-  <div x-data="{ 
-      sidebarOpen: localStorage.getItem('sidebarOpen') === null ? true : localStorage.getItem('sidebarOpen') === 'true', 
-      mobileMenuOpen: false, 
-      darkMode: localStorage.getItem('darkMode') === 'true',
+  <div x-data="{
+      sidebarOpen: window.innerWidth >= 1024,
+      sidebarCollapsed: localStorage.getItem('adminSidebarCollapsed') === 'true',
+      mobileMenuOpen: false,
       mounted: false
-    }" x-init="
-      $nextTick(() => mounted = true);
-      $watch('darkMode', val => localStorage.setItem('darkMode', val));
-      $watch('sidebarOpen', val => localStorage.setItem('sidebarOpen', val));
-    " :class="{ 'dark': darkMode }"
-    class="flex h-screen w-full bg-slate-50 dark:bg-slate-900 overflow-hidden transition-colors duration-300">
+    }" x-init="$nextTick(() => mounted = true); window.addEventListener('resize', () => { if (window.innerWidth >= 1024) sidebarOpen = true; }); $watch('sidebarCollapsed', val => localStorage.setItem('adminSidebarCollapsed', val))"
+    class="flex h-screen w-full overflow-hidden" style="background:#f5f0e8;">
 
     <!-- Mobile sidebar backdrop -->
     <div x-show="mobileMenuOpen"
-      class="fixed inset-0 z-40 bg-slate-900/80 backdrop-blur-sm lg:hidden transition-opacity"
-      x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0"
-      x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300"
-      x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="mobileMenuOpen = false"></div>
+      class="fixed inset-0 z-40 lg:hidden" style="background:rgba(14,14,14,0.6);"
+      @click="mobileMenuOpen = false"></div>
 
-    <!-- Sidebar -->
-    <aside :class="(sidebarOpen ? 'w-64' : 'w-20') + (mounted ? ' transition-all duration-300 ease-in-out' : '')"
-      class="fixed inset-y-0 left-0 z-50 flex flex-col bg-[#0f172a] text-slate-300 lg:static lg:flex transform shadow-2xl"
-      :class="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+    <!-- ══ SIDEBAR ══ -->
+    <aside :class="{
+        'translate-x-0': sidebarOpen || mobileMenuOpen,
+        '-translate-x-full lg:translate-x-0': !sidebarOpen && !mobileMenuOpen,
+        'collapsed': sidebarCollapsed
+      }"
+      :style="{ width: sidebarCollapsed ? '72px' : '240px' }"
+      class="fixed inset-y-0 left-0 z-50 flex flex-col lg:static transform transition-all duration-300 ease-in-out"
+      style="height:100vh; background:#0e0e0e; border-right:1px solid #1a1a1a;">
 
-      <!-- Sidebar Header (Logo) -->
-      <div class="flex items-center justify-between h-16 px-4 border-b border-slate-800 shrink-0">
-        <a href="{{ url_for('dashboard.index') }}" class="flex items-center gap-3 group focus:outline-none">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all overflow-hidden">
-            {% if Setting.get('site_logo') %}
-            <img src="{{ Setting.get('site_logo') }}" alt="Logo" class="w-full h-full object-contain">
-            {% else %}
-            <div class="w-full h-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                  d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+      <!-- Logo -->
+      <div style="padding:24px 20px; border-bottom:1px solid #2a2a2a; height:80px; display:flex; align-items:center; overflow:hidden;">
+        <a href="{{ url_for('dashboard.index') }}" class="block no-underline">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="flex-shrink:0; background:var(--accent); width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-family:'Syne',sans-serif; font-weight:800; font-size:18px;">C</div>
+            <div x-show="!sidebarCollapsed" x-transition.opacity style="font-family:'Fraunces',serif; font-size:18px; font-weight:600; color:#f5f0e8; letter-spacing:-0.5px; white-space:nowrap;">
+              {{ Setting.get('site_name', 'Contexta') }}
             </div>
-            {% endif %}
           </div>
-          <span x-show="sidebarOpen"
-            class="text-xl font-bold text-white tracking-tight leading-none truncate transition-opacity duration-300">{{
-            Setting.get('site_name', 'Contexta') }}</span>
         </a>
-        <!-- Close button mobile only -->
-        <button @click="mobileMenuOpen = false"
-          class="lg:hidden p-1 text-slate-400 hover:text-white focus:outline-none">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
       </div>
 
-      <!-- Navigation Links -->
-      <nav class="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto no-scrollbar">
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto no-scrollbar" style="padding:16px 0;">
+
+        <div x-show="!sidebarCollapsed" class="sidebar-section-label" x-transition.opacity>Workspace</div>
+
         <a href="{{ url_for('dashboard.index') }}"
-          class="sidebar-link group {% if request.endpoint == 'dashboard.index' %}active{% endif %}"
-          :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Admin Portal">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          class="sidebar-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}" title="Dashboard">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Admin Portal</span>
+          <span x-show="!sidebarCollapsed">Dashboard</span>
         </a>
+
         <a href="{{ url_for('feeds.index') }}"
-          class="sidebar-link group {% if 'feeds' in request.endpoint %}active{% endif %}"
-          :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Feeds">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z" />
+          class="sidebar-link {% if 'feeds' in request.endpoint %}active{% endif %}" title="Feeds">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z" />
           </svg>
-          <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Feeds</span>
+          <span x-show="!sidebarCollapsed">Feeds</span>
+          {% if total_feeds is defined and total_feeds and not sidebarCollapsed %}
+          <span style="margin-left:auto; background:#c84b2f; color:white; font-size:9px; padding:1px 6px; border-radius:8px;">{{ total_feeds }}</span>
+          {% endif %}
         </a>
+
         <a href="{{ url_for('articles.index') }}"
-          class="sidebar-link group {% if 'articles' in request.endpoint %}active{% endif %}"
-          :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Articles">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          class="sidebar-link {% if 'articles' in request.endpoint %}active{% endif %}" title="Articles">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Articles</span>
+          <span x-show="!sidebarCollapsed">Articles</span>
         </a>
+
         <a href="{{ url_for('settings.index') }}"
-          class="sidebar-link group {% if 'settings' in request.endpoint %}active{% endif %}"
-          :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Settings">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          class="sidebar-link {% if 'settings' in request.endpoint %}active{% endif %}" title="Settings">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Settings</span>
+          <span x-show="!sidebarCollapsed">Settings</span>
         </a>
 
         <!-- Enterprise Section -->
-        <div class="pt-4 pb-2 px-3">
-          <p x-show="sidebarOpen" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 px-3">
-            Enterprise</p>
-          <div :class="!sidebarOpen ? 'border-t border-slate-800' : ''"></div>
-        </div>
+        <div x-show="!sidebarCollapsed" class="sidebar-section-label" style="margin-top:8px;" x-transition.opacity>Enterprise</div>
 
+        <!-- Subscribers submenu -->
         <div x-data="{ subsOpen: {% if 'dashboard.subscribers' in request.endpoint %}true{% else %}false{% endif %} }"
-          class="space-y-1">
+             x-init="$watch('sidebarCollapsed', val => { if(val) subsOpen = false })">
           <button @click="subsOpen = !subsOpen"
-            class="sidebar-link w-full group {% if 'dashboard.subscribers' in request.endpoint %}active{% endif %}"
-            :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Subscribers">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            class="sidebar-link w-full {% if 'dashboard.subscribers' in request.endpoint %}active{% endif %}"
+            style="text-align:left; background:none; border:none; cursor:pointer; width:100%;" title="Subscribers">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            <span x-show="sidebarOpen"
-              class="truncate transition-opacity duration-300 flex-1 text-left">Subscribers</span>
-            <svg x-show="sidebarOpen" class="w-4 h-4 transition-transform duration-200"
-              :class="subsOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span x-show="!sidebarCollapsed" style="flex:1; text-align:left;">Subscribers</span>
+            <svg x-show="!sidebarCollapsed" :class="subsOpen ? 'rotate-180' : ''" class="transition-transform duration-200" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.5;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-
-          <div x-show="subsOpen && sidebarOpen" x-collapse class="pl-11 space-y-1">
-            <a href="{{ url_for('dashboard.subscribers') }}"
-              class="block py-2 text-sm text-slate-400 hover:text-white transition-colors">Active Lists</a>
-            <a href="{{ url_for('dashboard.subscriber_cancellations') }}"
-              class="block py-2 text-sm text-slate-400 hover:text-white transition-colors">Cancellations</a>
-            <a href="#" class="block py-2 text-sm text-slate-400 hover:text-white transition-colors">Retention Rules</a>
+          <div x-show="subsOpen" x-collapse style="padding-left:40px; padding-bottom:4px;">
+            <a href="{{ url_for('dashboard.subscribers') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Active Lists</a>
+            <a href="{{ url_for('dashboard.subscriber_cancellations') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Cancellations</a>
           </div>
         </div>
+
         <a href="{{ url_for('dashboard.revenue') }}"
-          class="sidebar-link group {% if 'dashboard.revenue' in request.endpoint %}active{% endif %}"
-          :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Revenue">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          class="sidebar-link {% if 'dashboard.revenue' in request.endpoint %}active{% endif %}" title="Revenue">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Revenue</span>
+          <span x-show="!sidebarCollapsed">Revenue</span>
         </a>
+
         <a href="{{ url_for('dashboard.announcements') }}"
-          class="sidebar-link group {% if 'dashboard.announcements' in request.endpoint %}active{% endif %}"
-          :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Announcements">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+          class="sidebar-link {% if 'dashboard.announcements' in request.endpoint %}active{% endif %}" title="Announcements">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
           </svg>
-          <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Announcements</span>
+          <span x-show="!sidebarCollapsed">Announcements</span>
         </a>
+
+        <a href="{{ url_for('dashboard.feedback') }}"
+          class="sidebar-link {% if 'dashboard.feedback' in request.endpoint %}active{% endif %}" title="User Feedback">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          <span x-show="!sidebarCollapsed">User Feedback</span>
+        </a>
+
+        <!-- Pricing submenu -->
         <div x-data="{ pricingOpen: {% if 'dashboard.pricing' in request.endpoint %}true{% else %}false{% endif %} }"
-          class="space-y-1">
+             x-init="$watch('sidebarCollapsed', val => { if(val) pricingOpen = false })">
           <button @click="pricingOpen = !pricingOpen"
-            class="sidebar-link w-full group {% if 'dashboard.pricing' in request.endpoint %}active{% endif %}"
-            :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Pricing">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7 7h.01M7 11h.01M7 15h.01M10 7h10M10 11h10M10 15h10M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z" />
+            class="sidebar-link w-full {% if 'dashboard.pricing' in request.endpoint %}active{% endif %}"
+            style="text-align:left; background:none; border:none; cursor:pointer; width:100%;" title="Pricing">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 11h.01M7 15h.01M10 7h10M10 11h10M10 15h10M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z" />
             </svg>
-            <span x-show="sidebarOpen" class="truncate transition-opacity duration-300 flex-1 text-left">Pricing</span>
-            <svg x-show="sidebarOpen" class="w-4 h-4 transition-transform duration-200"
-              :class="pricingOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span x-show="!sidebarCollapsed" style="flex:1; text-align:left;">Pricing</span>
+            <svg x-show="!sidebarCollapsed" :class="pricingOpen ? 'rotate-180' : ''" class="transition-transform duration-200" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.5;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-
-          <div x-show="pricingOpen && sidebarOpen" x-collapse class="pl-11 space-y-1">
-            <a href="{{ url_for('dashboard.pricing') }}"
-              class="block py-2 text-sm text-slate-400 hover:text-white transition-colors">Pricing Tiers</a>
-            <a href="{{ url_for('dashboard.pricing_features') }}"
-              class="block py-2 text-sm text-slate-400 hover:text-white transition-colors">Pricing Features</a>
-            <a href="{{ url_for('dashboard.pricing_settings') }}"
-              class="block py-2 text-sm text-slate-400 hover:text-white transition-colors">Price Settings</a>
-            <a href="{{ url_for('dashboard.pricing_discounts') }}"
-              class="block py-2 text-sm text-slate-400 hover:text-white transition-colors">Discounts / Coupons</a>
-            <a href="{{ url_for('dashboard.pricing_adjustments') }}"
-              class="block py-2 text-sm text-slate-400 hover:text-white transition-colors">Adjustments</a>
+          <div x-show="pricingOpen" x-collapse style="padding-left:40px; padding-bottom:4px;">
+            <a href="{{ url_for('dashboard.pricing') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Pricing Tiers</a>
+            <a href="{{ url_for('dashboard.pricing_features') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Pricing Features</a>
+            <a href="{{ url_for('dashboard.pricing_settings') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Price Settings</a>
+            <a href="{{ url_for('dashboard.pricing_discounts') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Discounts / Coupons</a>
+            <a href="{{ url_for('dashboard.pricing_adjustments') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Adjustments</a>
           </div>
         </div>
 
-        <div class="pt-4 pb-2 px-3 mt-4 border-t border-slate-800">
-          <a href="{{ url_for('client.index') }}"
-            class="sidebar-link group hover:bg-emerald-500/10 hover:text-emerald-400"
-            :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Subscriber Portal">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            <span x-show="sidebarOpen" class="truncate transition-opacity duration-300">Subscriber View</span>
-          </a>
-        </div>
-      </nav>
-
-      <!-- Sidebar Footer (Theme Toggle & Collapse) -->
-      <div class="px-3 py-4 border-t border-slate-800 shrink-0 space-y-2">
-        <button @click="darkMode = !darkMode" class="sidebar-link w-full group"
-          :class="sidebarOpen ? 'px-3 justify-start' : 'px-0 justify-center'" title="Toggle Dark mode">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      <!-- Sidebar Footer -->
+      <div style="padding:16px 20px; border-top:1px solid #1a1a1a;">
+        <a href="{{ url_for('public.index') }}" class="sidebar-link" style="color:#aaa;" title="Back to Website">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          <span x-show="sidebarOpen" class="truncate transition-opacity flex-1 text-left">Dark mode</span>
-        </button>
+          <span x-show="!sidebarCollapsed">Back to Website</span>
+        </a>
       </div>
+
     </aside>
 
-    <!-- Main Content Wrapper -> Flex Col -->
-    <div
-      class="flex-1 flex flex-col items-stretch min-w-0 bg-[#f8fafc] dark:bg-slate-900 relative transition-colors duration-300">
+    <!-- ══ MAIN CONTENT ══ -->
+    <div class="flex-1 flex flex-col min-w-0" style="margin-left:0; overflow:hidden;">
 
-      <!-- Top Bar (Mobile Menu + Status + Sidebar Toggle) -->
-      <header
-        class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 sticky top-0 z-30 transition-colors duration-300">
-        <div class="flex items-center gap-4">
-          <!-- Mobile Menu Toggle -->
-          <button @click="mobileMenuOpen = true"
-            class="lg:hidden text-slate-500 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 rounded p-1">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <!-- Desktop Collapse Toggle -->
-          <button @click="sidebarOpen = !sidebarOpen"
-            class="hidden lg:flex text-slate-400 hover:text-slate-600 focus:outline-none p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-            title="Toggle Sidebar">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+      <!-- Topbar -->
+      <header class="topbar shrink-0">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <!-- Sidebar Toggle (Desktop) -->
+          <button @click="sidebarCollapsed = !sidebarCollapsed" class="hidden lg:flex"
+            style="background:none; border:none; cursor:pointer; color:#888; padding:4px;" title="Toggle Sidebar">
+            <svg x-show="!sidebarCollapsed" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+            <svg x-show="sidebarCollapsed" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
           </button>
 
-          <!-- Search Bar -->
-          <div class="hidden sm:block flex-1 max-w-md ml-4">
-            <form action="{{ url_for('dashboard.search') }}" method="GET" class="relative group">
-              <div
-                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-brand-500 transition-colors">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-              </div>
-              <input type="text" name="q" placeholder="Search articles, logs, subscribers..."
-                class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all dark:text-white"
-                {% if request.args.get('q') %}value="{{ request.args.get('q') }}" {% endif %}>
-            </form>
-          </div>
+          <!-- Mobile toggle -->
+          <button @click="mobileMenuOpen = true" class="lg:hidden" style="background:none; border:none; cursor:pointer; color:#888; padding:4px;">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+
+          <!-- Page title -->
+          <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
         </div>
 
-        <div class="flex items-center gap-4">
-          <div
-            class="flex items-center gap-2 px-3 py-1.5 bg-slate-100/80 dark:bg-slate-700/80 rounded-full border border-slate-200 dark:border-slate-600 shadow-sm transition-colors duration-300">
-            <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-400 relative">
-              <div class="absolute inset-0 rounded-full bg-slate-400 animate-ping opacity-20"></div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <!-- Search -->
+          <form action="{{ url_for('dashboard.search') }}" method="GET" style="position:relative; display:none;" class="sm:block">
+            <input type="text" name="q" placeholder="Search..."
+              style="background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:6px 12px 6px 32px; font-size:11px; font-family:'DM Mono',monospace; color:var(--ink); outline:none; width:200px;"
+              {% if request.args.get('q') %}value="{{ request.args.get('q') }}"{% endif %}>
+            <svg style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#888;" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </form>
+
+          <!-- Status indicator -->
+          <div style="display:flex; align-items:center; gap:6px; padding:5px 12px; background:var(--surface); border:1px solid var(--border); border-radius:99px;">
+            <div id="status-dot" style="width:8px; height:8px; border-radius:50%; background:#888; position:relative;">
+              <div style="position:absolute; inset:0; border-radius:50%; background:#888; animation:pulse 2s infinite; opacity:0.3;"></div>
             </div>
-            <span id="status-text" class="text-xs font-semibold text-slate-600 tracking-wide uppercase">Idle</span>
+            <span id="status-text" style="font-size:9px; font-family:'DM Mono',monospace; letter-spacing:1.5px; text-transform:uppercase; color:#888; font-weight:500;">Idle</span>
           </div>
 
-          <!-- Account Dropdown -->
-          <div class="relative" x-data="{ open: false }">
-            <button @click="open = !open"
-              class="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-              <div
-                class="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
+          <!-- User dropdown -->
+          <div style="position:relative;" x-data="{ open: false }">
+            <button @click="open = !open" style="background:none; border:none; cursor:pointer; padding:0;">
+              <div class="avatar-chip" style="background:#c84b2f;">
                 {{ (current_user.full_name or current_user.email or 'U')[0].upper() }}
               </div>
             </button>
-            <div x-show="open" @click.away="open = false"
-              class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-50">
-              <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-700 mb-1">
-                <p class="text-sm font-bold text-slate-900 dark:text-white">{{ current_user.full_name or
-                  current_user.email }}</p>
-                <p class="text-xs text-slate-500">{{ current_user.role.title() }}</p>
+            <div x-show="open" @click.away="open = false" x-transition
+              style="position:absolute; right:0; top:calc(100% + 8px); width:180px; background:var(--surface); border:1px solid var(--border); border-radius:4px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+              <div style="padding:12px 16px; border-bottom:1px solid var(--border);">
+                <div style="font-size:11px; font-weight:500; font-family:'DM Mono',monospace; color:var(--ink);">{{ current_user.full_name or current_user.email }}</div>
+                <div style="font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px;">{{ current_user.role.title() }}</div>
               </div>
-              <a href="{{ url_for('client.profile') }}"
-                class="block px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50">My
-                Profile</a>
+              <a href="{{ url_for('client.profile') }}" style="display:block; padding:10px 16px; font-size:11px; color:var(--ink); text-decoration:none; font-family:'DM Mono',monospace;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">My Profile</a>
               {% if current_user.role == 'admin' %}
-              <a href="{{ url_for('settings.index') }}"
-                class="block px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50">App
-                Settings</a>
+              <a href="{{ url_for('settings.index') }}" style="display:block; padding:10px 16px; font-size:11px; color:var(--ink); text-decoration:none; font-family:'DM Mono',monospace;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">App Settings</a>
               {% endif %}
-              <a href="{{ url_for('auth.logout') }}"
-                class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10">Log out</a>
+              <a href="{{ url_for('auth.logout') }}" style="display:block; padding:10px 16px; font-size:11px; color:var(--accent); text-decoration:none; font-family:'DM Mono',monospace; border-top:1px solid var(--border);" onmouseover="this.style.background='#fde8e8'" onmouseout="this.style.background='transparent'">Log out</a>
             </div>
           </div>
         </div>
       </header>
 
-      <!-- Scrollable Main Content -->
-      <main class="flex-1 overflow-y-auto w-full p-4 sm:p-6 lg:p-8 relative">
-        <div class="max-w-7xl mx-auto w-full">
-          <!-- Flash Messages -->
-          {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-          <div class="mb-6 space-y-3">
-            {% for category, message in messages %}
-            <div
-              class="flash flash-{{ category }} flex items-start gap-3 shadow-md border-0 ring-1 ring-inset ring-slate-900/5">
-              {% if category == 'success' %}
-              <div class="p-1 rounded-full bg-emerald-100 text-emerald-600 shrink-0 mt-0.5"><svg class="w-4 h-4"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              {% else %}
-              <div class="p-1 rounded-full bg-red-100 text-red-600 shrink-0 mt-0.5"><svg class="w-4 h-4" fill="none"
-                  stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                </svg></div>
-              {% endif %}
-              <span class="font-medium text-slate-700 pt-0.5">{{ message }}</span>
-            </div>
-            {% endfor %}
+      <!-- Main Scrollable Content -->
+      <main class="flex-1 overflow-y-auto" style="padding:32px 36px;">
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div style="margin-bottom:24px;">
+          {% for category, message in messages %}
+          <div class="flash flash-{{ category }}" style="display:flex; align-items:center; gap:10px;">
+            {% if category == 'success' %}
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            {% else %}
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            {% endif %}
+            <span>{{ message }}</span>
           </div>
-          {% endif %}
-          {% endwith %}
-
-          {% block content %}{% endblock %}
-
-          <footer
-            class="mt-12 pt-6 border-t border-slate-200 pb-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 font-medium tracking-wide gap-4">
-            <div class="flex items-center gap-4">
-              <span>{{ Setting.get('site_name', 'Contexta') }} &copy; {{ now.year }}</span>
-              <a href="{{ url_for('public.terms') }}" class="hover:text-slate-600 transition-colors">Terms</a>
-              <a href="{{ url_for('public.privacy') }}" class="hover:text-slate-600 transition-colors">Privacy</a>
-            </div>
-            <span class="font-mono text-slate-300">v{{ app_version }}</span>
-          </footer>
+          {% endfor %}
         </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+
+        <!-- Footer -->
+        <footer style="margin-top:48px; padding-top:20px; border-top:1px solid var(--border); padding-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; gap:16px; font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; font-family:'DM Mono',monospace;">
+            <span>{{ Setting.get('site_name', 'Contexta') }} &copy; {{ now.year }}</span>
+            <a href="{{ url_for('public.terms') }}" style="color:var(--muted); text-decoration:none;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">Terms</a>
+            <a href="{{ url_for('public.privacy') }}" style="color:var(--muted); text-decoration:none;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">Privacy</a>
+          </div>
+          <span style="font-size:9px; color:#ccc; font-family:'DM Mono',monospace;">v{{ app_version }}</span>
+        </footer>
       </main>
 
     </div>

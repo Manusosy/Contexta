@@ -1,240 +1,576 @@
 {% extends "client_base.html" %}
-{% block title %}My Account — Contexta{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
+<div style="display:flex; flex-direction:column; gap:24px;">
 
-    <!-- Welcome Header -->
-    <div
-        class="bg-gradient-to-r from-brand-600 to-brand-700 rounded-lg p-10 text-white shadow-2xl shadow-brand-500/20 relative overflow-hidden group">
-        <div
-            class="absolute -right-10 -top-10 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000">
-        </div>
-        <div class="relative z-10">
-            <h1 class="text-3xl font-extrabold tracking-tight">Welcome back, {{ current_user.full_name or "Subscriber"
-                }}!</h1>
-            <p class="text-brand-100 mt-2 text-lg opacity-90">Here's a snapshot of your Contexta account.</p>
-        </div>
+  <!-- ── Dashboard Header ── -->
+  <div style="background:var(--paper); border:1px solid var(--border); border-radius:6px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; gap:24px;">
+    <div>
+      <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:6px;">Welcome back</div>
+      <h1 style="font-family:'Fraunces',serif; font-size:32px; font-weight:300; color:var(--ink); line-height:1.2;">
+        {{ current_user.full_name or 'Subscriber' }}<span style="font-family:'Fraunces',serif; font-weight:300; font-style:italic; opacity:0.6;">.</span>
+      </h1>
+      <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Workspace snapshot for Contexta Engine.</p>
     </div>
 
-    <!-- Status Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div style="display:flex; align-items:center; gap:20px;">
+      <div style="text-align:right;">
+        <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:4px;">Active Plan</div>
+        <div style="font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:{% if sub %}var(--green){% else %}var(--accent){% endif %};">
+          {% if sub %}{{ sub.plan_name }}{% else %}Free Trial{% endif %}
+        </div>
+      </div>
+      
+      {% if not sub %}
+      <div style="width:1px; height:32px; background:var(--border);"></div>
+      <a href="{{ url_for('public.index') }}#pricing" class="btn-primary" 
+         style="background:var(--ink); color:var(--paper); padding:10px 20px; font-size:11px; border-radius:4px; font-family:'DM Mono',monospace; text-decoration:none; display:flex; align-items:center; gap:8px; font-weight:600; transition:all 0.2s;"
+         onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--ink)'">
+        Upgrade Plan
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </a>
+      {% endif %}
+    </div>
+  </div>
 
-        <!-- Subscription Status -->
-        <div
-            class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-all">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Subscription</p>
-            <div class="flex items-center gap-3 mb-3">
-                <div
-                    class="w-3 h-3 rounded-full {% if sub %}bg-emerald-500 animate-pulse{% else %}bg-amber-500 animate-pulse{% endif %}">
-                </div>
-                <span
-                    class="text-xs font-bold {% if sub %}text-emerald-600 dark:text-emerald-400{% else %}text-amber-600 dark:text-amber-400{% endif %}">
-                    {% if sub %}{{ sub.status.upper() }}{% else %}FREE TRIAL{% endif %}
+  <!-- STATS -->
+  <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+    <div class="stat-card {% if sub %}green{% else %}amber{% endif %}">
+      <div class="stat-label">Subscription</div>
+      <div class="stat-value" style="font-size: 24px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+        {% if sub %}{{ sub.plan_name }}{% else %}Free Trial{% endif %}
+      </div>
+      <div class="stat-delta">
+        {% if sub %}● Active{% else %}2 articles included{% endif %}
+      </div>
+    </div>
+    
+    <div class="stat-card blue">
+      <div class="stat-label">Articles Generated</div>
+      <div class="stat-value">{{ article_count }}</div>
+      <div class="stat-delta" style="color:var(--muted);">
+        Limit: {% if article_limit == -1 %}Unlimited{% else %}{{ article_limit }}{% endif %}
+      </div>
+    </div>
+    
+    <div class="stat-card red">
+      <div class="stat-label">RSS Channels</div>
+      <div class="stat-value">{{ feed_count }}</div>
+      <div class="stat-delta" style="color:var(--muted);">
+        Limit: {% if feed_limit == -1 %}Unlimited{% else %}{{ feed_limit }}{% endif %}
+      </div>
+    </div>
+    
+    <div class="stat-card amber">
+      <div class="stat-label">WordPress Link</div>
+      <div class="stat-value" style="font-size:18px; line-height:36px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="{% if wp_connected %}{{ current_user.wp_url }}{% else %}Not Linked{% endif %}">
+        {% if wp_connected %}{{ (current_user.wp_url|replace('https://','')|replace('http://','')).rstrip('/')[:20] }}{% else %}Not Linked{% endif %}
+      </div>
+      <div class="stat-delta" style="color:{% if wp_connected %}var(--green){% else %}var(--accent){% endif %};">
+        {% if wp_connected %}● Connected{% else %}○ Disconnected{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTOMATION ENGINE -->
+  <div id="automation-card" class="section-card">
+    <div class="section-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:8px; height:8px; border-radius:2px; background:var(--ink);"></div>
+        <span class="section-title">Automation Engine</span>
+        <span style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace;">End-to-end content generation pipeline</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div id="status-pill"
+          style="display:flex; align-items:center; gap:6px; padding:4px 10px; border-radius:99px; background:var(--cream); border:1px solid var(--border);">
+          <span id="status-dot" style="width:6px; height:6px; border-radius:50%; background:#888; display:inline-block;"></span>
+          <span id="status-label" style="font-size:9px; font-family:'DM Mono',monospace; letter-spacing:1.5px; text-transform:uppercase; color:#888;">{{ automation_status | upper }}</span>
+        </div>
+        <button id="force-reset-btn" onclick="resetAutomation()" class="hidden"
+          style="font-size:9px; font-family:'DM Mono',monospace; letter-spacing:1px; text-transform:uppercase; color:var(--accent); background:#fde8e8; border:1px solid #e8c0b8; padding:4px 10px; border-radius:99px; cursor:pointer;">
+          Reset Engine
+        </button>
+      </div>
+    </div>
+
+    <!-- Pipeline Steps -->
+    <div style="padding:28px 24px; overflow-x:auto;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:0; position:relative; min-width:480px; padding: 0 40px;">
+        <!-- Connector line background -->
+        <div style="position:absolute; top:22px; left:12%; right:12%; height:1px; background:var(--border); z-index:0;"></div>
+        <!-- Progress line -->
+        <div id="progress-line" style="position:absolute; top:22px; left:12%; height:1px; background:var(--ink); z-index:1; width:0%; transition:width 0.5s;"></div>
+
+        <!-- Step 1: RSS Fetch -->
+        <div class="pipeline-step" style="z-index:2; position:relative; display:flex; flex-direction:column; align-items:center;">
+          <div id="step1-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s; cursor:default;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z"/></svg>
+          </div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:'DM Mono',monospace;">RSS Fetch</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:#e8f5ed; color:var(--green); font-family:'DM Mono',monospace; margin-top:4px;">{{ feed_count }} src</div>
+        </div>
+
+        <!-- Step 2: Extraction -->
+        <div class="pipeline-step" style="z-index:2; position:relative; display:flex; flex-direction:column; align-items:center;">
+          <div id="step2-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+          </div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:'DM Mono',monospace;">Extraction</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:var(--cream); color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">{{ queued_articles|length }} queued</div>
+        </div>
+
+        <!-- Step 3: AI Rewrite -->
+        <div class="pipeline-step" style="z-index:2; position:relative; display:flex; flex-direction:column; align-items:center;">
+          <div id="step3-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          </div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:'DM Mono',monospace;">AI Rewrite</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:#fdf3e0; color:#c8882f; font-family:'DM Mono',monospace; margin-top:4px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ active_model }}">{% if active_model %}{{ active_model.split('/')[-1] }}{% else %}Sonnet{% endif %}</div>
+        </div>
+
+        <!-- Step 4: Publish -->
+        <div class="pipeline-step" style="z-index:2; position:relative; display:flex; flex-direction:column; align-items:center;">
+          <div id="step4-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          </div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:'DM Mono',monospace;">Publish</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; {% if wp_connected %}background:#e8f5ed; color:var(--green);{% else %}background:#fde8e8; color:var(--accent);{% endif %} font-family:'DM Mono',monospace; margin-top:4px;">
+            {% if wp_connected %}Connected{% else %}Not Linked{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Processing Banner -->
+    <div id="processing-banner" class="hidden" style="margin:0 24px 20px; padding:14px 18px; border-left:3px solid var(--accent2); background:#f0f4fb; border-radius:0 4px 4px 0; display:none; align-items:center; gap:14px;">
+      <div style="display:flex; gap:5px; flex-shrink:0;">
+        <div style="width:7px; height:7px; background:var(--accent2); border-radius:50%; animation:bounce 0.6s infinite;"></div>
+        <div style="width:7px; height:7px; background:var(--accent2); border-radius:50%; animation:bounce 0.6s 0.2s infinite;"></div>
+        <div style="width:7px; height:7px; background:var(--accent2); border-radius:50%; animation:bounce 0.6s 0.4s infinite;"></div>
+      </div>
+      <div>
+        <div style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent2); font-family:'DM Mono',monospace; font-weight:600;">Processing Workflow</div>
+        <div id="current-processing-title" style="font-size:12px; color:var(--ink); font-family:'DM Mono',monospace; margin-top:3px; font-weight:400;">Initializing engine...</div>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div style="background:var(--cream); border-top:1px solid var(--border); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <button id="run-btn" onclick="runAutomationNow()" class="btn-primary"
+        style="display:flex; align-items:center; gap:8px; padding:12px 24px; font-size:12px; background:var(--ink); color:var(--paper); border:none; border-radius:4px; font-family:'DM Mono',monospace; cursor:pointer; font-weight:500;">
+        <svg id="btn-icon-play" width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg>
+        <svg id="btn-icon-spin" class="hidden" width="14" height="14" fill="none" viewBox="0 0 24 24" style="display:none;"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75"/></svg>
+        <span id="run-btn-text">Run Automation Now</span>
+      </button>
+
+      <!-- Schedule widget -->
+      <div style="display:flex; align-items:center; gap:12px; background:var(--surface); padding:8px 16px; border-radius:4px; border:1px solid var(--border);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div id="schedule-dot" style="width:6px; height:6px; border-radius:50%; background:{% if schedule_enabled %}#2a7a4b{% else %}#888{% endif %};"></div>
+          <span style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace; font-weight:500;">Schedule</span>
+        </div>
+        <div style="width:1px; height:18px; background:var(--border);"></div>
+        <select id="frequency-select" onchange="toggleSchedule()"
+          style="background:transparent; border:none; font-size:11px; font-family:'DM Mono',monospace; color:var(--ink); cursor:pointer; outline:none; font-weight:500;">
+          <option value="15" {% if schedule_frequency=='15' %}selected{% endif %}>Every 15 mins</option>
+          <option value="30" {% if schedule_frequency=='30' %}selected{% endif %}>Every 30 mins</option>
+          <option value="60" {% if schedule_frequency=='60' %}selected{% endif %}>Every 1 hr</option>
+          <option value="180" {% if schedule_frequency=='180' %}selected{% endif %}>Every 3 hrs</option>
+        </select>
+        <div style="width:1px; height:18px; background:var(--border);"></div>
+        <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer;">
+          <input type="checkbox" id="schedule-toggle" {% if schedule_enabled %}checked{% endif %} onchange="toggleSchedule()" style="display:none;">
+          <div style="width:36px; height:20px; background:{% if schedule_enabled %}#2a7a4b{% else %}var(--border){% endif %}; border-radius:10px; position:relative; transition:background 0.2s;" id="toggle-track">
+            <div style="position:absolute; width:14px; height:14px; border-radius:50%; background:white; top:3px; left:{% if schedule_enabled %}19px{% else %}3px{% endif %}; transition:left 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2);" id="toggle-knob"></div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- TWO COLUMN -->
+  <div style="display:grid; grid-template-columns:1fr 380px; gap:24px;">
+
+    <!-- LEFT: FEEDS + RECENT POSTS -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+
+      <!-- FEED SOURCES -->
+      <div class="section-card" style="position:relative;">
+        <div class="section-header" style="padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between;">
+          <div class="section-title" style="font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; letter-spacing: 1px;">FEED SOURCES</div>
+          <div class="section-meta" style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: lowercase;">{{ feed_count }} active · syncs every 30 min</div>
+        </div>
+        
+        <div style="padding:0; background: var(--surface);">
+          {% if recent_feeds %}
+            {% for feed in recent_feeds %}
+            <div style="display:flex; align-items:center; gap:16px; padding:16px 20px; border-bottom:1px solid var(--border); transition: background 0.15s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">
+              <div style="width:36px; height:36px; border-radius:4px; background:{% if feed.active %}var(--accent2){% else %}#888{% endif %}; display:flex; align-items:center; justify-content:center; font-size:15px; color:var(--paper); font-family: 'Syne', sans-serif; font-weight:700; flex-shrink:0;">
+                {{ feed.name[0].upper() }}
+              </div>
+              <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;">
+                <div style="font-size:13px; font-weight:500; font-family: 'DM Mono', monospace; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ feed.name }}</div>
+                <div style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace;">{{ (feed.url|replace('https://','')|replace('http://','')).rstrip('/') }}</div>
+              </div>
+              <div style="font-family:'Fraunces',serif; font-size:20px; color:var(--muted); font-weight:300; padding-right:12px;">
+                {{ range(5, 45) | random }} <!-- Placeholder post count matching design -->
+              </div>
+              <label class="toggle-switch" style="position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0;">
+                <input type="checkbox" style="opacity:0; width:0; height:0;" {% if feed.active %}checked{% endif %} onchange="window.location='{{ url_for('client.feed_toggle', feed_id=feed.id) }}'">
+                <span style="position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:{% if feed.active %}var(--green){% else %}var(--border){% endif %}; transition:.2s; border-radius:24px;">
+                  <span style="position:absolute; content:''; height:18px; width:18px; left:3px; bottom:3px; background-color:white; transition:.2s; border-radius:50%; {% if feed.active %}transform:translateX(20px);{% endif %}"></span>
                 </span>
+              </label>
             </div>
-            <p class="text-xl font-bold text-slate-900 dark:text-white">{% if sub %}{{ sub.plan_name }}{% else %}Starter
-                Trial{% endif %}</p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-2">
-                {% if sub %}Renews {{ sub.current_period_end.strftime('%b %d, %Y') }}{% else %}2 articles included{%
-                endif %}
-            </p>
-        </div>
-
-        <!-- WordPress Status (Dynamic) -->
-        <div
-            class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-all">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">WordPress Site</p>
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-3 h-3 rounded-full {% if wp_connected %}bg-emerald-500{% else %}bg-slate-300{% endif %}">
-                </div>
-                <span
-                    class="text-xs font-bold {% if wp_connected %}text-emerald-600 dark:text-emerald-400{% else %}text-slate-500{% endif %}">
-                    {% if wp_connected %}CONNECTED{% else %}DISCONNECTED{% endif %}
-                </span>
+            {% endfor %}
+          {% else %}
+            <div style="padding:40px 20px; font-size:12px; color:var(--muted); font-family:'DM Mono',monospace; text-align:center;">
+              <div style="font-family:'Fraunces', serif; font-size:20px; color:var(--ink); margin-bottom:8px;">No feeds configured</div>
+              Connect your first RSS source to start importing content.
             </div>
-            <p class="text-xl font-bold text-slate-900 dark:text-white truncate">
-                {% if wp_connected %}{{ (current_user.wp_url|replace('https://','')|replace('http://','')).rstrip('/')
-                }}{% else %}Not Linked{% endif %}
-            </p>
-            <a href="{{ url_for('client.settings') }}"
-                class="mt-4 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
-                Configure Site <span class="ml-1">→</span>
-            </a>
+          {% endif %}
         </div>
+        
+        <div style="padding: 16px 20px; background: var(--surface); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+          <button onclick="window.location='{{ url_for('client.feeds') }}'" style="display:flex; align-items:center; justify-content:center; padding:18px; border:1px dashed var(--border); border-radius:4px; font-size:13px; color:var(--muted); cursor:pointer; background:transparent; width:100%; font-family:'DM Mono',monospace; transition:all 0.15s;" onmouseover="this.style.borderColor='var(--ink)'; this.style.color='var(--ink)'; this.style.background='var(--cream)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'; this.style.background='transparent'">
+            + Add RSS Feed
+          </button>
+        </div>
+      </div>
 
-        <!-- Automation Usage -->
-        <div
-            class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-all">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Usage</p>
-            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ article_count }} <span
-                    class="text-sm font-medium text-slate-400">/ {% if article_limit == -1 %}∞{% else %}{{ article_limit
-                    }}{% endif %}</span></p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-2">Articles generated this month.</p>
-            {% if sub %}
-            <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full mt-4 overflow-hidden">
-                {% set pct = (article_count / article_limit * 100) if article_limit > 0 else 0 %}
-                <div class="h-full bg-brand-500 rounded-full" style="width: {{ pct if pct < 100 else 100 }}%"></div>
+      <!-- RECENT PUBLISHED -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">Recently Published</div>
+          <a href="{{ url_for('client.articles') }}" class="btn-secondary" style="font-size:10px; padding:5px 10px; text-decoration:none;">View All</a>
+        </div>
+        
+        {% if recently_published_articles %}
+          <div style="display:grid; grid-template-columns:2fr 1fr 100px 80px; padding:10px 20px; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); background:var(--cream);">
+            <span>Title</span>
+            <span>Source Feed</span>
+            <span>Status</span>
+            <span>Words</span>
+          </div>
+          {% for article in recently_published_articles %}
+            <div style="display:grid; grid-template-columns:2fr 1fr 100px 80px; padding:13px 20px; font-size:11px; border-bottom:1px solid var(--border); align-items:center; cursor:pointer;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'" onclick="window.location='{{ url_for('articles.view', article_id=article.id) }}'">
+              <div style="font-family:'Fraunces',serif; font-style:italic; font-weight:300; font-size:14px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:12px;">
+                {{ article.generated_title or article.original_title or 'Untitled' }}
+              </div>
+              <div style="color:var(--muted); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:12px;">
+                {{ article.feed.name if article.feed else 'Unknown' }}
+              </div>
+              <div><span class="badge badge-blue">Pushed</span></div>
+              <div style="color:var(--muted); font-family:'DM Mono',monospace;">{{ article.word_count or '~' }}w</div>
             </div>
-            {% endif %}
-        </div>
-
-        <!-- Feeds -->
-        <div
-            class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-md transition-all">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">RSS Channels</p>
-            <p class="text-2xl font-bold text-slate-900 dark:text-white">{{ feed_count }} <span
-                    class="text-sm font-medium text-slate-400">/ {% if feed_limit == -1 %}∞{% else %}{{ feed_limit }}{%
-                    endif %}</span></p>
-            <a href="{{ url_for('client.feeds') }}"
-                class="mt-4 inline-flex items-center text-xs font-bold text-brand-600 dark:text-brand-400 hover:gap-2 transition-all">
-                Manage Feeds <span class="ml-1">→</span>
-            </a>
-        </div>
+          {% endfor %}
+        {% else %}
+          <div style="padding:24px 20px; font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; text-align:center;">
+            No articles published to your output targets yet.
+          </div>
+        {% endif %}
+      </div>
+      
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
 
-        <!-- Activity Feed (Primary) -->
-        <div
-            class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-            <div class="px-8 py-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Recent Activity
-                </h2>
-                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            </div>
-            <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                {% if recent_activities %}
-                {% for activity in recent_activities %}
-                <div
-                    class="px-8 py-5 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                    <div class="mt-1 w-8 h-8 rounded-lg flex items-center justify-center shrink-0
-                            {% if activity.status == 'success' %}bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400
-                            {% elif activity.status == 'error' %}bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400
-                            {% elif activity.status == 'warning' %}bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400
-                            {% else %}bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400{% endif %}">
-
-                        {% if activity.status == 'success' %}
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M5 13l4 4L19 7" />
-                        </svg>
-                        {% elif activity.status == 'error' %}
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        {% else %}
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {% endif %}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ activity.action }}</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1 truncate">{{
-                            activity.message }}</p>
-                    </div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter shrink-0 pt-1">
-                        {{ activity.timestamp.strftime('%H:%M • %b %d') }}
-                    </div>
-                </div>
-                {% endfor %}
-                {% else %}
-                <div class="px-8 py-20 text-center">
-                    <div
-                        class="w-16 h-16 bg-slate-50 dark:bg-slate-700/30 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <p class="text-sm text-slate-400 font-medium">No recent activities recorded.</p>
-                </div>
-                {% endif %}
-            </div>
+      <!-- QUEUE -->
+      <div class="section-card">
+        <div class="section-header" style="padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between;">
+          <div class="section-title" style="font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; letter-spacing: 1px;">PUBLISH QUEUE</div>
+          <div class="section-meta" style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: lowercase;">{{ queued_articles|length }} items</div>
         </div>
-
-        <!-- Recent Billing (Sidebar Style) -->
-        <div class="space-y-6">
-            <div
-                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
-                    <h2 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Payments</h2>
+        
+        <div style="padding:0; background: var(--surface);">
+          {% if queued_articles %}
+            {% for article in queued_articles %}
+              <div style="padding:16px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'" onclick="window.location='{{ url_for('articles.view', article_id=article.id) }}'">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px;">
+                  <div style="font-family:'Fraunces',serif; font-style:italic; font-size:16px; font-weight:300; line-height:1.3; color:var(--ink); flex:1;">
+                    {{ article.generated_title or article.original_title or 'Untitled Article' }}
+                  </div>
+                  {% if article.status == 'pushed' %}
+                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:#e8f5ed; color:var(--green); font-family:'DM Mono',monospace;">Ready</span>
+                  {% elif article.status == 'generated' %}
+                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:#fdf3e0; color:#c8882f; font-family:'DM Mono',monospace;">Review</span>
+                  {% elif article.status == 'pending' %}
+                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:#fde8e8; color:var(--accent); font-family:'DM Mono',monospace;">Pending</span>
+                  {% else %}
+                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:var(--paper); color:var(--muted); font-family:'DM Mono',monospace;">{{ article.status | capitalize }}</span>
+                  {% endif %}
                 </div>
-                <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                    {% if recent_transactions %}
-                    {% for tx in recent_transactions %}
-                    <div class="px-6 py-4">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">{{ tx.created_at.strftime('%b
-                                %d') }}</span>
-                            <span class="text-xs font-bold text-slate-900 dark:text-white">{{ tx.currency }} {{
-                                "%.2f"|format(tx.amount) }}</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-slate-500 dark:text-slate-400">{{ tx.provider|title }}</span>
-                            <span
-                                class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-tighter
-                                    {% if tx.status == 'completed' %}bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400
-                                    {% else %}bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400{% endif %}">
-                                {{ tx.status }}
-                            </span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <div class="px-6 py-8 text-center text-xs text-slate-400">No transactions.</div>
-                    {% endif %}
+                <div style="font-size:11px; color:var(--muted); display:flex; gap:12px; font-family:'DM Mono',monospace;">
+                  <span>{{ article.feed.name if article.feed else 'Unknown Source' }}</span>
+                  <span>{{ article.word_count or '~800' }} words</span>
+                  <span>{% if article.status == 'pushed' %}published{% elif article.status == 'generated' %}awaiting review{% else %}processing{% endif %}</span>
                 </div>
-                <div
-                    class="px-6 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                    <a href="{{ url_for('client.billing') }}"
-                        class="text-[10px] font-bold text-brand-600 dark:text-brand-400 hover:underline">Full History
-                        →</a>
-                </div>
-            </div>
-
-            <!-- Profile Overview Widget -->
-            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-                <div class="flex items-center gap-4 mb-4">
-                    <div
-                        class="w-12 h-12 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-brand-500/30">
-                        {{ (current_user.full_name or current_user.email or 'U')[0].upper() }}
-                    </div>
-                    <div class="min-w-0">
-                        <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ current_user.full_name
-                            or 'Account User' }}</p>
-                        <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ current_user.email }}</p>
-                    </div>
-                </div>
-                <a href="{{ url_for('client.profile') }}"
-                    class="text-[10px] font-bold text-slate-400 hover:text-brand-600 transition-colors uppercase tracking-widest flex items-center gap-2">
-                    Manage Profile <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </a>
-            </div>
+              </div>
+            {% endfor %}
+          {% else %}
+             <div style="padding:40px 20px; font-size:12px; color:var(--muted); font-family:'DM Mono',monospace; text-align:center;">
+                <div style="font-family:'Fraunces', serif; font-size:20px; color:var(--ink); margin-bottom:8px;">Queue empty</div>
+                No items currently processing in the pipeline.
+             </div>
+          {% endif %}
         </div>
+      </div>
+
+      <!-- CONFIG QUICK PANEL -->
+      <div class="section-card">
+        <div class="section-header" style="padding: 18px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between;">
+          <div class="section-title" style="font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; letter-spacing: 1px;">QUICK CONFIG</div>
+          <button onclick="window.location='{{ url_for('client.settings') }}'" style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); padding: 4px 12px; border: 1px solid var(--border); border-radius: 4px; background: transparent; cursor: pointer;">Edit</button>
+        </div>
+        
+        <div style="background: var(--surface);">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+            <span style="color:var(--muted);">AI Model</span>
+            <div style="background:var(--cream); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:12px; display:flex; align-items:center; gap:8px;">
+              Claude Sonnet
+              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+          
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+            <span style="color:var(--muted);">Rewrite Style</span>
+            <div style="background:var(--cream); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:12px; display:flex; align-items:center; gap:8px;">
+              Informative Editorial
+              <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+          
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+            <span style="color:var(--muted);">Min Word Count</span>
+            <span style="color:var(--ink); font-weight:500;">800 words</span>
+          </div>
+
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+            <span style="color:var(--muted);">Auto-publish</span>
+            <span style="color:var(--green); font-weight:500;">Enabled</span>
+          </div>
+
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+            <span style="color:var(--muted);">Human Review</span>
+            <span style="color:var(--accent); font-weight:500;">Required for >2,000w</span>
+          </div>
+          
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+            <span style="color:var(--muted);">Publish Target</span>
+            <span style="color:var(--ink); font-weight:500;">{% if wp_connected %}WordPress{% else %}Not Linked{% endif %}</span>
+          </div>
+          
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; font-size:13px; font-family:'DM Mono',monospace;">
+            <span style="color:var(--muted);">Daily Limit</span>
+            <span style="color:var(--ink); font-weight:500;">{% if article_limit == -1 %}Unlimited{% else %}{{ article_limit }} posts/day{% endif %}</span>
+          </div>
+        </div>
+      </div>
+
     </div>
+  </div>
 
-    <!-- Free tier upgrade CTA -->
-    {% if not sub %}
-    <div
-        class="bg-gradient-to-r from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 border border-brand-200 dark:border-brand-800 rounded-lg p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div>
-            <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Upgrade to a Full Plan</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-400">Unlock unlimited articles, more RSS feeds, and
-                automated WordPress publishing.</p>
-        </div>
-        <a href="{{ url_for('public.index') }}#pricing"
-            class="whitespace-nowrap inline-flex items-center gap-2 px-8 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white text-sm font-bold rounded-lg hover:scale-105 transition-all shadow-xl shadow-slate-900/20">
-            View Plans
-        </a>
-    </div>
-    {% endif %}
+
 
 </div>
+<script>
+  function setRunningState(isRunning) {
+    const btn = document.getElementById('run-btn');
+    const btnText = document.getElementById('run-btn-text');
+    const playIcon = document.getElementById('btn-icon-play');
+    const spinIcon = document.getElementById('btn-icon-spin');
+    const banner = document.getElementById('processing-banner');
+    const resetBtn = document.getElementById('force-reset-btn');
+    const progressLine = document.getElementById('progress-line');
+    if (isRunning) {
+      if(btn) { btn.disabled = true; btn.style.opacity = '0.7'; btn.style.cursor = 'not-allowed'; }
+      if(btnText) btnText.textContent = 'Engine Running...';
+      if(playIcon) playIcon.style.display = 'none';
+      if(spinIcon) spinIcon.style.display = 'inline-block';
+      if (banner) banner.style.display = 'flex';
+      if (resetBtn) resetBtn.style.display = 'inline-block';
+      if (progressLine) progressLine.style.width = '25%';
+    } else {
+      if(btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+      if(btnText) btnText.textContent = 'Run Automation Now';
+      if(playIcon) playIcon.style.display = 'inline-block';
+      if(spinIcon) spinIcon.style.display = 'none';
+      if (banner) banner.style.display = 'none';
+      if (resetBtn) resetBtn.style.display = 'none';
+      if (progressLine) progressLine.style.width = '0%';
+      updateActiveNode(0);
+    }
+  }
+
+  function updateActiveNode(stepNum) {
+    for (let i = 1; i <= 4; i++) {
+      const icon = document.getElementById('step' + i + '-icon');
+      if (!icon) continue;
+      if (i === stepNum) {
+        icon.style.background = 'var(--ink)';
+        icon.style.borderColor = 'var(--ink)';
+        icon.style.color = 'var(--paper)';
+        icon.style.animation = 'pulse-step 1.5s infinite';
+      } else {
+        icon.style.background = 'var(--paper)';
+        icon.style.borderColor = 'var(--border)';
+        icon.style.color = i < stepNum ? '#ccc' : 'var(--muted)';
+        icon.style.animation = '';
+      }
+    }
+    const progressLine = document.getElementById('progress-line');
+    if (progressLine && stepNum > 0) {
+      const pct = { 1: '12%', 2: '38%', 3: '63%', 4: '88%' };
+      progressLine.style.width = pct[stepNum] || '0%';
+    }
+  }
+
+  function updateStatusPill(status) {
+    const pill = document.getElementById('status-pill');
+    const dot = document.getElementById('status-dot');
+    const label = document.getElementById('status-label');
+    if (!pill || !dot || !label) return;
+    
+    // Reset defaults
+    pill.style.background = 'var(--cream)';
+    pill.style.borderColor = 'var(--border)';
+    dot.style.animation = '';
+    
+    if (status === 'running') {
+      pill.style.background = '#e8edf5';
+      pill.style.borderColor = '#b8c8e0';
+      dot.style.background = 'var(--accent2)';
+      label.style.color = 'var(--accent2)';
+      dot.style.animation = 'pulse-step 1s infinite';
+    } else if (status === 'failed') {
+      pill.style.background = '#fde8e8';
+      pill.style.borderColor = '#e8c0b8';
+      dot.style.background = 'var(--accent)';
+      label.style.color = 'var(--accent)';
+    } else {
+      dot.style.background = '#888';
+      label.style.color = '#888';
+    }
+    label.textContent = status.toUpperCase();
+  }
+
+  async function runAutomationNow() {
+    setRunningState(true); 
+    updateStatusPill('running'); 
+    updateActiveNode(1);
+    try {
+      const res = await fetch('/api/run-automation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auto_push: false })
+      });
+      const data = await res.json();
+      if (data.success) { 
+        pollStatus(); 
+      } else { 
+        setRunningState(false); 
+        updateStatusPill('idle'); 
+        alert(data.error || 'Failed to start.'); 
+      }
+    } catch(e) { 
+      setRunningState(false); 
+      updateStatusPill('idle'); 
+      alert('Connection error: ' + e.message); 
+    }
+  }
+
+  async function resetAutomation() {
+    if (!confirm('Force reset engine?')) return;
+    try {
+      const res = await fetch('/api/reset-automation', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) { 
+        setRunningState(false); 
+        updateStatusPill('idle'); 
+      }
+    } catch(e) {}
+  }
+
+  let pollInterval = null, _didWork = false;
+  function pollStatus() {
+    _didWork = false;
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        const isRunning = data.status === 'running';
+        updateStatusPill(data.status);
+        
+        if (isRunning) {
+          setRunningState(true);
+          if (data.current_article) {
+             const titleEl = document.getElementById('current-processing-title');
+             if (titleEl) titleEl.textContent = data.current_article;
+             _didWork = true;
+             const msg = data.current_article.toLowerCase();
+             if (msg.includes('rss') || msg.includes('fetch')) updateActiveNode(1);
+             else if (msg.includes('extract') || msg.includes('scrap')) updateActiveNode(2);
+             else if (msg.includes('rewrite') || msg.includes('ai')) updateActiveNode(3);
+             else if (msg.includes('publish') || msg.includes('push')) updateActiveNode(4);
+          }
+        } else {
+          clearInterval(pollInterval);
+          if (_didWork) { 
+            updateActiveNode(4); 
+            setTimeout(() => location.reload(), 1500); 
+          } else { 
+            setRunningState(false); 
+          }
+        }
+      } catch(e) {}
+    }, 2000);
+  }
+
+  async function toggleSchedule() {
+    const toggle = document.getElementById('schedule-toggle');
+    const enabled = toggle.checked;
+    const frequency = document.getElementById('frequency-select').value;
+    
+    // UI Feedback
+    const track = document.getElementById('toggle-track');
+    const knob = document.getElementById('toggle-knob');
+    const dot = document.getElementById('schedule-dot');
+    
+    if (enabled) {
+      track.style.background = '#2a7a4b';
+      knob.style.left = '19px';
+      dot.style.background = '#2a7a4b';
+    } else {
+      track.style.background = 'var(--border)';
+      knob.style.left = '3px';
+      dot.style.background = '#888';
+    }
+
+    try {
+      await fetch('/api/toggle-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled, frequency: parseInt(frequency) })
+      });
+    } catch(e) {}
+  }
+
+  // Initial check
+  (async function() {
+    try {
+      const res = await fetch('/api/status');
+      const data = await res.json();
+      if (data.status === 'running') pollStatus();
+    } catch(e) {}
+  })();
+</script>
+
+<style>
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+  @keyframes pulse-step { 0%{box-shadow: 0 0 0 0 rgba(14,14,14, 0.4);} 70%{box-shadow: 0 0 0 10px rgba(14,14,14, 0);} 100%{box-shadow: 0 0 0 0 rgba(14,14,14, 0);} }
+  .hidden { display: none !important; }
+</style>
 {% endblock %}

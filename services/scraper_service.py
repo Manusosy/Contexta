@@ -1,75 +1,64 @@
-"""Scraper Service — extracts clean article content from URLs."""
-import time
-import requests
-from bs4 import BeautifulSoup
-from readability import Document
+"""Scraper Service — extracts clean article content from URLs using trafilatura."""
+import trafilatura
 from models import db
 from utils.logger import log_event as _log
+from config import get_config
 
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    )
-}
-TIMEOUT = 15
+config = get_config()
 
 
 def scrape_article(url: str) -> dict:
     """
-    Fetch and clean article content from a URL.
-    Returns dict with keys: title, text, html.
-    Returns empty dict on failure.
+    Fetch and clean article content from a URL using trafilatura.
+    Returns dict with keys: title, text, author, date, image, status.
+    Node 3 Specification: Extract full body text, author, publish date, main image URL, canonical URL.
     """
-    for attempt in range(2):
-        try:
-            response = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
-            response.raise_for_status()
-            break
-        except Exception as e:
-            if attempt == 0:
-                time.sleep(2)
-                continue
-            _log(f"Failed to fetch URL: {url}", "error", str(e))
-            return {}
-
     try:
-        doc = Document(response.text)
-        title = doc.title()
-        raw_html = doc.summary(html_partial=True)
+        downloaded = trafilatura.fetch_url(url)
+        if not downloaded:
+            _log(f"Trafilatura failed to download: {url}", "warning")
+            return {"status": "skipped", "reason": "download_failed"}
 
-        soup = BeautifulSoup(raw_html, "lxml")
-        _strip_junk(soup)
+        # Extract with all metadata
+        # output_format='txt' for the body text
+        result = trafilatura.extract(
+            downloaded, 
+            include_comments=False, 
+            include_tables=True,
+            include_images=True,
+            include_formatting=True,
+            with_metadata=True
+        )
+        
+        if not result:
+            _log(f"Extraction failed for: {url}", "warning")
+            return {"status": "skipped", "reason": "extraction_failed"}
 
-        clean_text = soup.get_text(separator="\n", strip=True)
-        clean_html = str(soup)
+        # Trafilatura metadata extraction
+        import json
+        metadata = trafilatura.extract_metadata(downloaded)
+        
+        # Word count check
+        word_count = len(result.split())
+        min_words = getattr(config, "MIN_WORD_COUNT", 200)
+        
+        if word_count < min_words:
+            _log(f"Article too short ({word_count} words): {url}", "info")
+            return {"status": "skipped", "reason": f"content_too_short_{word_count}"}
 
-        _log(f"Scraped: {url[:60]}...", "success", f"{len(clean_text)} chars extracted")
+        _log(f"Scraped: {url[:60]}...", "success", f"{word_count} words extracted")
+        
         return {
-            "title": title,
-            "text": clean_text,
-            "html": clean_html,
+            "title": metadata.title if metadata else None,
+            "text": result,
+            "author": metadata.author if metadata else None,
+            "date": metadata.date if metadata else None,
+            "image": metadata.image if metadata else None,
+            "url": url,
+            "word_count": word_count,
+            "status": "extracting" # Intermediate state if needed, but worker handles final status
         }
+
     except Exception as e:
-        _log(f"Parse error for: {url}", "error", str(e))
-        return {}
-
-
-def _strip_junk(soup: BeautifulSoup):
-    """Remove unwanted tags from parsed HTML."""
-    junk_tags = [
-        "script", "style", "noscript", "iframe",
-        "form", "input", "button", "aside",
-        "nav", "footer", "header", "figure"
-    ]
-    for tag in junk_tags:
-        for el in soup.find_all(tag):
-            el.decompose()
-
-    # Remove elements with ad/promo class names
-    for el in soup.find_all(True):
-        classes = el.get("class", [])
-        class_str = " ".join(classes).lower()
-        if any(k in class_str for k in ["ad", "promo", "newsletter", "popup", "cookie", "social"]):
-            el.decompose()
+        _log(f"Scraper error for {url}", "error", str(e))
+        return {"status": "failed", "reason": str(e)}

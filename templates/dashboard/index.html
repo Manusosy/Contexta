@@ -1,520 +1,573 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
+<style>
+  :root {
+    --ink: #0e0e0e; --paper: #f5f0e8; --cream: #ede8db;
+    --accent: #c84b2f; --accent2: #2f7dc8; --muted: #888070;
+    --border: #d4cfc0; --green: #2a7a4b; --surface: #ffffff;
+  }
+  h1, h2, h3, .section-title { font-family: 'Syne', sans-serif !important; letter-spacing: -0.5px; }
+  .stat-number { font-family: 'Syne', sans-serif !important; font-weight: 800; font-size: 28px; }
+  .stat-label { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .section-card { border-radius: 24px; border: 1px solid var(--border); overflow: hidden; }
+</style>
+<div style="display:flex; flex-direction:column; gap:24px;">
 
-    <!-- Page Header -->
-    <div>
-        <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
-        <p class="text-slate-500 text-sm mt-1">Overview of your editorial automation pipeline.</p>
+  <!-- ── Platform Analytics ── -->
+  <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+    <div class="stat-card accent-blue">
+      <div class="stat-label">Total Clients</div>
+      <div class="stat-number">{{ total_clients }}</div>
+      <div class="stat-delta">{{ active_clients }} Active</div>
+    </div>
+    <div class="stat-card accent-green">
+      <div class="stat-label">Paying Members</div>
+      <div class="stat-number">{{ paying_members }}</div>
+      <div class="stat-delta">↑ MRR Contribution</div>
+    </div>
+    <div class="stat-card accent-amber">
+      <div class="stat-label">New This Week</div>
+      <div class="stat-number">{{ new_users_week }}</div>
+      <div class="stat-delta" style="color:{{ 'var(--green)' if growth_pct >= 0 else 'var(--accent)' }}">
+        {{ '↑' if growth_pct >= 0 else '↓' }} {{ growth_pct|abs }}% vs last week
+      </div>
+    </div>
+    <div class="stat-card accent-red">
+      <div class="stat-label">Growth Trend (30d)</div>
+      <div style="height:40px; display:flex; align-items:flex-end; gap:2px; padding:4px 0;">
+        {% for day in trend_data %}
+        <div title="{{ day.date }}: {{ day.count }} users" 
+             style="flex:1; background:var(--border); min-height:2px; height:{{ (day.count / (trend_data|map(attribute='count')|max or 1) * 100)|round|int }}%; border-radius:1px;"></div>
+        {% endfor %}
+      </div>
+      <div class="stat-delta">User registration velocity</div>
+    </div>
+  </div>
+
+  <!-- ── Stat Cards (Content) ── -->
+  <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+
+    <div class="stat-card accent-red">
+      <div class="stat-label">RSS Feeds</div>
+      <div class="stat-number">{{ total_feeds }} Source</div>
+      <div class="stat-delta">Active global sources</div>
     </div>
 
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="stat-card">
-            <div class="stat-icon bg-blue-50 text-blue-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z" />
-                </svg>
-            </div>
-            <div>
-                <p class="stat-number">{{ total_feeds }}</p>
-                <p class="stat-label">RSS Feeds</p>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon bg-violet-50 text-violet-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-            </div>
-            <div>
-                <p class="stat-number">{{ queued_articles }}</p>
-                <p class="stat-label">Pending Queue</p>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon bg-emerald-50 text-emerald-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-            </div>
-            <div>
-                <p class="stat-number">{{ total_articles }}</p>
-                <p class="stat-label">Total Articles</p>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon bg-amber-50 text-amber-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-            </div>
-            <div>
-                <p class="stat-number text-sm font-semibold truncate max-w-[120px]" title="{{ active_model }}">{{
-                    active_model.split('/')[-1] }}</p>
-                <p class="stat-label">Active AI Model</p>
-            </div>
-        </div>
+    <div class="stat-card accent-blue">
+      <div class="stat-label">Pending Queue</div>
+      <div class="stat-number">{{ queued_articles }}</div>
+      <div class="stat-delta">Awaiting processing</div>
     </div>
 
-    <!-- Automation Engine & Recent Activity -->
-    <div class="space-y-6">
-
-        <!-- Automation Engine & Recent Activity -->
-        <div class="space-y-6">
-
-            <!-- Automation Engine -->
-            <div
-                class="card p-6 border-slate-200/60 shadow-sm hover:shadow-md transition-shadow bg-white/50 backdrop-blur-sm">
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <!-- Left Description -->
-                    <div class="flex items-center gap-4">
-                        <div
-                            class="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600 shrink-0">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900">Automation Engine</h2>
-                            <p class="text-slate-500 text-sm mt-0.5">Control content generation pipeline</p>
-                        </div>
-                    </div>
-
-                    <!-- Processing Indicator (Live) -->
-                    <div id="processing-indicator"
-                        class="hidden flex items-center gap-3 px-4 py-2 bg-brand-50 rounded-lg border border-brand-100">
-                        <div class="flex space-x-1">
-                            <div class="w-1.5 h-1.5 bg-brand-600 rounded-full animate-bounce"
-                                style="animation-delay: 0s"></div>
-                            <div class="w-1.5 h-1.5 bg-brand-600 rounded-full animate-bounce"
-                                style="animation-delay: 0.2s"></div>
-                            <div class="w-1.5 h-1.5 bg-brand-600 rounded-full animate-bounce"
-                                style="animation-delay: 0.4s"></div>
-                        </div>
-                        <span class="text-xs font-semibold text-brand-700">Writing: <span id="current-processing-title"
-                                class="italic">Analyzing sources...</span></span>
-                    </div>
-
-                    <!-- Right Controls -->
-                    <div class="flex flex-wrap items-center gap-4">
-                        <!-- Run Button -->
-                        <button id="run-btn" onclick="runAutomation()"
-                            class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-6 py-2.5 flex items-center gap-2 transform active:scale-95 transition-all shadow-lg shadow-brand-500/20">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                            </svg>
-                            <span id="run-btn-text">Run Automation Now</span>
-                        </button>
-
-                        <div class="h-8 w-px bg-slate-200 hidden md:block mx-1"></div>
-
-                        <!-- Schedule toggle -->
-                        <div class="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="schedule-toggle" {{ 'checked' if schedule_enabled else '' }}
-                                    onchange="toggleSchedule()" class="toggle-input shrink-0" />
-                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Scheduled</span>
-                            </label>
-
-                            <select id="frequency-select" onchange="toggleSchedule()"
-                                class="bg-transparent text-slate-700 border-0 py-0 pl-1 pr-7 rounded-md text-sm font-medium focus:ring-0 cursor-pointer">
-                                <option value="15" {{ 'selected' if schedule_frequency=='15' }}>15m</option>
-                                <option value="30" {{ 'selected' if schedule_frequency=='30' }}>30m</option>
-                                <option value="60" {{ 'selected' if schedule_frequency=='60' }}>1h</option>
-                                <option value="180" {{ 'selected' if schedule_frequency=='180' }}>3h</option>
-                            </select>
-                        </div>
-
-                        <!-- Status Badge (Hidden, managed in top navbar) -->
-                        <div class="flex items-center gap-2">
-                            <div id="engine-status-badge-container" class="hidden">
-                                <div id="status-dot-dashboard"></div>
-                                <span id="engine-status-badge">{{ automation_status | title }}</span>
-                            </div>
-                            <!-- Force Reset Button -->
-                            <button id="force-reset-btn" onclick="resetAutomation()"
-                                class="hidden text-xs font-semibold px-2 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
-                                title="Force reset if stuck">
-                                Reset
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="card">
-                <div class="p-6 pb-2 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-bold font-serif text-slate-900">Recent Activity</h2>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <!-- Bulk Actions (Hidden by default) -->
-                        <div id="bulk-actions" class="hidden flex items-center gap-2">
-                            <span id="selected-count"
-                                class="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded">0
-                                selected</span>
-                            <button onclick="bulkDelete()"
-                                class="text-xs font-medium text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-md transition-colors flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                Delete Selected
-                            </button>
-                        </div>
-                        <a href="{{ url_for('articles.index') }}"
-                            class="text-xs text-brand-600 hover:text-brand-700 font-medium whitespace-nowrap">View all
-                            &rarr;</a>
-                    </div>
-                </div>
-
-                {% if recent_articles %}
-                <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th class="w-10 text-center px-4">
-                                    <input type="checkbox" id="master-checkbox"
-                                        class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                                        onchange="toggleAllCheckboxes(this)">
-                                </th>
-                                <th>Title</th>
-                                <th>Source Feed</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="articles-tbody">
-                            {% for article in recent_articles %}
-                            <tr class="group hover:bg-slate-50/50 transition-colors" data-article-id="{{ article.id }}">
-                                <td class="text-center px-4 w-10">
-                                    <input type="checkbox"
-                                        class="article-checkbox rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
-                                        value="{{ article.id }}" onchange="updateBulkActions()">
-                                </td>
-                                <td class="max-w-xs">
-                                    <a href="{{ url_for('articles.view', article_id=article.id) }}"
-                                        class="block truncate font-medium text-slate-800 hover:text-brand-600 transition-colors"
-                                        title="{{ article.generated_title or article.original_title }}">
-                                        {{ (article.generated_title or article.original_title or 'Untitled')[:55] }}{%
-                                        if
-                                        (article.generated_title or article.original_title or '')|length > 55 %}…{%
-                                        endif %}
-                                    </a>
-                                </td>
-                                <td class="text-slate-500 text-xs">{{ article.feed.name if article.feed else '—' }}</td>
-                                <td>
-                                    {% if article.status == 'generated' %}<span
-                                        class="badge badge-blue">Generated</span>
-                                    {% elif article.status == 'pushed' %}<span class="badge badge-green">Pushed</span>
-                                    {% elif article.status == 'failed' %}<span class="badge badge-red">Failed</span>
-                                    {% else %}<span class="badge badge-gray">Pending</span>{% endif %}
-                                </td>
-                                <td class="text-slate-400 text-xs whitespace-nowrap">{{ article.created_at.strftime('%b
-                                    %d,
-                                    %Y') }}</td>
-                                <td class="text-right">
-                                    <a href="{{ url_for('articles.view', article_id=article.id) }}"
-                                        class="text-brand-600 hover:text-brand-800 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity">View</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="empty-state py-12">
-                    <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p class="text-slate-400 text-sm">No articles yet. Add RSS feeds and run automation.</p>
-                    <a href="{{ url_for('feeds.index') }}"
-                        class="btn-primary mt-4 inline-flex items-center gap-2 text-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add Your First Feed
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Activity Log -->
-        {% if recent_logs %}
-        <div class="card w-full">
-            <div class="card-header pb-3 flex items-center justify-between border-b border-slate-100">
-                <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <h2 class="card-title">Activity Log</h2>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="flex bg-slate-100 rounded-lg p-1">
-                        <button onclick="filterLogs('all')" id="log-filter-all"
-                            class="text-xs font-medium px-3 py-1 rounded bg-white text-slate-800 shadow-sm transition-all">All</button>
-                        <button onclick="filterLogs('error')" id="log-filter-error"
-                            class="text-xs font-medium px-3 py-1 rounded text-slate-500 hover:text-slate-700 transition-all">Error</button>
-                        <button onclick="filterLogs('success')" id="log-filter-success"
-                            class="text-xs font-medium px-3 py-1 rounded text-slate-500 hover:text-slate-700 transition-all">Success</button>
-                    </div>
-                    <div class="w-px h-4 bg-slate-200"></div>
-                    <button onclick="clearLogs()"
-                        class="text-xs font-medium text-rose-500 hover:text-rose-600 transition-colors px-2">Clear
-                        All</button>
-                </div>
-            </div>
-            <div class="p-5 space-y-2 max-h-64 overflow-y-auto" id="logs-container">
-                {% for log in recent_logs %}
-                <div class="log-entry flex items-start gap-3 text-sm py-1.5 border-b border-slate-50 last:border-0"
-                    data-type="{{ 'error' if log.status in ['error', 'warning', 'failed'] else 'success' }}">
-                    <span class="log-dot log-{{ log.status }} flex-shrink-0 mt-1.5"></span>
-                    <div class="flex-1 min-w-0">
-                        <span class="text-slate-700">{{ log.action }}</span>
-                        {% if log.message %}<span class="text-slate-400 text-xs ml-2">{{ log.message[:80] }}</span>{%
-                        endif
-                        %}
-                    </div>
-                    <span class="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">{{
-                        log.timestamp.strftime('%H:%M:%S') }}</span>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
+    <div class="stat-card accent-green">
+      <div class="stat-label">Total Articles</div>
+      <div class="stat-number">{{ total_articles }}</div>
+      <div class="stat-delta">↑ Generated docs</div>
     </div>
 
-    <script>
-        function filterLogs(type) {
-            ['all', 'error', 'success'].forEach(t => {
-                const btn = document.getElementById('log-filter-' + t);
-                if (t === type) {
-                    btn.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
-                    btn.classList.remove('text-slate-500');
-                } else {
-                    btn.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
-                    btn.classList.add('text-slate-500');
-                }
-            });
+    <div class="stat-card accent-amber">
+      <div class="stat-label">Active AI Model</div>
+      <div style="font-family:'Fraunces',serif; font-size:18px; font-weight:300; line-height:1.2; color:var(--ink); margin-bottom:6px; word-break:break-all;" title="{{ active_model }}">{{ active_model.split('/')[-1] }}</div>
+      <div class="stat-delta" style="color:#c8882f;">OpenRouter</div>
+    </div>
 
-            const logs = document.querySelectorAll('.log-entry');
-            logs.forEach(log => {
-                if (type === 'all' || log.dataset.type === type) {
-                    log.style.display = 'flex';
-                } else {
-                    log.style.display = 'none';
-                }
-            });
+  </div>
+
+  <!-- ── Automation Pipeline ── -->
+  <div id="automation-card" class="section-card">
+
+    <div class="section-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:8px; height:8px; border-radius:2px; background:var(--ink);"></div>
+        <span class="section-title">Automation Engine</span>
+        <span style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace;">End-to-end content generation pipeline</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div id="status-pill"
+          style="display:flex; align-items:center; gap:6px; padding:4px 10px; border-radius:99px; background:var(--cream); border:1px solid var(--border);">
+          <span id="status-dot" style="width:6px; height:6px; border-radius:50%; background:#888; display:inline-block;"></span>
+          <span id="status-label" style="font-size:9px; font-family:'DM Mono',monospace; letter-spacing:1.5px; text-transform:uppercase; color:#888;">{{ automation_status | upper }}</span>
+        </div>
+        <button id="force-reset-btn" onclick="resetAutomation()" class="hidden"
+          style="font-size:9px; font-family:'DM Mono',monospace; letter-spacing:1px; text-transform:uppercase; color:var(--accent); background:#fde8e8; border:1px solid #e8c0b8; padding:4px 10px; border-radius:99px; cursor:pointer;">
+          Reset Engine
+        </button>
+      </div>
+    </div>
+
+    <!-- Pipeline Steps -->
+    <div style="padding:28px 24px; overflow-x:auto;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:0; position:relative; min-width:480px;">
+
+        <!-- Connector line background -->
+        <div style="position:absolute; top:22px; left:12%; right:12%; height:1px; background:var(--border); z-index:0;"></div>
+        <!-- Progress line -->
+        <div id="progress-line" style="position:absolute; top:22px; left:12%; height:1px; background:var(--ink); z-index:1; width:0%; transition:width 0.5s;"></div>
+
+        <!-- Step 1: RSS Fetch -->
+        <div class="pipeline-step" style="z-index:2; position:relative;">
+          <div id="step1-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s; cursor:default;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z"/></svg>
+          </div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:6px; font-family:'DM Mono',monospace;">RSS Fetch</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:#e8f5ed; color:var(--green); font-family:'DM Mono',monospace; margin-top:2px;">{{ total_feeds }} src</div>
+        </div>
+
+        <!-- Step 2: Extraction -->
+        <div class="pipeline-step" style="z-index:2; position:relative;">
+          <div id="step2-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+          </div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:6px; font-family:'DM Mono',monospace;">Extraction</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:var(--cream); color:var(--muted); font-family:'DM Mono',monospace; margin-top:2px;">{{ queued_articles }} queued</div>
+        </div>
+
+        <!-- Step 3: AI Rewrite -->
+        <div class="pipeline-step" style="z-index:2; position:relative;">
+          <div id="step3-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          </div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:6px; font-family:'DM Mono',monospace;">AI Rewrite</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:#fdf3e0; color:#c8882f; font-family:'DM Mono',monospace; margin-top:2px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ active_model }}">{{ active_model.split('/')[-1][:12] }}</div>
+        </div>
+
+        <!-- Step 4: Publish -->
+        <div class="pipeline-step" style="z-index:2; position:relative;">
+          <div id="step4-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          </div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:6px; font-family:'DM Mono',monospace;">Publish</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:#e8f5ed; color:var(--green); font-family:'DM Mono',monospace; margin-top:2px;">{{ total_articles }} done</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Processing Banner -->
+    <div id="processing-banner" class="hidden" style="margin:0 20px 16px; padding:14px 16px; border-left:3px solid var(--accent2); background:#f0f4fb; border-radius:0 4px 4px 0; display:flex; align-items:center; gap:12px;">
+      <div style="display:flex; gap:4px; flex-shrink:0;">
+        <div style="width:6px; height:6px; background:var(--accent2); border-radius:50%; animation:bounce 0.6s infinite;"></div>
+        <div style="width:6px; height:6px; background:var(--accent2); border-radius:50%; animation:bounce 0.6s 0.2s infinite;"></div>
+        <div style="width:6px; height:6px; background:var(--accent2); border-radius:50%; animation:bounce 0.6s 0.4s infinite;"></div>
+      </div>
+      <div>
+        <div style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent2); font-family:'DM Mono',monospace; font-weight:500;">Processing Workflow</div>
+        <div id="current-processing-title" style="font-size:12px; color:var(--ink); font-family:'DM Mono',monospace; margin-top:2px;">Initializing engine...</div>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div style="background:var(--cream); border-top:1px solid var(--border); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+
+      <button id="run-btn" onclick="runAutomation()" class="btn-primary"
+        style="display:flex; align-items:center; gap:8px; padding:10px 20px; font-size:11px;">
+        <svg id="btn-icon-play" width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg>
+        <svg id="btn-icon-spin" class="hidden animate-spin" width="14" height="14" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75"/></svg>
+        <span id="run-btn-text">Run Automation Now</span>
+      </button>
+
+      <!-- Schedule widget -->
+      <div style="display:flex; align-items:center; gap:10px; background:var(--surface); padding:8px 14px; border-radius:4px; border:1px solid var(--border);">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div class="schedule-dot"></div>
+          <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace;">Schedule</span>
+        </div>
+        <div style="width:1px; height:16px; background:var(--border);"></div>
+        <select id="frequency-select" onchange="toggleSchedule()"
+          style="background:transparent; border:none; font-size:11px; font-family:'DM Mono',monospace; color:var(--ink); cursor:pointer; outline:none;">
+          <option value="15" {{ 'selected' if schedule_frequency=='15' }}>Every 15 mins</option>
+          <option value="30" {{ 'selected' if schedule_frequency=='30' }}>Every 30 mins</option>
+          <option value="60" {{ 'selected' if schedule_frequency=='60' }}>Every 1 hr</option>
+          <option value="180" {{ 'selected' if schedule_frequency=='180' }}>Every 3 hrs</option>
+        </select>
+        <div style="width:1px; height:16px; background:var(--border);"></div>
+        <label style="position:relative; display:inline-flex; align-items:center; cursor:pointer;">
+          <input type="checkbox" id="schedule-toggle" {{ 'checked' if schedule_enabled else '' }} onchange="toggleSchedule()" class="sr-only peer">
+          <div style="width:36px; height:20px; background:var(--border); border-radius:10px; position:relative; transition:background 0.2s;"
+            :style="document.getElementById('schedule-toggle').checked ? 'background:var(--green)' : ''">
+            <div class="peer-checked:translate-x-4"
+              style="position:absolute; width:14px; height:14px; border-radius:50%; background:white; top:3px; left:3px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2);"
+              id="toggle-knob"></div>
+          </div>
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Recent Activity ── -->
+  <div class="section-card">
+    <div class="section-header">
+      <span class="section-title">Recent Activity</span>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div id="bulk-actions" class="hidden" style="display:flex; align-items:center; gap:8px;">
+          <span id="selected-count" style="font-size:10px; color:var(--muted); background:var(--cream); padding:2px 8px; border-radius:3px; font-family:'DM Mono',monospace;">0 selected</span>
+          <button onclick="bulkDelete()" class="btn-danger" style="font-size:10px; padding:4px 10px; display:flex; align-items:center; gap:4px;">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Delete
+          </button>
+        </div>
+        <a href="{{ url_for('articles.index') }}" class="btn-secondary" style="font-size:10px; padding:5px 12px;">View all →</a>
+      </div>
+    </div>
+
+    {% if recent_articles %}
+    <div style="overflow-x:auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:36px; text-align:center; padding:10px 16px;">
+              <input type="checkbox" id="master-checkbox" onchange="toggleAllCheckboxes(this)"
+                style="cursor:pointer; accent-color:var(--accent);">
+            </th>
+            <th>Title</th>
+            <th>Source Feed</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="articles-tbody">
+          {% for article in recent_articles %}
+          <tr class="group" data-article-id="{{ article.id }}" style="cursor:pointer;">
+            <td style="text-align:center; padding:13px 16px; width:36px;">
+              <input type="checkbox" class="article-checkbox" value="{{ article.id }}" onchange="updateBulkActions()"
+                style="cursor:pointer; accent-color:var(--accent);">
+            </td>
+            <td style="max-width:320px;">
+              <a href="{{ url_for('articles.view', article_id=article.id) }}"
+                style="display:block; font-family:'Fraunces',serif; font-style:italic; font-weight:300; font-size:13px; color:var(--ink); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--ink)'"
+                title="{{ article.generated_title or article.original_title }}">
+                {{ (article.generated_title or article.original_title or 'Untitled')[:60] }}{% if (article.generated_title or article.original_title or '')|length > 60 %}…{% endif %}
+              </a>
+            </td>
+            <td style="color:var(--muted); font-size:11px;">{{ article.feed.name if article.feed else '—' }}</td>
+            <td>
+              {% if article.status == 'generated' %}<span class="badge badge-blue">Generated</span>
+              {% elif article.status == 'published' %}<span class="badge badge-green">Published</span>
+              {% elif article.status == 'pushed' %}<span class="badge badge-green">Pushed</span>
+              {% elif article.status == 'failed' %}<span class="badge badge-red">Failed</span>
+              {% elif article.status in ['processing', 'rewriting', 'extracting'] %}<span class="badge badge-blue">Processing</span>
+              {% else %}<span class="badge badge-gray">Pending</span>{% endif %}
+            </td>
+            <td style="color:var(--muted); font-size:10px; white-space:nowrap;">{{ article.created_at.strftime('%b %d, %Y') }}</td>
+            <td style="text-align:right;">
+              <a href="{{ url_for('articles.view', article_id=article.id) }}"
+                style="font-size:10px; color:var(--accent2); text-decoration:none; opacity:0; transition:opacity 0.15s;"
+                class="group-hover:opacity-100"
+                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% elif total_feeds > 0 %}
+    <div class="empty-state">
+      <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 12px; color:#c8882f;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <p>{{ total_feeds }} feed{{ 's' if total_feeds != 1 else '' }} connected — waiting for automation to run.</p>
+      <p style="font-size:10px; margin-top:4px;">Click <strong>Run Automation Now</strong> above to fetch and generate articles.</p>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 12px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <p>No RSS feeds added yet.</p>
+      <a href="{{ url_for('feeds.index') }}" class="btn-primary" style="display:inline-flex; margin-top:12px; gap:6px;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Your First Feed
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── Activity Log ── -->
+  {% if recent_logs %}
+  <div class="section-card">
+    <div class="section-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <svg width="14" height="14" fill="none" stroke="var(--accent2)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="section-title">Activity Log</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div style="display:flex; background:var(--paper); border:1px solid var(--border); border-radius:4px; overflow:hidden;">
+          <button onclick="filterLogs('all')" id="log-filter-all"
+            style="font-size:10px; font-family:'DM Mono',monospace; padding:5px 10px; border:none; cursor:pointer; background:var(--ink); color:var(--paper);">All</button>
+          <button onclick="filterLogs('error')" id="log-filter-error"
+            style="font-size:10px; font-family:'DM Mono',monospace; padding:5px 10px; border:none; cursor:pointer; background:transparent; color:var(--muted);">Error</button>
+          <button onclick="filterLogs('success')" id="log-filter-success"
+            style="font-size:10px; font-family:'DM Mono',monospace; padding:5px 10px; border:none; cursor:pointer; background:transparent; color:var(--muted);">Success</button>
+        </div>
+        <div style="width:1px; height:16px; background:var(--border);"></div>
+        <button onclick="clearLogs()" style="font-size:10px; font-family:'DM Mono',monospace; color:var(--accent); background:none; border:none; cursor:pointer; padding:4px 8px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Clear All</button>
+      </div>
+    </div>
+    <div id="logs-container" style="padding:16px 20px; max-height:256px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;">
+      {% for log in recent_logs %}
+      <div class="log-entry" style="display:flex; align-items:flex-start; gap:10px; font-size:11px; padding:6px 0; border-bottom:1px solid var(--border);" data-type="{{ 'error' if log.status in ['error','warning','failed'] else 'success' }}">
+        <span class="log-dot log-{{ log.status }}" style="flex-shrink:0; margin-top:3px;"></span>
+        <div style="flex:1; min-width:0;">
+          <span style="color:var(--ink); font-family:'DM Mono',monospace;">{{ log.action }}</span>
+          {% if log.message %}<span style="color:var(--muted); font-size:10px; margin-left:8px;">{{ log.message[:80] }}</span>{% endif %}
+        </div>
+        <span style="font-size:10px; color:var(--muted); white-space:nowrap; flex-shrink:0; font-family:'DM Mono',monospace;">{{ log.timestamp.strftime('%H:%M:%S') }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<style>
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+</style>
+
+<script>
+  // Schedule toggle knob
+  document.getElementById('schedule-toggle').addEventListener('change', function() {
+    const knob = document.getElementById('toggle-knob');
+    const track = knob.parentElement;
+    if (this.checked) {
+      track.style.background = 'var(--green)';
+      knob.style.transform = 'translateX(16px)';
+    } else {
+      track.style.background = 'var(--border)';
+      knob.style.transform = 'translateX(0)';
+    }
+  });
+  // Set initial state
+  if (document.getElementById('schedule-toggle').checked) {
+    const knob = document.getElementById('toggle-knob');
+    knob.parentElement.style.background = 'var(--green)';
+    knob.style.transform = 'translateX(16px)';
+  }
+
+  function filterLogs(type) {
+    ['all', 'error', 'success'].forEach(t => {
+      const btn = document.getElementById('log-filter-' + t);
+      if (t === type) {
+        btn.style.background = 'var(--ink)';
+        btn.style.color = 'var(--paper)';
+      } else {
+        btn.style.background = 'transparent';
+        btn.style.color = 'var(--muted)';
+      }
+    });
+    document.querySelectorAll('.log-entry').forEach(log => {
+      log.style.display = (type === 'all' || log.dataset.type === type) ? 'flex' : 'none';
+    });
+  }
+
+  async function clearLogs() {
+    if (!confirm('Clear all activity logs?')) return;
+    try {
+      const res = await fetch('/api/logs/clear', { method: 'DELETE', headers: { 'X-CSRFToken': '{{ csrf_token() }}' } });
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) { alert('Server error. Try again.'); return; }
+      const data = await res.json();
+      if (data.success) document.getElementById('logs-container').innerHTML = '<p style="text-align:center;padding:24px;font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">No logs.</p>';
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  function setRunningState(isRunning) {
+    const btn = document.getElementById('run-btn');
+    const btnText = document.getElementById('run-btn-text');
+    const playIcon = document.getElementById('btn-icon-play');
+    const spinIcon = document.getElementById('btn-icon-spin');
+    const banner = document.getElementById('processing-banner');
+    const resetBtn = document.getElementById('force-reset-btn');
+    const progressLine = document.getElementById('progress-line');
+    if (isRunning) {
+      btn.disabled = true; btn.style.opacity = '0.7'; btn.style.cursor = 'not-allowed';
+      btnText.textContent = 'Engine Running...';
+      playIcon.classList.add('hidden'); spinIcon.classList.remove('hidden');
+      if (banner) banner.style.display = 'flex';
+      if (resetBtn) resetBtn.classList.remove('hidden');
+      if (progressLine) progressLine.style.width = '25%';
+    } else {
+      btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+      btnText.textContent = 'Run Automation Now';
+      playIcon.classList.remove('hidden'); spinIcon.classList.add('hidden');
+      if (banner) banner.style.display = 'none';
+      if (resetBtn) resetBtn.classList.add('hidden');
+      if (progressLine) progressLine.style.width = '0%';
+      updateActiveNode(0);
+    }
+  }
+
+  function updateActiveNode(stepNum) {
+    for (let i = 1; i <= 4; i++) {
+      const icon = document.getElementById('step' + i + '-icon');
+      if (!icon) continue;
+      if (i === stepNum) {
+        icon.style.background = 'var(--ink)';
+        icon.style.borderColor = 'var(--ink)';
+        icon.style.color = 'var(--paper)';
+        icon.style.animation = 'pulse 1s infinite';
+      } else {
+        icon.style.background = 'var(--paper)';
+        icon.style.borderColor = 'var(--border)';
+        icon.style.color = i < stepNum ? '#ccc' : 'var(--muted)';
+        icon.style.animation = '';
+      }
+    }
+    const progressLine = document.getElementById('progress-line');
+    if (progressLine && stepNum > 0) {
+      const pct = { 1: '12%', 2: '38%', 3: '63%', 4: '88%' };
+      progressLine.style.width = pct[stepNum] || '0%';
+    }
+  }
+
+  function updateStatusPill(status) {
+    const pill = document.getElementById('status-pill');
+    const dot = document.getElementById('status-dot');
+    const label = document.getElementById('status-label');
+    if (!pill || !dot || !label) return;
+    // Reset
+    pill.style.background = 'var(--cream)';
+    pill.style.borderColor = 'var(--border)';
+    dot.style.animation = '';
+    if (status === 'running') {
+      pill.style.background = '#e8edf5';
+      pill.style.borderColor = '#b8c8e0';
+      dot.style.background = 'var(--accent2)';
+      label.style.color = 'var(--accent2)';
+      dot.style.animation = 'pulse 1s infinite';
+    } else if (status === 'failed') {
+      pill.style.background = '#fde8e8';
+      pill.style.borderColor = '#e8c0b8';
+      dot.style.background = 'var(--accent)';
+      label.style.color = 'var(--accent)';
+    } else {
+      dot.style.background = '#888';
+      label.style.color = '#888';
+    }
+    label.textContent = status.toUpperCase();
+  }
+
+  function updateStatusBadge(status) { updateStatusPill(status); }
+
+  async function runAutomation() {
+    setRunningState(true); updateStatusPill('running'); updateActiveNode(1);
+    try {
+      const res = await fetch('/api/run-automation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+        body: JSON.stringify({ auto_push: false })
+      });
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) { setRunningState(false); updateStatusPill('idle'); alert('Server check failed (' + res.status + ').'); return; }
+      const data = await res.json();
+      if (data.success) { pollStatus(); } else { setRunningState(false); updateStatusPill('idle'); alert(data.error || 'Failed to start.'); }
+    } catch(e) { setRunningState(false); updateStatusPill('idle'); alert('Connection error: ' + e.message); }
+  }
+
+  async function resetAutomation() {
+    if (!confirm('Force reset engine?')) return;
+    try {
+      const res = await fetch('/api/reset-automation', { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token() }}' } });
+      const data = await res.json();
+      if (data.success) { setRunningState(false); updateStatusPill('idle'); }
+    } catch(e) {}
+  }
+
+  let pollInterval = null, _didWork = false;
+  function pollStatus() {
+    _didWork = false;
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        const isRunning = data.status === 'running';
+        updateStatusPill(data.status);
+        const btn = document.getElementById('run-btn');
+        if (isRunning && !btn.disabled) setRunningState(true);
+        if (data.current_article) {
+          const titleEl = document.getElementById('current-processing-title');
+          if (titleEl) titleEl.textContent = data.current_article;
+          _didWork = true;
+          const msg = data.current_article.toLowerCase();
+          if (msg.includes('rss') || msg.includes('queue')) updateActiveNode(1);
+          else if (msg.includes('extract') || msg.includes('scrape')) updateActiveNode(2);
+          else if (msg.includes('rewrite') || msg.includes('openrouter')) updateActiveNode(3);
+          else if (msg.includes('publish') || msg.includes('push')) updateActiveNode(4);
+          else updateActiveNode(2);
         }
-
-        async function clearLogs() {
-            if (!confirm('Are you sure you want to clear all logs?')) return;
-            try {
-                const res = await fetch('/api/logs/clear', { method: 'DELETE' });
-                const data = await res.json();
-                if (data.success) {
-                    window.location.reload();
-                } else {
-                    alert(data.error || 'Failed to clear logs.');
-                }
-            } catch (e) {
-                alert('Network error.');
-            }
+        if (!isRunning) {
+          clearInterval(pollInterval);
+          if (_didWork) { updateActiveNode(4); setTimeout(() => location.reload(), 1500); }
+          else { setRunningState(false); }
         }
+      } catch(e) {}
+    }, 2000);
+  }
 
-        async function runAutomation() {
-            const btn = document.getElementById('run-btn');
-            const btnText = document.getElementById('run-btn-text');
-            const autoPush = false;
+  (async function checkInitialStatus() {
+    try {
+      const res = await fetch('/api/status');
+      const data = await res.json();
+      updateStatusPill(data.status);
+      if (data.status === 'running') { setRunningState(true); pollStatus(); }
+    } catch(e) {}
+  })();
 
-            btn.disabled = true;
-            btnText.textContent = 'Starting...';
-            updateStatusBadge('running');
+  async function toggleSchedule() {
+    const enabled = document.getElementById('schedule-toggle').checked;
+    const frequency = document.getElementById('frequency-select').value;
+    try {
+      await fetch('/api/toggle-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+        body: JSON.stringify({ enabled, frequency: parseInt(frequency) })
+      });
+    } catch(e) {}
+  }
 
-            try {
-                const res = await fetch('/api/run-automation', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ auto_push: autoPush })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    btnText.textContent = 'Running in background...';
-                    // Poll status every 3 seconds
-                    pollStatus();
-                } else {
-                    btnText.textContent = 'Run Automation Now';
-                    btn.disabled = false;
-                    alert(data.error || 'Failed to start automation.');
-                }
-            } catch (e) {
-                btnText.textContent = 'Run Automation Now';
-                btn.disabled = false;
-                alert('Network error. Try again.');
-            }
-        }
+  function toggleAllCheckboxes(masterCheckbox) {
+    document.querySelectorAll('.article-checkbox').forEach(cb => cb.checked = masterCheckbox.checked);
+    updateBulkActions();
+  }
 
-        function updateStatusBadge(status) {
-            const badge = document.getElementById('engine-status-badge');
-            const dot = document.getElementById('status-dot-dashboard');
-            if (!badge) return;
+  function updateBulkActions() {
+    const checked = document.querySelectorAll('.article-checkbox:checked');
+    const bulkDiv = document.getElementById('bulk-actions');
+    const countSpan = document.getElementById('selected-count');
+    const master = document.getElementById('master-checkbox');
+    const total = document.querySelectorAll('.article-checkbox').length;
+    if (checked.length > 0) {
+      bulkDiv.style.display = 'flex'; bulkDiv.classList.remove('hidden');
+      countSpan.textContent = checked.length + ' selected';
+      master.checked = checked.length === total;
+      master.indeterminate = checked.length > 0 && checked.length < total;
+    } else {
+      bulkDiv.style.display = 'none'; bulkDiv.classList.add('hidden');
+      master.checked = false; master.indeterminate = false;
+    }
+  }
 
-            badge.textContent = status.toUpperCase();
-
-            // Reset classes
-            badge.className = 'text-xs font-bold uppercase tracking-tighter';
-            dot.className = 'w-2 h-2 rounded-full';
-
-            if (status === 'running') {
-                badge.classList.add('text-brand-600');
-                dot.classList.add('bg-brand-500', 'animate-pulse');
-                document.getElementById('processing-indicator').classList.remove('hidden');
-                document.getElementById('force-reset-btn').classList.remove('hidden');
-            } else if (status === 'failed') {
-                badge.classList.add('text-rose-600');
-                dot.classList.add('bg-rose-500');
-                document.getElementById('processing-indicator').classList.add('hidden');
-                document.getElementById('force-reset-btn').classList.add('hidden');
-            } else {
-                badge.classList.add('text-slate-600');
-                dot.classList.add('bg-slate-400');
-                document.getElementById('processing-indicator').classList.add('hidden');
-                document.getElementById('force-reset-btn').classList.add('hidden');
-            }
-        }
-
-        async function resetAutomation() {
-            if (!confirm('Are you sure you want to force reset the automation status? Use this only if the engine is stuck for a long time.')) return;
-            try {
-                const res = await fetch('/api/reset-automation', { method: 'POST' });
-                const data = await res.json();
-                if (data.success) {
-                    alert('Automation status reset to idle.');
-                    window.location.reload();
-                } else {
-                    alert(data.error || 'Failed to reset.');
-                }
-            } catch (e) {
-                alert('Network error.');
-            }
-        }
-
-        let pollInterval = null;
-        function pollStatus() {
-            if (pollInterval) clearInterval(pollInterval);
-            pollInterval = setInterval(async () => {
-                try {
-                    const res = await fetch('/api/status');
-                    const data = await res.json();
-                    updateStatusBadge(data.status);
-
-                    if (data.current_article) {
-                        document.getElementById('current-processing-title').textContent = data.current_article;
-                    }
-
-                    if (data.status !== 'running') {
-                        clearInterval(pollInterval);
-                        const btn = document.getElementById('run-btn');
-                        const btnText = document.getElementById('run-btn-text');
-                        btn.disabled = false;
-                        btnText.textContent = 'Run Automation Now';
-                        // Optional: Refresh table if new articles generated
-                        // location.reload(); 
-                    }
-                } catch (e) { }
-            }, 2000);
-        }
-
-        async function toggleSchedule() {
-            const enabled = document.getElementById('schedule-toggle').checked;
-            const frequency = document.getElementById('frequency-select').value;
-            try {
-                await fetch('/api/toggle-schedule', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ enabled, frequency: parseInt(frequency) })
-                });
-            } catch (e) { }
-        }
-
-        // Bulk Actions Javascript
-        function toggleAllCheckboxes(masterCheckbox) {
-            const checkboxes = document.querySelectorAll('.article-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = masterCheckbox.checked;
-            });
-            updateBulkActions();
-        }
-
-        function updateBulkActions() {
-            const checkboxes = document.querySelectorAll('.article-checkbox:checked');
-            const bulkDiv = document.getElementById('bulk-actions');
-            const countSpan = document.getElementById('selected-count');
-            const masterCheckbox = document.getElementById('master-checkbox');
-
-            const totalCheckboxes = document.querySelectorAll('.article-checkbox').length;
-
-            if (checkboxes.length > 0) {
-                bulkDiv.classList.remove('hidden');
-                countSpan.textContent = `${checkboxes.length} selected`;
-
-                // Check master if all are checked, otherwise uncheck or indeterminate
-                masterCheckbox.checked = checkboxes.length === totalCheckboxes;
-                masterCheckbox.indeterminate = checkboxes.length > 0 && checkboxes.length < totalCheckboxes;
-            } else {
-                bulkDiv.classList.add('hidden');
-                masterCheckbox.checked = false;
-                masterCheckbox.indeterminate = false;
-            }
-        }
-
-        async function bulkDelete() {
-            const checkboxes = document.querySelectorAll('.article-checkbox:checked');
-            if (checkboxes.length === 0) return;
-
-            if (!confirm(`Are you sure you want to delete ${checkboxes.length} article(s)?`)) return;
-
-            const ids = Array.from(checkboxes).map(cb => parseInt(cb.value));
-
-            try {
-                const res = await fetch('/api/articles/bulk-delete', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ids })
-                });
-                const data = await res.json();
-
-                if (data.success) {
-                    // Remove elements from DOM or just reload
-                    window.location.reload();
-                } else {
-                    alert(data.error || 'Failed to delete articles.');
-                }
-            } catch (e) {
-                alert('Network error. Try again.');
-            }
-        }
-    </script>
-    {% endblock %}
+  async function bulkDelete() {
+    const checked = document.querySelectorAll('.article-checkbox:checked');
+    if (!checked.length) return;
+    if (!confirm(`Delete ${checked.length} article(s)?`)) return;
+    const ids = Array.from(checked).map(cb => parseInt(cb.value));
+    try {
+      const res = await fetch('/api/articles/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+        body: JSON.stringify({ ids })
+      });
+      const ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) { alert('Server error (' + res.status + ').'); return; }
+      const data = await res.json();
+      if (data.success) location.reload();
+      else alert(data.error || 'Failed to delete.');
+    } catch(e) { alert('Network error: ' + e.message); }
+  }
+</script>
+{% endblock %}

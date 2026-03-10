@@ -1,211 +1,145 @@
 {% extends "client_base.html" %}
-{% block title %}Settings — Contexta{% endblock %}
+{% block title %}Settings{% endblock %}
 
 {% block content %}
-<div class="space-y-8" x-data="{ 
-    testing: false, 
+<div style="display:flex; flex-direction:column; gap:24px;" x-data="{
+    testing: false,
     testResult: null,
     async testConnection() {
-        this.testing = true;
-        this.testResult = null;
+        this.testing = true; this.testResult = null;
         try {
-            const res = await fetch('{{ url_for('client.test_wp_connection') }}', { 
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+            const res = await fetch('{{ url_for('client.test_wp_connection') }}', {
+                method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
             });
             this.testResult = await res.json();
-        } catch (e) {
+        } catch(e) {
             this.testResult = { success: false, error: 'Request failed.' };
-        } finally {
-            this.testing = false;
-        }
+        } finally { this.testing = false; }
     }
 }">
 
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Settings</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Manage your WordPress connection and portal
-                preferences.</p>
+  <div>
+    <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Settings</h1>
+    <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Manage your WordPress connection and portal preferences.</p>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 280px; gap:24px; align-items:start;">
+
+    <!-- Left column -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <!-- WordPress Integration -->
+      <div class="section-card">
+        <div class="section-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <svg width="16" height="16" fill="none" stroke="var(--accent2)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-.586-1.414l-4.5-4.5A2 2 0 0012.586 3H12"/></svg>
+            <span class="section-title">WordPress Integration</span>
+          </div>
+          <button @click="testConnection()" :disabled="testing" class="btn-secondary" style="font-size:10px; padding:5px 12px; display:flex; align-items:center; gap:6px;">
+            <svg x-show="testing" width="12" height="12" fill="none" viewBox="0 0 24 24" class="animate-spin"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75"/></svg>
+            <span x-text="testing ? 'Testing...' : 'Test Connection'">Test Connection</span>
+          </button>
         </div>
+
+        <!-- Test result toast -->
+        <div x-show="testResult" x-transition style="margin:16px 20px 0; padding:12px 16px; border-radius:4px; font-size:11px; font-family:'DM Mono',monospace; display:flex; align-items:center; justify-content:space-between; gap:10px;"
+          :style="testResult?.success ? 'background:#e8f5ed; color:var(--green); border:1px solid #b8d8c4;' : 'background:#fde8e8; color:var(--accent); border:1px solid #e8c0b8;'">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span x-text="testResult?.success ? '✓ ' + 'Connected: ' + testResult.user : '✗ Failed: ' + testResult.error"></span>
+          </div>
+          <button @click="testResult = null" style="background:none; border:none; cursor:pointer; opacity:0.5; font-size:14px;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">✕</button>
+        </div>
+
+        <form action="{{ url_for('client.settings') }}" method="POST" style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="update_wordpress">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div>
+              <label class="label">Site URL</label>
+              <input type="url" name="wp_url" value="{{ current_user.wp_url or '' }}" placeholder="https://yourblog.com" class="input-field" required />
+              <p style="font-size:9px; color:var(--muted); margin-top:4px; font-family:'DM Mono',monospace;">Base URL of your WordPress installation</p>
+            </div>
+            <div>
+              <label class="label">Username</label>
+              <input type="text" name="wp_user" value="{{ current_user.wp_user or '' }}" placeholder="admin_user" class="input-field" required />
+            </div>
+          </div>
+          <div>
+            <label class="label">Application Password</label>
+            <input type="password" name="wp_password" placeholder="•••• •••• •••• •••• •••• ••••" class="input-field" />
+            <p style="font-size:9px; color:var(--muted); margin-top:4px; font-family:'DM Mono',monospace;">
+              Use a WordPress "Application Password" (not your main password).
+              <a href="https://wordpress.org/documentation/article/application-passwords/" target="_blank" style="color:var(--accent2);">Learn more →</a>
+            </p>
+          </div>
+          <div style="display:flex; justify-content:flex-end;">
+            <button type="submit" class="btn-primary" style="padding:9px 20px;">Save Connection</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Default Category (if WP connected) -->
+      {% if current_user.wp_url %}
+      <div class="section-card">
+        <div class="section-header">
+          <span class="section-title">Default Category</span>
+        </div>
+        <form action="{{ url_for('client.settings') }}" method="POST" style="padding:20px; display:flex; align-items:flex-end; gap:12px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="update_wp_category">
+          <div style="flex:1;">
+            <label class="label">WordPress Category</label>
+            <select name="wp_default_category" class="input-field" style="cursor:pointer;">
+              {% if wp_categories %}{% for cat in wp_categories %}
+              <option value="{{ cat.id }}" {% if current_user.wp_default_category == cat.id %}selected{% endif %}>{{ cat.name }} (ID: {{ cat.id }})</option>
+              {% endfor %}{% else %}
+              <option value="1">Uncategorized (Default)</option>
+              {% endif %}
+            </select>
+          </div>
+          <button type="submit" class="btn-secondary" style="padding:9px 16px; flex-shrink:0;">Save</button>
+        </form>
+        <div style="padding:0 20px 16px;"><p style="font-size:9px; color:var(--muted); font-family:'DM Mono',monospace;">Articles will be assigned to this category when pushed as drafts.</p></div>
+      </div>
+      {% endif %}
+
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Right column -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
 
-        <!-- WordPress Configuration -->
-        <div class="lg:col-span-2 space-y-6">
-            <div
-                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <div
-                    class="px-8 py-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-.586-1.414l-4.5-4.5A2 2 0 0012.586 3H12" />
-                            </svg>
-                        </div>
-                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">WordPress Integration</h2>
-                    </div>
-
-                    <button @click="testConnection()" :disabled="testing"
-                        class="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition-all disabled:opacity-50">
-                        <svg x-show="testing" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                            </circle>
-                            <path class="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                            </path>
-                        </svg>
-                        <span x-text="testing ? 'Testing...' : 'Test Connection'"></span>
-                    </button>
-                </div>
-
-                <div class="p-8">
-                    <!-- Test Results Toast -->
-                    <div x-show="testResult" x-transition
-                        :class="testResult?.success ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'"
-                        class="mb-6 p-4 rounded-lg border text-sm flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <svg x-show="testResult?.success" class="w-5 h-5" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7" />
-                            </svg>
-                            <svg x-show="!testResult?.success" class="w-5 h-5" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            <span
-                                x-text="testResult?.success ? 'Connected successfully! User: ' + testResult.user : 'Connection failed: ' + testResult.error"></span>
-                        </div>
-                        <button @click="testResult = null" class="opacity-50 hover:opacity-100">✕</button>
-                    </div>
-
-                    <form action="{{ url_for('client.settings') }}" method="POST" class="space-y-6">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="action" value="update_wordpress">
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Site
-                                    URL</label>
-                                <input type="url" name="wp_url" value="{{ current_user.wp_url or '' }}"
-                                    placeholder="https://yourblog.com"
-                                    class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all dark:text-white"
-                                    required>
-                                <p class="text-[10px] text-slate-400">The base URL of your WordPress installation.</p>
-                            </div>
-                            <div class="space-y-2">
-                                <label
-                                    class="text-xs font-bold text-slate-500 uppercase tracking-wider">Username</label>
-                                <input type="text" name="wp_user" value="{{ current_user.wp_user or '' }}"
-                                    placeholder="admin_user"
-                                    class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all dark:text-white"
-                                    required>
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Application
-                                Password</label>
-                            <input type="password" name="wp_password" placeholder="•••• •••• •••• •••• •••• ••••"
-                                class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all dark:text-white">
-                            <p class="text-[10px] text-slate-400 italic">Recommended: Use a WordPress "Application
-                                Password" instead of your master password. <a
-                                    href="https://wordpress.org/documentation/article/application-passwords/"
-                                    target="_blank" class="text-brand-600 hover:underline">Learn more.</a></p>
-                        </div>
-
-                        <div class="pt-4 flex justify-end">
-                            <button type="submit"
-                                class="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-lg transition-all shadow-lg shadow-brand-500/20">
-                                Save Connection
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Default Category -->
-            {% if current_user.wp_url %}
-            <div
-                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <div class="px-8 py-6 border-b border-slate-100 dark:border-slate-700">
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Default Category</h2>
-                </div>
-                <div class="p-8">
-                    <form action="{{ url_for('client.settings') }}" method="POST" class="flex items-end gap-4">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="action" value="update_wp_category">
-                        <div class="flex-1 space-y-2">
-                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Select WordPress
-                                Category</label>
-                            <select name="wp_default_category"
-                                class="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-sm focus:ring-2 focus:ring-brand-500 outline-none transition-all dark:text-white cursor-pointer">
-                                {% if wp_categories %}
-                                {% for cat in wp_categories %}
-                                <option value="{{ cat.id }}" {% if current_user.wp_default_category==cat.id %}selected{%
-                                    endif %}>{{ cat.name }} (ID: {{ cat.id }})</option>
-                                {% endfor %}
-                                {% else %}
-                                <option value="1">Uncategorized (Default)</option>
-                                {% endif %}
-                            </select>
-                        </div>
-                        <button type="submit"
-                            class="px-6 py-3 bg-slate-900 dark:bg-slate-700 text-white text-sm font-bold rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition-all">
-                            Save
-                        </button>
-                    </form>
-                    <p class="text-[10px] text-slate-400 mt-4">Articles will be assigned to this category by default
-                        when pushed as drafts.</p>
-                </div>
-            </div>
-            {% endif %}
+      <!-- WordPress Tips -->
+      <div class="section-card" style="border-left:3px solid var(--accent2);">
+        <div class="section-header">
+          <span class="section-title">Setup Tips</span>
         </div>
-
-        <!-- Sidebar / Info Content -->
-        <div class="space-y-6">
-            <div
-                class="bg-gradient-to-br from-indigo-50 to-brand-50 dark:from-indigo-900/20 dark:to-brand-900/20 rounded-lg p-8 border border-brand-100 dark:border-brand-800/50">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">WordPress Setup Tips</h3>
-                <ul class="space-y-4 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    <li class="flex gap-3">
-                        <div
-                            class="w-5 h-5 rounded-full bg-brand-200 dark:bg-brand-800 flex items-center justify-center shrink-0 text-[10px] font-bold text-brand-700 dark:text-brand-300">
-                            1</div>
-                        <span>Ensure your site has **HTTPS** enabled and uses the latest WordPress version.</span>
-                    </li>
-                    <li class="flex gap-3">
-                        <div
-                            class="w-5 h-5 rounded-full bg-brand-200 dark:bg-brand-800 flex items-center justify-center shrink-0 text-[10px] font-bold text-brand-700 dark:text-brand-300">
-                            2</div>
-                        <span>Verify that the **WordPress REST API** is active (it usually is by default).</span>
-                    </li>
-                    <li class="flex gap-3">
-                        <div
-                            class="w-5 h-5 rounded-full bg-brand-200 dark:bg-brand-800 flex items-center justify-center shrink-0 text-[10px] font-bold text-brand-700 dark:text-brand-300">
-                            3</div>
-                        <span>Go to **Users → Profile** in WP, scroll to **Application Passwords**, and create one named
-                            "Contexta".</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Need Help?</h3>
-                <p class="text-xs text-slate-500 mb-4">Connection still failing? Contact our support team for
-                    specialized integration help.</p>
-                <a href="mailto:support@contexta.com"
-                    class="text-xs font-bold text-brand-600 hover:underline">support@contexta.com</a>
-            </div>
+        <div style="padding:16px 20px; display:flex; flex-direction:column; gap:12px;">
+          {% for tip in [
+            ('1', 'Ensure your site has HTTPS enabled.'),
+            ('2', 'Verify the WordPress REST API is active (default is on).'),
+            ('3', 'Go to Users → Profile → Application Passwords, create one named "Contexta".')
+          ] %}
+          <div style="display:flex; align-items:flex-start; gap:10px; font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; line-height:1.5;">
+            <span style="background:var(--ink); color:var(--paper); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:9px; flex-shrink:0; margin-top:1px;">{{ tip[0] }}</span>
+            {{ tip[1] }}
+          </div>
+          {% endfor %}
         </div>
+      </div>
+
+      <!-- Support -->
+      <div class="section-card">
+        <div class="section-header">
+          <span class="section-title">Need Help?</span>
+        </div>
+        <div style="padding:16px 20px;">
+          <p style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:12px;">Connection still failing? Contact our support team for specialized integration help.</p>
+          <a href="mailto:support@contexta.com" style="font-size:11px; color:var(--accent2); font-family:'DM Mono',monospace;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">support@contexta.com →</a>
+        </div>
+      </div>
 
     </div>
+  </div>
 
 </div>
 {% endblock %}

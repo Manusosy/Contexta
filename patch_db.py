@@ -9,7 +9,13 @@ try:
     # Define desired schema additions
     schema_additions = {
         "users": [
-            ("created_at", "DATETIME DEFAULT CURRENT_TIMESTAMP")
+            ("created_at", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
+            ("billing_company", "VARCHAR(200)"),
+            ("billing_address", "VARCHAR(500)"),
+            ("billing_city", "VARCHAR(100)"),
+            ("billing_country", "VARCHAR(100)"),
+            ("billing_zip", "VARCHAR(20)"),
+            ("billing_tax_id", "VARCHAR(100)")
         ],
         "pricing_tiers": [
             ("article_limit", "INTEGER DEFAULT 20"),
@@ -18,6 +24,7 @@ try:
         "subscriptions": [
             ("pricing_tier_id", "INTEGER REFERENCES pricing_tiers(id)"),
             ("preferred_payment_method", "VARCHAR(50)"),
+            ("payment_details", "VARCHAR(255)"),
             ("auto_renew", "BOOLEAN DEFAULT 0")
         ]
     }

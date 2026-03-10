@@ -13,10 +13,14 @@ class Feed(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True) # None means global admin feed
     name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True) # Pipeline bio/summary
     url = db.Column(db.String(500), unique=True, nullable=False)
-    category = db.Column(db.String(100), default="General")
+    category = db.Column(db.String(100), default="Tech News")
+    fetch_interval = db.Column(db.Integer, default=60) # Minutes
+    rewrite_profile = db.Column(db.String(100), default="Default") # AI Profile
     active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, onupdate=lambda: datetime.now(timezone.utc))
 
     articles = db.relationship("Article", backref="feed", lazy=True, cascade="all, delete-orphan")
 
@@ -48,10 +52,19 @@ class Article(db.Model):
     slug = db.Column(db.String(300))
     primary_keyword = db.Column(db.String(200))
     seo_score = db.Column(db.Integer, default=0)
-    # Status: pending | generated | pushed | failed | failed_scrape | failed_ai | failed_verification | discarded
+    # Status: pending | processing | extracting | rewriting | publishing | published | failed | skipped | permanently_failed
     status = db.Column(db.String(50), default="pending")
     wordpress_id = db.Column(db.Integer, nullable=True)
     word_count = db.Column(db.Integer, default=0)
+    retry_count = db.Column(db.Integer, default=0)
+    locked_at = db.Column(db.DateTime, nullable=True)
+    extracted_body = db.Column(db.Text, nullable=True)
+    source_tags = db.Column(db.String(500), nullable=True)
+    original_pub_date = db.Column(db.DateTime, nullable=True)
+    author = db.Column(db.String(200), nullable=True)
+    guid = db.Column(db.String(500), nullable=True)
+    main_image_url = db.Column(db.String(500), nullable=True)
+    error_log = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
@@ -82,6 +95,7 @@ class Subscription(db.Model):
     status = db.Column(db.String(50), default="inactive") # active, cancelled, expired
     payment_method = db.Column(db.String(50)) # paypal, mpesa
     preferred_payment_method = db.Column(db.String(50))  # saved preference
+    payment_details = db.Column(db.String(255)) # e.g. phone number, masked email
     auto_renew = db.Column(db.Boolean, default=False)
     gateway_ref_id = db.Column(db.String(200)) # paypal_sub_id or mpesa_checkout_id
     current_period_end = db.Column(db.DateTime)
@@ -237,6 +251,23 @@ class Notification(db.Model):
         return f"<Notification for User {self.user_id}>"
 
 
+class Feedback(db.Model):
+    """User feedback submitted to the platform admin."""
+    __tablename__ = "feedbacks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    # Status: pending | reviewed | resolved
+    status = db.Column(db.String(50), default="pending")
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship("User", backref=db.backref("feedbacks", lazy=True))
+
+    def __repr__(self):
+        return f"<Feedback from User {self.user_id}>"
+
+
 class User(UserMixin, db.Model):
     """Application user — supports admin and client roles."""
     __tablename__ = "users"
@@ -259,6 +290,14 @@ class User(UserMixin, db.Model):
     wp_user = db.Column(db.String(100))
     wp_password = db.Column(db.String(200))
     wp_default_category = db.Column(db.Integer)
+
+    # Billing Profile
+    billing_company = db.Column(db.String(200))
+    billing_address = db.Column(db.String(500))
+    billing_city = db.Column(db.String(100))
+    billing_country = db.Column(db.String(100))
+    billing_zip = db.Column(db.String(20))
+    billing_tax_id = db.Column(db.String(100))
 
     feeds = db.relationship("Feed", backref="user", lazy=True, cascade="all, delete-orphan")
     subscriptions = db.relationship("Subscription", backref="user", lazy=True, cascade="all, delete-orphan")

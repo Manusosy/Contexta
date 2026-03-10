@@ -1,269 +1,212 @@
 """AI Service — generates editorial content via OpenRouter API."""
+import json
 import requests
-from models import Setting, db
+from models import Setting, db, Article
 from utils.logger import log_event as _log
+from config import get_config
 
-OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-APP_URL = "https://contexta.app"  # Sent as HTTP-Referer header
+config = get_config()
 
-CONTEXT_PROMPT_TEMPLATE = """You are an expert news analyst.
-Read the provided source article carefully.
+SYSTEM_PROMPT = """
+You are an expert content strategist and SEO copywriter.
+Your job is to read a source article, deeply understand its topic,
+key arguments, and facts — then produce a completely original,
+plagiarism-free article on the same subject.
 
-Extract and summarize the core factual content, main talking points, tone, and pacing of the article.
-Provide a clear, bulleted list of the essential information that MUST be included in a follow-up piece. Do NOT write an article yet, just extract the context.
-
-Source Article:
----
-{content}
+RULES YOU MUST FOLLOW:
+1. NEVER copy sentences, phrases, or structure from the source.
+   Rewrite all ideas entirely in your own voice.
+2. Preserve factual accuracy. Do not invent statistics or quotes.
+3. The output article must be at minimum 600 words.
+4. Write for the target audience: general readers + search engines.
+5. Use a clear structure: hook introduction, 3–5 body sections
+   with H2 subheadings, and a strong conclusion with a CTA.
+6. Always output valid JSON. No markdown outside the JSON block.
 """
 
-DRAFT_PROMPT_TEMPLATE = """You are an experienced news editor and journalist.
+USER_PROMPT_TEMPLATE = """
+SOURCE ARTICLE:
+Title: {original_title}
+Published: {pub_date}
+Source URL: {source_url}
+Tags/Categories from feed: {source_tags}
 
-You will be given the content of a real published article. Study the tone, pacing, vocabulary, and narrative style of the article carefully.
+Full article body:
+---
+{extracted_body}
+---
 
-Your task is to write a completely original follow-up editorial article inspired by the same topic. Do not summarize the article and do not rewrite sentences from it. Instead, produce a fresh piece that naturally expands on the subject, similar to how a newsroom would publish a related story or analysis.
+TARGET WEBSITE CONTEXT:
+Website name: {site_name}
+Niche/Topic: {site_niche}
+Target audience: {target_audience}
+Tone of voice: {tone}
 
-The writing must closely match the tone and voice of the original article. Maintain a natural human writing rhythm that feels like it came from a professional editorial desk.
+YOUR TASK:
+Produce a new, 100% original article on this topic.
+Return ONLY a JSON object in this exact structure:
 
-Requirements:
-
-- Write in a confident, authoritative editorial tone.
-- The article must read naturally and professionally, not like AI generated text.
-- Avoid generic phrasing and avoid common AI writing patterns.
-- Do not use dashes of any kind in the article.
-- Do not mention that this article is based on another article.
-- Do not repeat sentences or structure from the source content.
-- Use clear paragraphs with logical progression of ideas.
-- Provide insight, implications, or context that a journalist would add.
-- Write between {word_count_min} and {word_count_target} words.
-- Use clear section headings where appropriate.
-- Keep the writing direct, informative, and engaging.
-
-FORMATTING REQUIREMENTS:
-- Your response MUST be valid HTML.
-- **CRITICAL**: The very first element of your response MUST be a catchy, original, SEO-optimized title wrapped in an `<h1>` tag.
-- Use `<h2>` and `<h3>` tags for section headings.
-- Use `<p>` tags for all paragraphs.
-- Do NOT wrap your response in markdown code blocks (e.g. ```html). Output pure HTML only.
-
-{style_instructions}
-{custom_prompt}
-
-Source article content:
-
-{context_points}
-
-Now write the new editorial article."""
-
-
-RELEVANCE_FILTER_PROMPT = """Analyze the following article snippet. 
-Does it contain meaningful news, a story, or educational content? 
-If it is spam, a simple link list, a weather report without narrative, or low-quality nonsense, answer 'NO'. 
-Otherwise, if it is a valid article for editorial rewriting, answer 'YES'.
-
-Snippet:
-{snippet}
-
-Answer (YES/NO):"""
+{{
+  "headline": "SEO-optimised title, 50–60 chars, includes primary keyword",
+  "slug": "url-friendly-version-of-title",
+  "meta_description": "150–160 char summary for Google search snippet",
+  "focus_keyword": "single primary keyword this article targets",
+  "secondary_keywords": ["keyword2", "keyword3", "keyword4"],
+  "body_html": "<h2>...</h2><p>...</p>... full article in HTML",
+  "excerpt": "2–3 sentence teaser for WordPress excerpt field",
+  "suggested_categories": ["Category1", "Category2"],
+  "suggested_tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "estimated_read_time": "X min read",
+  "word_count": 750
+}}
+"""
 
 
-def check_relevance(content: str) -> bool:
-    """Uses AI to quickly determine if an article is worth processing."""
+def rewrite_article(article: Article) -> dict:
+    """
+    Call OpenRouter API to generate an editorial article from a source.
+    Node 4 Specification: Understand context → rewrite → SEO optimize → plagiarism-free.
+    Returns a dict with rewritten fields from JSON output.
+    """
     api_key = Setting.get("ai_api_key")
     if not api_key:
-        return True # Default to True if no key
-
-    model = Setting.get("ai_model", "openai/gpt-4o-mini")
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": APP_URL,
-        "X-Title": "Contexta",
-        "Content-Type": "application/json",
-    }
-    
-    payload = {
-        "model": model,
-        "messages": [{"role": "user", "content": RELEVANCE_FILTER_PROMPT.format(snippet=content[:1000])}],
-        "temperature": 0.0,
-        "max_tokens": 5,
-    }
-
-    try:
-        response = requests.post(OPENROUTER_URL, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
-        answer = response.json()["choices"][0]["message"]["content"].strip().upper()
-        return "YES" in answer
-    except Exception as e:
-        _log("Relevance check failed, proceeding by default", "warning", str(e))
-        return True
-
-
-def generate_article(content: str, is_trial: bool = False) -> str:
-    """
-    Call OpenRouter API to generate an editorial article.
-    Returns the generated HTML string, or empty string on failure.
-    
-    If is_trial is True, it enforces a 300-word limit and uses a free model.
-    """
-    api_key = Setting.get("ai_api_key")
+        api_key = getattr(config, "OPENROUTER_API_KEY", None)
+        
     if not api_key:
         _log("AI generation skipped — no API key configured", "warning")
-        return ""
+        return {}
 
-    if is_trial:
-        # Use trial-specific model or fallback to Gemini Flash Free
-        model = Setting.get("ai_trial_model", "google/gemini-2.0-flash:free")
-        temperature = 0.7
-        max_tokens = 1000
-    else:
-        # Premium logic
-        model = Setting.get("ai_model", "openai/gpt-4o-mini")
-        
-        # Smart Selection / Auto Model Logic
-        if model == "auto":
-            # Select best model for premium editorial work
-            model = "openai/gpt-4o"
-            
-        temperature = float(Setting.get("ai_temperature", "0.7"))
-        max_tokens = int(Setting.get("ai_max_tokens", "2000"))
-
-    # Step 1: Context Extraction
-    context_prompt = CONTEXT_PROMPT_TEMPLATE.format(content=content[:4000])
+    model = Setting.get("ai_model", "openai/gpt-4o-mini")
     
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": APP_URL,
-        "X-Title": "Contexta",
-        "Content-Type": "application/json",
-    }
-    
-    context_payload = {
-        "model": model,
-        "messages": [{"role": "user", "content": context_prompt}],
-        "temperature": 0.3, # Lower temperature for facts
-        "max_tokens": 1000,
-    }
+    # If using a free model, we can try other free models as fallbacks.
+    models_to_try = [model]
+    if ":free" in model or "free" in model.lower():
+        fallbacks = [
+            "google/gemma-3-27b-it:free",
+            "meta-llama/llama-3.3-70b-instruct:free",
+            "nousresearch/hermes-3-llama-3.1-405b:free",
+            "qwen/qwen3-next-80b-a3b-instruct:free",
+            "mistralai/mistral-small-3.1-24b-instruct:free"
+        ]
+        for f in fallbacks:
+            if f not in models_to_try:
+                models_to_try.append(f)
 
-    try:
-        response = requests.post(OPENROUTER_URL, json=context_payload, headers=headers, timeout=120)
-        response.raise_for_status()
-        context_data = response.json()
-        extracted_context = context_data["choices"][0]["message"]["content"].strip()
-        _log(f"AI context extraction complete", "info")
-    except Exception as e:
-        _log("AI context extraction failed", "error", str(e))
-        return ""
-
-    # Step 2: Article Drafting
-    # Build style modifiers
-    style_parts = []
-    if Setting.get("ai_style_instructions"):
-        style_parts.append(Setting.get("ai_style_instructions"))
-    if Setting.get("ai_preserve_tone") == "true":
-        style_parts.append("Preserve the original article's tone.")
-    if Setting.get("ai_avoid_generic") == "true":
-        style_parts.append("Avoid generic AI phrasing.")
-    if Setting.get("ai_no_long_dashes") == "true":
-        style_parts.append("Do not use em dashes or long dashes.")
-    if Setting.get("ai_regional_insight") == "true":
-        style_parts.append("Add relevant regional context and insight where appropriate.")
-
-    style_instructions = "\n".join(style_parts)
-    
-    if is_trial:
-        word_count_min = "200"
-        word_count_target = "300"
-    else:
-        # Journalistic guidelines: 800 - 1200 words
-        word_count_min = Setting.get("ai_word_count_min", "800")
-        word_count_target = Setting.get("ai_word_count_target", "1200")
-    
-    custom_prompt_raw = Setting.get("ai_custom_prompt", "")
-    custom_prompt = f"USER CUSTOM INSTRUCTIONS:\n{custom_prompt_raw}" if custom_prompt_raw else ""
-
-    draft_prompt = DRAFT_PROMPT_TEMPLATE.format(
-        word_count_min=word_count_min,
-        word_count_target=word_count_target,
-        style_instructions=style_instructions,
-        custom_prompt=custom_prompt,
-        context_points=extracted_context
+    # Format the user prompt
+    user_prompt = USER_PROMPT_TEMPLATE.format(
+        original_title=article.original_title,
+        pub_date=article.original_pub_date,
+        source_url=article.source_url,
+        source_tags=article.source_tags or "",
+        extracted_body=article.extracted_body[:15000], 
+        site_name=Setting.get("site_name", "Contexta"),
+        site_niche=getattr(config, "SITE_NICHE", "Technology / AI"),
+        target_audience=getattr(config, "TARGET_AUDIENCE", "tech-savvy professionals"),
+        tone=getattr(config, "TONE", "authoritative but approachable")
     )
 
-    draft_payload = {
-        "model": model,
-        "messages": [{"role": "user", "content": draft_prompt}],
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-    }
+    last_error_msg = ""
+    for current_model in models_to_try:
+        try:
+            payload = {
+                "model": current_model,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt}
+                ]
+            }
+            
+            # Only add response_format for OpenAI models as it can break others on OpenRouter
+            if "openai" in current_model.lower() or "gpt-4" in current_model.lower():
+                payload["response_format"] = {"type": "json_object"}
 
-    try:
-        response = requests.post(OPENROUTER_URL, json=draft_payload, headers=headers, timeout=120)
-        response.raise_for_status()
-        data = response.json()
-        generated = data["choices"][0]["message"]["content"].strip()
-        _log(f"AI generation complete — model: {model}", "success", f"{len(generated)} chars")
-        return generated
-    except Exception as e:
-        _log("AI generation failed", "error", str(e))
-        return ""
+            response = requests.post(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://contexta.io", # Optional
+                    "X-Title": "Contexta", # Optional
+                },
+                data=json.dumps(payload),
+                timeout=120
+            )
+
+            if response.status_code != 200:
+                error_msg = response.text
+                try:
+                    err_data = response.json()
+                    if "error" in err_data:
+                        base_msg = err_data["error"].get("message", "")
+                        raw_msg = err_data["error"].get("metadata", {}).get("raw", "")
+                        error_msg = f"{base_msg} - {raw_msg}" if raw_msg else base_msg
+                except:
+                    pass
+                
+                last_error_msg = error_msg
+                
+                # If rate limited (429) OR upstream error (502, 500) and we have more models, try the next
+                if response.status_code in [429, 502, 500, 400] and current_model != models_to_try[-1]:
+                    _log(f"Model {current_model} failed ({response.status_code}). Trying fallback...", "warning")
+                    continue
+                
+                _log(f"OpenRouter API error: {response.status_code}", "error", error_msg)
+                raise Exception(f"OpenRouter Error {response.status_code}: {error_msg}")
+
+            result_json = response.json()
+            raw_text = result_json['choices'][0]['message']['content']
+            
+            # Bulletproof JSON extraction: find first { and last }
+            clean = raw_text.strip()
+            start_idx = clean.find("{")
+            end_idx = clean.rfind("}")
+            
+            if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                clean = clean[start_idx : end_idx + 1]
+            
+            try:
+                rewritten = json.loads(clean)
+                _log(f"AI rewrite complete for: {article.original_title[:40]} using {current_model}", "success")
+                return rewritten
+            except json.JSONDecodeError as e:
+                _log(f"AI returned invalid JSON. Error: {e}", "error", f"Raw text preview: {raw_text[:500]}...")
+                return {}
+
+        except Exception as e:
+            last_error_msg = str(e)
+            if current_model != models_to_try[-1]:
+                continue
+            
+            _log("OpenRouter API call failed", "error", str(e))
+            return {}
+
+    return {}
 
 
 def list_available_models() -> tuple[dict, bool]:
-    """Fetch available models from OpenRouter (best-effort). Returns {recommended: [], others: []}, fallback_used."""
-    curated = _default_models()
-    curated_ids = {m["id"] for m in curated}
-    
-    api_key = Setting.get("ai_api_key")
-    if not api_key:
-        return {"recommended": curated, "others": []}, True
-        
+    """Fetch available models from OpenRouter."""
     try:
-        resp = requests.get(
-            "https://openrouter.ai/api/v1/models",
-            headers={"Authorization": f"Bearer {api_key}"},
-            timeout=10,
-        )
-        resp.raise_for_status()
-        data = resp.json().get("data", [])
-        
-        # Add models from API that are not in our curated list
-        api_models = []
-        for m in data:
-            mid = m["id"]
-            if mid not in curated_ids:
-                name = m.get("name", mid)
-                if mid.endswith(":free") and "(Free)" not in name:
-                    name += " (Free)"
-                api_models.append({"id": mid, "name": name})
-        
-        # Return grouped data
-        return {"recommended": curated, "others": api_models}, False
-    except Exception:
-        return {"recommended": curated, "others": []}, True
+        resp = requests.get("https://openrouter.ai/api/v1/models", timeout=5)
+        if resp.status_code == 200:
+            data = resp.json().get("data", [])
+            # Curate a few top ones
+            favorites = ["openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "google/gemini-flash-1.5"]
+            recommended = []
+            others = []
+            for m in data:
+                item = {"id": m["id"], "name": m["name"]}
+                if m["id"] in favorites:
+                    recommended.append(item)
+                else:
+                    others.append(item)
+            return {"recommended": recommended, "others": others}, False
+    except:
+        pass
 
-
-def _default_models() -> list[dict]:
-    return [
-        # --- PREMIUM TOOLS ---
-        {"id": "auto", "name": "✨ Smart Selection (Auto-Select Best Model)"},
-        
-        # --- FREE MODELS (Prioritized for Writing/SEO) ---
-        {"id": "google/gemini-2.0-flash:free", "name": "Gemini 2.0 Flash (Free) - Fast & Modern"},
-        {"id": "google/gemini-2.0-pro-exp-02-05:free", "name": "Gemini 2.0 Pro (Free) - High Quality"},
-        {"id": "deepseek/deepseek-r1:free", "name": "DeepSeek R1 (Free) - Great Reasoning"},
-        {"id": "mistralai/mistral-7b-instruct:free", "name": "Mistral 7B Instruct (Free)"},
-        {"id": "mistralai/pixtral-12b:free", "name": "Pixtral 12B (Free)"},
-        {"id": "microsoft/phi-3-medium-128k-instruct:free", "name": "Phi-3 Medium (Free)"},
-        {"id": "qwen/qwen-2-72b-instruct:free", "name": "Qwen 2 72B (Free)"},
-        {"id": "meta-llama/llama-3-8b-instruct:free", "name": "Llama 3 8B (Free)"},
-        
-        # --- TOP-TIER PAID MODELS (SEO & Professional) ---
-        {"id": "openai/gpt-4o-mini", "name": "GPT-4o Mini (Best for SEO & Speed)"},
-        {"id": "openai/gpt-4o", "name": "GPT-4o (Professional & Reliable)"},
-        {"id": "anthropic/claude-3.5-sonnet", "name": "Claude 3.5 Sonnet (Premium/Creative)"},
-        {"id": "anthropic/claude-3-haiku", "name": "Claude 3 Haiku (Fast/Affordable)"},
-        {"id": "google/gemini-pro-1.5", "name": "Gemini 1.5 Pro (Large Context)"},
-        {"id": "mistralai/mistral-large", "name": "Mistral Large (High Quality)"},
-        {"id": "deepseek/deepseek-chat", "name": "DeepSeek V3 (Competitive Paid)"},
-        {"id": "meta-llama/llama-3.1-405b", "name": "Llama 3.1 405B (Powerhouse)"},
+    # Fallback list
+    fallback_models = [
+        {"id": "openai/gpt-4o-mini", "name": "GPT-4o Mini (Fast & Cheap)"},
+        {"id": "google/gemma-3-27b-it:free", "name": "Gemma 3 27B (Free Reliable)"},
+        {"id": "meta-llama/llama-3.3-70b-instruct", "name": "Llama 3 70B (Great Value)"},
     ]
+    return {"recommended": fallback_models, "others": []}, True

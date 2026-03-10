@@ -30,6 +30,28 @@ class Config:
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "noreply@kazinikazi.co.ke")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "#@ConTexta+254#@")
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "noreply@kazinikazi.co.ke")
+    
+    # Automation Specification
+    RSS_BATCH_LIMIT = int(os.environ.get("RSS_BATCH_LIMIT", 5))
+    RSS_POLL_INTERVAL_MIN = int(os.environ.get("RSS_POLL_INTERVAL_MIN", 30))
+    
+    WORKER_SLEEP_SECONDS = int(os.environ.get("WORKER_SLEEP_SECONDS", 60))
+    WORKER_ARTICLE_DELAY = int(os.environ.get("WORKER_ARTICLE_DELAY", 5))
+    MAX_RETRIES = int(os.environ.get("MAX_RETRIES", 3))
+    
+    MIN_WORD_COUNT = int(os.environ.get("MIN_WORD_COUNT", 200))
+    TARGET_WORD_COUNT = int(os.environ.get("TARGET_WORD_COUNT", 800))
+    
+    OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+    OPENROUTER_DEFAULT_MODEL = os.environ.get("OPENROUTER_DEFAULT_MODEL", "openai/gpt-4o-mini")
+    AI_MAX_TOKENS = int(os.environ.get("AI_MAX_TOKENS", 4096))
+    
+    SITE_NICHE = os.environ.get("SITE_NICHE", "Technology / AI")
+    TARGET_AUDIENCE = os.environ.get("TARGET_AUDIENCE", "tech-savvy professionals aged 25-45")
+    TONE = os.environ.get("TONE", "authoritative but approachable")
+    
+    WP_APP_PASSWORD = os.environ.get("WP_APP_PASSWORD", "")
+    WP_DEFAULT_STATUS = os.environ.get("WP_DEFAULT_STATUS", "draft")
 
 
 class DevelopmentConfig(Config):

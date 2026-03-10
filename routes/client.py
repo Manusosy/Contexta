@@ -1,7 +1,7 @@
 """Client (subscriber) portal routes."""
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from models import db, User, Subscription, Transaction, PricingTier, Setting, Feed, Article, Notification, Coupon, Log
+from models import db, User, Subscription, Transaction, PricingTier, Setting, Feed, Article, Notification, Coupon, Log, Feedback
 from services.wordpress_service import push_to_wordpress, test_connection as wp_test_connection, get_categories as wp_get_categories
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
@@ -117,6 +117,25 @@ def index():
         .all()
     )
 
+    # Fetch data for new FeedForge layout cards
+    recent_feeds = Feed.query.filter_by(user_id=current_user.id).order_by(Feed.created_at.desc()).limit(5).all()
+    
+    recently_published_articles = []
+    queued_articles = []
+    if user_feed_ids:
+        recently_published_articles = (
+            Article.query.filter(Article.feed_id.in_(user_feed_ids), Article.status == 'pushed')
+            .order_by(Article.created_at.desc())
+            .limit(5)
+            .all()
+        )
+        queued_articles = (
+            Article.query.filter(Article.feed_id.in_(user_feed_ids), Article.status.in_(['pending', 'generated']))
+            .order_by(Article.created_at.desc())
+            .limit(5)
+            .all()
+        )
+
     # Check limits and fire notifications if approaching
     _check_and_notify_limit(sub, article_count, article_limit, feed_count, feed_limit)
 
@@ -130,18 +149,35 @@ def index():
         sub=sub,
         recent_transactions=recent_transactions,
         recent_activities=recent_activities,
+        recent_feeds=recent_feeds,
+        recently_published_articles=recently_published_articles,
+        queued_articles=queued_articles,
         article_count=article_count,
         article_limit=article_limit,
         feed_count=feed_count,
         feed_limit=feed_limit,
         wp_connected=wp_connected,
         upgrade_tier=_get_starter_tier(),
+        active_model=Setting.get("ai_model", "openai/gpt-4o-mini"),
+        schedule_enabled=Setting.get("schedule_enabled") == "true",
+        schedule_frequency=Setting.get("schedule_frequency", "60"),
+        automation_status=Setting.get("automation_status", "idle"),
     )
 
 
 # ─────────────────────────────────────────────────────────────
 # Feeds
 # ─────────────────────────────────────────────────────────────
+
+@client_bp.route("/feeds/<int:feed_id>/toggle")
+@login_required
+def feed_toggle(feed_id):
+    """Toggle a feed's active status."""
+    feed = Feed.query.filter_by(id=feed_id, user_id=current_user.id).first_or_404()
+    feed.active = not feed.active
+    db.session.commit()
+    flash(f"Feed '{feed.name}' is now {'active' if feed.active else 'paused'}.", "success")
+    return redirect(request.referrer or url_for("client.index"))
 
 @client_bp.route("/feeds", methods=["GET", "POST"])
 @login_required
@@ -235,23 +271,30 @@ def automation():
     if request.method == "POST":
         action = request.form.get("action")
         if action == "run_now":
-            flash("Automation triggered successfully!", "success")
+            from services.automation_service import run_node_1_rss_fetcher, run_node_2_worker, cleanup_stale_locks
+            cleanup_stale_locks()
+            run_node_1_rss_fetcher()
+            run_node_2_worker()
+            flash("Automation heartbeat triggered successfully!", "success")
         return redirect(url_for("client.automation"))
 
-    last_run = Setting.get("last_run", "Never")
-    automation_status = Setting.get("automation_status", "idle")
-
     user_feed_ids = [f.id for f in Feed.query.filter_by(user_id=current_user.id).all()]
+    
+    # Simple metrics for the UI
     pending_count = Article.query.filter(
         Article.feed_id.in_(user_feed_ids), Article.status == "pending"
     ).count() if user_feed_ids else 0
 
+    # Fetch recent activity for this user specifically
+    articles = []
+    if user_feed_ids:
+        articles = Article.query.filter(Article.feed_id.in_(user_feed_ids)).order_by(Article.created_at.desc()).limit(15).all()
+
     return render_template(
         "client/automation.html",
         sub=sub,
-        last_run=last_run,
-        automation_status=automation_status,
         pending_count=pending_count,
+        articles=articles,
         upgrade_tier=_get_starter_tier(),
     )
 
@@ -327,16 +370,60 @@ def toggle_auto_renew():
 # Billing
 # ─────────────────────────────────────────────────────────────
 
-@client_bp.route("/billing")
+@client_bp.route("/billing", methods=["GET", "POST"])
 @login_required
 def billing():
-    """Show the user's transaction / payment history."""
+    """Show the user's transaction history and manage billing profile."""
+    if request.method == "POST":
+        current_user.full_name = request.form.get("full_name", "").strip()
+        current_user.billing_company = request.form.get("billing_company", "").strip()
+        current_user.billing_address = request.form.get("billing_address", "").strip()
+        current_user.billing_city = request.form.get("billing_city", "").strip()
+        current_user.billing_country = request.form.get("billing_country", "").strip()
+        current_user.billing_zip = request.form.get("billing_zip", "").strip()
+        current_user.billing_tax_id = request.form.get("billing_tax_id", "").strip()
+        db.session.commit()
+        flash("Billing profile updated successfully.", "success")
+        return redirect(url_for("client.billing"))
+
     transactions = (
         Transaction.query.filter_by(user_id=current_user.id)
         .order_by(Transaction.created_at.desc())
         .all()
     )
-    return render_template("client/billing.html", transactions=transactions)
+    
+    sub = _get_active_sub()
+    article_limit, feed_limit = _get_tier_limits(sub)
+    
+    # Usage Stats
+    user_feed_ids = [f.id for f in current_user.feeds]
+    if user_feed_ids:
+        # All generated articles
+        all_articles = Article.query.filter(Article.feed_id.in_(user_feed_ids)).all()
+        article_count = len([a for a in all_articles if a.status == "published"])
+        rewrite_count = len([a for a in all_articles if a.status in ["rewriting", "published", "publishing"]])
+    else:
+        article_count = 0
+        rewrite_count = 0
+    
+    feed_count = len(current_user.feeds)
+
+    # Rewrite limit (arbitrarily 2x article limit or similar if not defined, 
+    # but the design shows specific numbers like 847 / 1,000)
+    # I'll use 2x article_limit as a placeholder if article_limit is set, otherwise 1000.
+    rewrite_limit = article_limit * 2 if article_limit != -1 else -1
+
+    return render_template(
+        "client/billing.html", 
+        transactions=transactions,
+        sub=sub,
+        article_count=article_count,
+        article_limit=article_limit,
+        rewrite_count=rewrite_count,
+        rewrite_limit=rewrite_limit,
+        feed_count=feed_count,
+        feed_limit=feed_limit
+    )
 
 
 @client_bp.route("/billing/receipt/<int:tx_id>")
@@ -476,14 +563,25 @@ def checkout_mpesa():
     tier = PricingTier.query.get_or_404(tier_id)
     coupon_code = request.form.get("coupon_code", "").upper().strip()
     
-    # Calculate price
+    # Strict Coupon Validation
     final_price = tier.price
     if coupon_code:
         coupon = Coupon.query.filter_by(code=coupon_code, is_active=True).first()
         if coupon:
-            # check expiry
-            if not coupon.expires_at or coupon.expires_at.replace(tzinfo=None) > datetime.utcnow():
+            now = datetime.now(timezone.utc)
+            expires_at = coupon.expires_at.replace(tzinfo=timezone.utc) if coupon.expires_at else None
+            
+            if not expires_at or expires_at > now:
                 final_price = tier.price * (1 - coupon.discount_percent / 100)
+            else:
+                # Coupon expired
+                coupon.is_active = False
+                db.session.commit()
+                flash("The coupon code has expired.", "error")
+                return redirect(url_for("client.checkout", tier_id=tier.id))
+        else:
+            flash("Invalid coupon code.", "error")
+            return redirect(url_for("client.checkout", tier_id=tier.id))
 
     tx_ref = f"CTX-{uuid.uuid4().hex[:8].upper()}"
 
@@ -509,6 +607,7 @@ def checkout_mpesa():
     sub.pricing_tier_id = tier.id
     sub.payment_method = "mpesa"
     sub.preferred_payment_method = "mpesa"
+    sub.payment_details = phone_number
     sub.auto_renew = auto_renew
     sub.gateway_ref_id = tx_ref
 
@@ -542,13 +641,23 @@ def checkout_paypal():
 
     tier = PricingTier.query.get_or_404(tier_id)
 
-    # Calculate price
+    # Strict Coupon Validation
     final_price = tier.price
     if coupon_code:
         coupon = Coupon.query.filter_by(code=coupon_code, is_active=True).first()
         if coupon:
-            if not coupon.expires_at or coupon.expires_at.replace(tzinfo=None) > datetime.utcnow():
+            now = datetime.now(timezone.utc)
+            expires_at = coupon.expires_at.replace(tzinfo=timezone.utc) if coupon.expires_at else None
+
+            if not expires_at or expires_at > now:
                 final_price = tier.price * (1 - coupon.discount_percent / 100)
+            else:
+                # Coupon expired
+                coupon.is_active = False
+                db.session.commit()
+                return {"success": False, "error": "Coupon expired"}, 400
+        else:
+            return {"success": False, "error": "Invalid coupon"}, 400
 
     tx = Transaction(
         user_id=current_user.id,
@@ -569,6 +678,7 @@ def checkout_paypal():
     sub.pricing_tier_id = tier.id
     sub.payment_method = "paypal"
     sub.preferred_payment_method = "paypal"
+    sub.payment_details = "PayPal Account"
     sub.auto_renew = auto_renew
     sub.gateway_ref_id = order_id
 
@@ -639,6 +749,22 @@ def apply_coupon():
         "discount_percent": coupon.discount_percent,
         "code": coupon.code
     })
+
+@client_bp.route("/api/feedback", methods=["POST"])
+@login_required
+def submit_feedback():
+    """Handle user feedback submission."""
+    data = request.get_json() or {}
+    message = data.get("message", "").strip()
+    
+    if not message:
+        return jsonify({"success": False, "error": "Message is required"}), 400
+        
+    feedback = Feedback(user_id=current_user.id, message=message)
+    db.session.add(feedback)
+    db.session.commit()
+    
+    return jsonify({"success": True, "message": "Thank you for your feedback!"})
 
 # ─────────────────────────────────────────────────────────────
 # Settings

@@ -18,11 +18,42 @@ def require_admin():
 @feeds_bp.route("/")
 @login_required
 def index():
+    from datetime import datetime, timedelta, timezone
+    now = datetime.now(timezone.utc)
+    today_start = now - timedelta(days=1)
+    week_start = now - timedelta(days=7)
+
     feeds = Feed.query.order_by(Feed.created_at.desc()).all()
-    # 3.4 Feed Article Count
-    counts = dict(db.session.query(Article.feed_id, db.func.count(Article.id)).group_by(Article.feed_id).all())
     
-    return render_template("feeds/index.html", feeds=feeds, counts=counts)
+    # Per-feed stats
+    counts_today = dict(db.session.query(Article.feed_id, db.func.count(Article.id)).filter(Article.created_at >= today_start).group_by(Article.feed_id).all())
+    counts_week = dict(db.session.query(Article.feed_id, db.func.count(Article.id)).filter(Article.created_at >= week_start).group_by(Article.feed_id).all())
+    total_counts = dict(db.session.query(Article.feed_id, db.func.count(Article.id)).group_by(Article.feed_id).all())
+
+    # Strip metrics
+    total_feeds = len(feeds)
+    active_feeds = len([f for f in feeds if f.active])
+    articles_today = Article.query.filter(Article.created_at >= today_start).count()
+    
+    # For "Feeds with Errors", we'll check if any feed has failed articles in the last 24h
+    error_feeds_count = db.session.query(Feed.id).join(Article).filter(Article.status == 'failed', Article.created_at >= today_start).distinct().count()
+    
+    # Standardized categories as per Image 2 & 4
+    categories = ['Tech News', 'Sports', 'Business', 'Global News', 'Sports Predictions']
+    
+    return render_template(
+        "feeds/index.html", 
+        feeds=feeds, 
+        counts={"today": counts_today, "week": counts_week, "total": total_counts},
+        strip={
+            "total": total_feeds,
+            "active": active_feeds,
+            "articles_today": articles_today,
+            "errors": error_feeds_count,
+            "slots": f"{total_feeds}/∞"
+        },
+        categories=categories
+    )
 
 
 @feeds_bp.route("/add", methods=["POST"])
@@ -30,7 +61,10 @@ def index():
 def add():
     name = request.form.get("name", "").strip()
     feed_url = request.form.get("url", "").strip()
-    category = request.form.get("category", "General").strip()
+    category = request.form.get("category", "Tech News").strip()
+    description = request.form.get("description", "").strip()
+    fetch_interval = int(request.form.get("interval", 60))
+    rewrite_profile = request.form.get("profile", "Default").strip()
     active = request.form.get("active") == "on"
 
     if not name or not feed_url:
@@ -43,7 +77,15 @@ def add():
         flash("A feed with this URL already exists.", "error")
         return redirect(url_for("feeds.index"))
 
-    feed = Feed(name=name, url=feed_url, category=category, active=active)
+    feed = Feed(
+        name=name, 
+        url=feed_url, 
+        category=category, 
+        description=description,
+        fetch_interval=fetch_interval,
+        rewrite_profile=rewrite_profile,
+        active=active
+    )
     db.session.add(feed)
     db.session.commit()
     flash(f"Feed '{name}' added successfully.", "success")
@@ -56,6 +98,9 @@ def edit(feed_id):
     feed = db.get_or_404(Feed, feed_id)
     feed.name = request.form.get("name", feed.name).strip()
     feed.category = request.form.get("category", feed.category).strip()
+    feed.description = request.form.get("description", feed.description).strip()
+    feed.fetch_interval = int(request.form.get("interval", feed.fetch_interval))
+    feed.rewrite_profile = request.form.get("profile", feed.rewrite_profile).strip()
     feed.active = request.form.get("active") == "on"
 
     new_url = request.form.get("url", "").strip()

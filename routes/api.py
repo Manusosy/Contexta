@@ -1,8 +1,8 @@
 """API routes — AJAX endpoints for automation, scheduling, WP test."""
 import threading
 from flask import Blueprint, jsonify, request, current_app
-from flask_login import login_required
-from models import db, Setting, Log, Article
+from flask_login import login_required, current_user
+from models import db, Setting, Log, Article, Feed
 from services.wordpress_service import test_connection
 from services.scheduler_service import start_schedule, stop_schedule
 
@@ -46,8 +46,9 @@ def toggle_schedule():
     Setting.set("schedule_enabled", "true" if enabled else "false")
     Setting.set("schedule_frequency", str(frequency))
 
+    app = current_app._get_current_object()
     if enabled:
-        start_schedule(current_app._get_current_object(), frequency)
+        start_schedule(app)
         log = Log(action=f"Schedule enabled: every {frequency} minutes.", status="info")
     else:
         stop_schedule()
@@ -127,21 +128,33 @@ def clear_logs():
 @api_bp.route("/articles/bulk-delete", methods=["POST"])
 @login_required
 def bulk_delete_articles():
-    """Bulk delete articles by ID."""
+    """Bulk delete articles by ID, with ownership check."""
     data = request.json or {}
     ids = data.get("ids", [])
     if not ids:
         return jsonify({"success": False, "error": "No articles selected"}), 400
-        
+
     try:
-        Article.query.filter(Article.id.in_(ids)).delete(synchronize_session=False)
+        # Build the deletion query
+        query = Article.query.filter(Article.id.in_(ids))
+
+        # If not admin, restrict to articles belonging to the user's feeds
+        if current_user.role != "admin":
+            query = query.join(Feed, Article.feed_id == Feed.id).filter(Feed.user_id == current_user.id)
+
+        deleted_count = query.delete(synchronize_session=False)
         db.session.commit()
-        
-        log = Log(action=f"Bulk deleted {len(ids)} articles", status="info")
-        db.session.add(log)
-        db.session.commit()
-        
-        return jsonify({"success": True, "deleted_count": len(ids)})
+
+        if deleted_count > 0:
+            log = Log(
+                action=f"Bulk deleted {deleted_count} articles",
+                status="info",
+                user_id=current_user.id
+            )
+            db.session.add(log)
+            db.session.commit()
+
+        return jsonify({"success": True, "deleted_count": deleted_count})
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "error": str(e)}), 500

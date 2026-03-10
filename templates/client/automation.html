@@ -1,159 +1,184 @@
 {% extends "client_base.html" %}
-
 {% block title %}Automation Center{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Automation Center</h1>
-            <p class="text-slate-500 dark:text-slate-400">Configure and monitor your AI editorial agents.</p>
+<div style="display:flex; flex-direction:column; gap:24px;">
+
+  <!-- ── Header ── -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+      <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Automation Center</h1>
+      <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Configure and monitor your AI editorial pipeline.</p>
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:99px; border:1px solid var(--border); background:var(--surface);">
+      <span style="width:7px; height:7px; background:{% if sub %}var(--green){% else %}#c8882f{% endif %}; border-radius:50%; display:inline-block; animation:pulse 2s infinite;"></span>
+      <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:{% if sub %}var(--green){% else %}#c8882f{% endif %}; font-family:'DM Mono',monospace; font-weight:500;">
+        {% if sub %}System Online{% else %}Trial Mode{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 280px; gap:24px; align-items:start;">
+
+    <!-- Left: Status + Activity -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <!-- Pipeline Status Card -->
+      <div class="section-card">
+        <div class="section-header">
+          <span class="section-title">Pipeline Status</span>
         </div>
-        {% if sub %}
-        <div
-            class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-lg border border-emerald-100 dark:border-emerald-800">
-            <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
-            System Online
+
+        <!-- Stat row -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0; border-bottom:1px solid var(--border);">
+          <div style="padding:16px 20px; border-right:1px solid var(--border);">
+            <div class="stat-label">Last Run</div>
+            <div style="font-family:'Fraunces',serif; font-size:15px; font-weight:300; color:var(--ink);">{{ Setting.get('last_run')|truncate(16, True, '') or 'Never' }}</div>
+          </div>
+          <div style="padding:16px 20px; border-right:1px solid var(--border);">
+            <div class="stat-label">Status</div>
+            <div style="font-family:'Fraunces',serif; font-size:15px; font-weight:300; color:var(--ink);">{{ Setting.get('automation_status')|title or 'Idle' }}</div>
+          </div>
+          <div style="padding:16px 20px; border-right:1px solid var(--border);">
+            <div class="stat-label">Queued</div>
+            <div style="font-family:'Fraunces',serif; font-size:22px; font-weight:300; color:var(--accent2);">{{ pending_count }}</div>
+          </div>
+          <div style="padding:16px 20px;">
+            <div class="stat-label">Worker</div>
+            <div style="font-family:'Fraunces',serif; font-size:15px; font-weight:300; color:{% if Setting.get('schedule_enabled') == 'true' %}var(--green){% else %}var(--muted){% endif %};">
+              {{ 'Active' if Setting.get('schedule_enabled') == 'true' else 'Disabled' }}
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:20px;">
+          <form method="POST" action="{{ url_for('client.automation') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="action" value="run_now" />
+            <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:12px; display:flex; gap:8px;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              Trigger Node Heartbeat
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Node Activity Feed -->
+      <div class="section-card">
+        <div class="section-header">
+          <span class="section-title">Node Activity Feed</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div id="bulk-actions" style="display:none; align-items:center; gap:8px;">
+              <button onclick="bulkDelete()" class="btn-danger" style="font-size:10px; padding:4px 10px; display:flex; align-items:center; gap:4px;">
+                Delete (<span id="selected-count">0</span>)
+              </button>
+            </div>
+            <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace;">Latest 15</span>
+          </div>
+        </div>
+
+        <!-- Select all row -->
+        <div style="padding:10px 20px; background:var(--cream); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px;">
+          <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this)" style="cursor:pointer; accent-color:var(--accent);">
+          <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace;">Select All</span>
+        </div>
+
+        {% for art in articles|default([]) %}
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--border); transition:background 0.1s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+            <input type="checkbox" value="{{ art.id }}" onchange="updateSelection()" class="article-checkbox" style="cursor:pointer; accent-color:var(--accent); flex-shrink:0;">
+            <span style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; flex-shrink:0;">{{ art.created_at.strftime('%H:%M') }}</span>
+            <div style="min-width:0;">
+              <div style="font-size:11px; color:var(--ink); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px;">{{ art.original_title }}</div>
+              <div style="font-size:10px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:250px;">{{ art.source_url|truncate(50) if art.source_url else '' }}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+            {% if art.error_log %}
+            <span title="{{ art.error_log }}" style="cursor:help;">
+              <svg width="14" height="14" fill="none" stroke="#c8882f" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </span>
+            {% endif %}
+            {% if art.status == 'published' %}<span class="badge badge-green">Published</span>
+            {% elif art.status == 'failed' %}<span class="badge badge-red">Failed</span>
+            {% elif art.status == 'skipped' %}<span class="badge badge-gray">Skipped</span>
+            {% else %}<span class="badge badge-blue">{{ art.status|title }}</span>{% endif %}
+          </div>
         </div>
         {% else %}
-        <div
-            class="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-lg border border-amber-100 dark:border-amber-800">
-            <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
-            Trial Mode
+        <div class="empty-state">
+          <p>No activity detected. Articles will appear here once the worker starts.</p>
         </div>
-        {% endif %}
+        {% endfor %}
+      </div>
+
     </div>
 
-    <!-- Main Automation Controls -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Status Card -->
-        <div class="lg:col-span-2 space-y-6">
-            <div
-                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
-                <div class="flex items-start justify-between mb-8">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">General Pipeline</h3>
-                        <p class="text-sm text-slate-500 mt-1">Automatically process feeds every 4 hours.</p>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" value="" class="sr-only peer" checked>
-                        <div
-                            class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand-600">
-                        </div>
-                    </label>
-                </div>
+    <!-- Right sidebar -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div
-                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Last Run</p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ last_run or 'Never' }}
-                        </p>
-                    </div>
-                    <div
-                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ automation_status|title
-                            }}</p>
-                    </div>
-                    <div
-                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pending Articles
-                        </p>
-                        <p class="text-sm font-semibold text-brand-600 dark:text-brand-400">{{ pending_count }}</p>
-                    </div>
-                </div>
-
-                <div class="mt-8">
-                    <form method="POST" action="{{ url_for('client.automation') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                        <input type="hidden" name="action" value="run_now" />
-                        <button type="submit"
-                            class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition-all shadow-md shadow-brand-500/20 flex items-center justify-center gap-2 group">
-                            <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Run Automation Now
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div
-                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
-                <div class="px-8 py-5 border-b border-slate-100 dark:border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Recent Logs
-                    </h3>
-                </div>
-                <div class="p-0">
-                    {% if sub %}
-                    <div class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                        <div class="px-8 py-4 flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-3">
-                                <span class="text-slate-400">14:02</span>
-                                <span class="text-slate-700 dark:text-slate-300 font-medium">Successfully processed 5
-                                    articles from TechCrunch</span>
-                            </div>
-                            <span class="text-emerald-500 font-bold uppercase tracking-wider">Success</span>
-                        </div>
-                        <div class="px-8 py-4 flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-3">
-                                <span class="text-slate-400">10:01</span>
-                                <span class="text-slate-700 dark:text-slate-300 font-medium">AI Rewriting agent
-                                    completed 12 tasks</span>
-                            </div>
-                            <span class="text-emerald-500 font-bold uppercase tracking-wider">Success</span>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="px-8 py-12 text-center">
-                        <p class="text-xs text-slate-400 italic">No recent activity logs. {% if not sub %}Articles in
-                            trial will appear here.{% else %}Logs will appear here once automation runs.{% endif %}</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+      <!-- Config Panel -->
+      <div class="section-card">
+        <div class="section-header">
+          <span class="section-title">Configurations</span>
         </div>
-
-        <!-- Sidebar / Settings -->
-        <div class="space-y-6">
-            <div
-                class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-                <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
-                    Configurations</h3>
-                <div class="space-y-4">
-                    <div
-                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700 group">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tone of Voice</p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Professional & Insightful
-                        </p>
-                    </div>
-                    <div
-                        class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Platforms
-                        </p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Blog, WordPress</p>
-                    </div>
-                </div>
-            </div>
-
-            {% if not sub %}
-            <div class="bg-brand-600 rounded-lg p-6 text-white shadow-xl shadow-brand-500/20 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                <h4 class="text-lg font-bold relative z-10">Premium Editorial</h4>
-                <p class="text-brand-100 text-xs mt-2 mb-4 relative z-10">Upgrade to write up to 20 professional
-                    articles per month and unlock advanced CMS syncing.</p>
-                <a href="{{ url_for('client.subscription') }}"
-                    class="w-full py-2.5 bg-white text-brand-700 font-bold text-center block rounded-lg hover:bg-brand-50 transition-colors relative z-10 text-sm">
-                    View Plans
-                </a>
-            </div>
-            {% endif %}
+        <div class="config-row">
+          <span class="config-key">Tone of Voice</span>
+          <span class="config-val">Professional</span>
         </div>
+        <div class="config-row">
+          <span class="config-key">Target Platform</span>
+          <span class="config-val">WordPress</span>
+        </div>
+        <div class="config-row">
+          <span class="config-key">Auto Push</span>
+          <span class="config-val">{{ 'Enabled' if Setting.get('auto_push') == 'true' else 'Disabled' }}</span>
+        </div>
+      </div>
+
+      <!-- Upgrade Card -->
+      {% if not sub %}
+      <div style="background:var(--ink); border-radius:6px; padding:20px; position:relative; overflow:hidden;">
+        <div style="position:absolute; top:-10px; right:-10px; width:60px; height:60px; background:var(--accent); opacity:0.1; border-radius:50%;"></div>
+        <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--paper); margin-bottom:8px;">Premium Editorial</div>
+        <p style="font-size:10px; color:#888; font-family:'DM Mono',monospace; margin-bottom:16px;">Upgrade to write up to 20 professional articles per month and unlock advanced CMS syncing.</p>
+        <a href="{{ url_for('client.subscription') }}" class="btn-accent" style="width:100%; justify-content:center; display:flex; padding:8px;">View Plans</a>
+      </div>
+      {% endif %}
+
     </div>
+  </div>
 </div>
+
+<script>
+  function toggleSelectAll(master) {
+    document.querySelectorAll('.article-checkbox').forEach(cb => cb.checked = master.checked);
+    updateSelection();
+  }
+  function updateSelection() {
+    const checked = document.querySelectorAll('.article-checkbox:checked');
+    const count = checked.length;
+    const bulkDiv = document.getElementById('bulk-actions');
+    const countSpan = document.getElementById('selected-count');
+    const master = document.getElementById('master-checkbox');
+    const all = document.querySelectorAll('.article-checkbox');
+    countSpan.textContent = count;
+    bulkDiv.style.display = count > 0 ? 'flex' : 'none';
+    if (master) master.checked = count === all.length && all.length > 0;
+  }
+  async function bulkDelete() {
+    const checkboxes = document.querySelectorAll('.article-checkbox:checked');
+    const ids = Array.from(checkboxes).map(cb => cb.value);
+    if (!confirm(`Delete ${ids.length} article(s)?`)) return;
+    try {
+      const res = await fetch('/api/articles/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+        body: JSON.stringify({ ids })
+      });
+      if (res.ok) window.location.reload();
+      else { const data = await res.json(); alert('Error: ' + (data.error || 'Failed')); }
+    } catch(e) { alert('Network error: ' + e.message); }
+  }
+</script>
 {% endblock %}

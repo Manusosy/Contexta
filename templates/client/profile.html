@@ -2,114 +2,92 @@
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">My Profile</h1>
-        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage your account information and security
-            settings.</p>
+<div style="display:flex; flex-direction:column; gap:24px;">
+
+  <div>
+    <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">My Profile</h1>
+    <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Manage your account information and security settings.</p>
+  </div>
+
+  <!-- ── Avatar + Account Details ── -->
+  <div class="section-card">
+    <div class="section-header">
+      <span class="section-title">Account Details</span>
+      <span class="badge {% if current_user.is_active %}badge-green{% else %}badge-red{% endif %}">
+        {{ 'Active' if current_user.is_active else 'Suspended' }}
+      </span>
+    </div>
+    <div style="padding:20px; display:flex; align-items:center; gap:16px; border-bottom:1px solid var(--border);">
+      <div class="avatar-chip" style="width:52px; height:52px; font-size:18px;">
+        {{ (current_user.full_name or current_user.email or 'U')[0].upper() }}
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--ink);">{{ current_user.full_name or 'Account User' }}</div>
+        <div style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace;">{{ current_user.email }}</div>
+      </div>
+    </div>
+    <div class="config-row">
+      <span class="config-key">Role</span>
+      <span class="config-val">{{ current_user.role|title }}</span>
+    </div>
+    <div class="config-row">
+      <span class="config-key">Joined From</span>
+      <span class="config-val">{{ current_user.heard_from or 'Not specified' }}</span>
+    </div>
+  </div>
+
+  <!-- ── Two-column forms ── -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+
+    <!-- Personal Info Form -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-title">Personal Information</span>
+      </div>
+      <form method="POST" style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="action" value="update_profile" />
+        <div>
+          <label class="label" for="full_name">Full Name</label>
+          <input type="text" id="full_name" name="full_name" value="{{ current_user.full_name or '' }}" required class="input-field" placeholder="Your full name" />
+        </div>
+        <div>
+          <label class="label" for="email">Email Address</label>
+          <input type="email" id="email" name="email" value="{{ current_user.email }}" required class="input-field" placeholder="name@example.com" />
+        </div>
+        <div style="padding-top:4px;">
+          <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:10px;">Save Changes</button>
+        </div>
+      </form>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!-- Profile Info Form -->
-        <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-5">Personal Information</h2>
-            <form method="POST" class="space-y-4">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <input type="hidden" name="action" value="update_profile">
-
-                <div>
-                    <label for="full_name"
-                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
-                    <input type="text" id="full_name" name="full_name" value="{{ current_user.full_name or '' }}"
-                        required
-                        class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                        placeholder="Your full name">
-                </div>
-
-                <div>
-                    <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email
-                        Address</label>
-                    <input type="email" id="email" name="email" value="{{ current_user.email }}" required
-                        class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                        placeholder="name@example.com">
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit"
-                        class="w-full px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold rounded-lg transition-colors shadow-sm">
-                        Save Changes
-                    </button>
-                </div>
-            </form>
+    <!-- Change Password Form -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-title">Change Password</span>
+      </div>
+      <form method="POST" style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="action" value="change_password" />
+        <div>
+          <label class="label" for="current_password">Current Password</label>
+          <input type="password" id="current_password" name="current_password" required class="input-field" placeholder="••••••••" />
         </div>
-
-        <!-- Change Password Form -->
-        <div class="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <h2 class="text-base font-bold text-slate-900 dark:text-white mb-5">Change Password</h2>
-            <form method="POST" class="space-y-4">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <input type="hidden" name="action" value="change_password">
-
-                <div>
-                    <label for="current_password"
-                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Current
-                        Password</label>
-                    <input type="password" id="current_password" name="current_password" required
-                        class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                        placeholder="••••••••">
-                </div>
-
-                <div>
-                    <label for="new_password"
-                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">New Password</label>
-                    <input type="password" id="new_password" name="new_password" required minlength="8"
-                        class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                        placeholder="Minimum 8 characters">
-                </div>
-
-                <div>
-                    <label for="confirm_password"
-                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Confirm New
-                        Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required minlength="8"
-                        class="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                        placeholder="Repeat new password">
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit"
-                        class="w-full px-4 py-2.5 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-slate-100 text-white text-sm font-bold rounded-lg transition-colors shadow-sm">
-                        Update Password
-                    </button>
-                </div>
-            </form>
+        <div>
+          <label class="label" for="new_password">New Password</label>
+          <input type="password" id="new_password" name="new_password" required minlength="8" class="input-field" placeholder="Minimum 8 characters" />
         </div>
-
+        <div>
+          <label class="label" for="confirm_password">Confirm New Password</label>
+          <input type="password" id="confirm_password" name="confirm_password" required minlength="8" class="input-field" placeholder="Repeat new password" />
+        </div>
+        <div style="padding-top:4px;">
+          <button type="submit" class="btn-secondary" style="width:100%; justify-content:center; padding:10px;">Update Password</button>
+        </div>
+      </form>
     </div>
 
-    <!-- Account Details Card -->
-    <div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 p-6">
-        <h2 class="text-sm font-bold text-slate-900 dark:text-white mb-4">Account Details</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-            <div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Account Role</p>
-                <p class="font-semibold text-slate-900 dark:text-white capitalize">{{ current_user.role }}</p>
-            </div>
-            <div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Account Status</p>
-                <p
-                    class="font-semibold {% if current_user.is_active %}text-emerald-600 dark:text-emerald-400{% else %}text-red-600 dark:text-red-400{% endif %}">
-                    {{ 'Active' if current_user.is_active else 'Suspended' }}
-                </p>
-            </div>
-            <div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Joined From</p>
-                <p class="font-semibold text-slate-900 dark:text-white">{{ current_user.heard_from or 'Not specified' }}
-                </p>
-            </div>
-        </div>
-    </div>
+  </div>
 
 </div>
 {% endblock %}

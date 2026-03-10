@@ -4,51 +4,79 @@ import urllib.parse
 from datetime import datetime
 from models import db, Feed, Article
 from utils.logger import log_event as _log
+from config import get_config
+
+config = get_config()
 
 
 def fetch_feed(feed: Feed) -> list[dict]:
     """
     Parse an RSS feed and return NEW entries not already in the DB.
     Returns a list of dicts with keys: title, url, summary, published.
+    Nodes 1 Specification: Fetch feed → deduplicate → save max 5 new → status: pending.
     """
     try:
         parsed = feedparser.parse(feed.url)
+        # Capture feed-level description if we don't have one
+        if not feed.description and 'description' in parsed.feed:
+            feed.description = parsed.feed.description
+            db.session.add(feed)
     except Exception as e:
         _log(f"Failed to parse feed '{feed.name}'", "error", str(e))
         return []
 
     new_entries = []
+    limit = getattr(config, "RSS_BATCH_LIMIT", 5)
+    count = 0
+
     for entry in parsed.entries:
+        if count >= limit:
+            break
+
         url = _get_entry_url(entry)
         if not url:
             continue
             
         url = _normalize_url(url)
+        guid = entry.get("id") or entry.get("guid") or url
 
-        # Duplicate check
-        exists = Article.query.filter_by(source_url=url).first()
+        # Duplicate check (URL or GUID)
+        exists = Article.query.filter(
+            (Article.source_url == url) | (Article.guid == guid)
+        ).first()
+        
         if exists:
             continue
 
         title = entry.get("title", "Untitled")
-        new_entries.append({
-            "title": title,
-            "url": url,
-            "summary": entry.get("summary", ""),
-            "published": _parse_date(entry),
-        })
+        summary = entry.get("summary", entry.get("description", ""))
+        author = entry.get("author", "")
+        
+        # Capture tags/categories to guide AI
+        tags = [t.get("term") for t in entry.get("tags", []) if t.get("term")]
+        source_tags = ", ".join(tags) if tags else ""
+
+        pub_date = _parse_date(entry)
 
         # Save to DB as pending
         article = Article(
             feed_id=feed.id,
             source_url=url,
+            guid=guid,
             original_title=title,
+            original_pub_date=pub_date,
+            author=author,
+            source_tags=source_tags,
+            extracted_body=summary, # Initial excerpt from RSS
             status="pending",
         )
         db.session.add(article)
+        new_entries.append({"title": title, "url": url})
+        count += 1
 
     db.session.commit()
-    _log(f"Feed '{feed.name}': {len(new_entries)} new entries queued", "info")
+    if count > 0:
+        _log(f"Feed '{feed.name}': {count} new entries queued", "info")
     return new_entries
 
 

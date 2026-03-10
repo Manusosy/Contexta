@@ -1,228 +1,446 @@
 {% extends "base.html" %}
-{% block title %}RSS Feeds{% endblock %}
+
+{% block title %}Contexta — Feed Sources{% endblock %}
+{% block page_title %}Feed Sources{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<style>
+  /* ── ROOT OVERRIDES FOR THIS PAGE ── */
+  :root {
+    --ink: #0e0e0e; --paper: #f5f0e8; --cream: #ede8db;
+    --accent: #c84b2f; --accent2: #2f7dc8; --muted: #888070;
+    --border: #d4cfc0; --green: #2a7a4b; --surface: #ffffff;
+    --transition: 0.28s cubic-bezier(0.4,0,0.2,1);
+  }
 
-    <!-- Header -->
-    <div class="flex items-center justify-between flex-wrap gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900">RSS Feeds</h1>
-            <p class="text-slate-500 text-sm mt-1">Manage your content sources.</p>
-        </div>
-        <button onclick="document.getElementById('add-feed-modal').classList.remove('hidden')"
-            class="btn-primary flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Add Feed
-        </button>
-    </div>
+  /* ── STATS ROW ── */
+  .stats-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 28px; }
+  .stat-pill { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+  .stat-pill-icon { width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .stat-pill-val { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 300; line-height: 1; }
+  .stat-pill-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
 
-    <!-- Feeds Table -->
-    <div class="card">
-        {% if feeds %}
-        <div class="overflow-x-auto">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>URL</th>
-                        <th>Category</th>
-                        <th>Status</th>
-                        <th>Added</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for feed in feeds %}
-                    <tr>
-                        <td class="font-medium text-slate-800">
-                            {{ feed.name }}
-                            <span class="ml-2 badge badge-blue">{{ counts.get(feed.id, 0) }} docs</span>
-                        </td>
-                        <td class="max-w-xs">
-                            <a href="{{ feed.url }}" target="_blank"
-                                class="text-brand-600 hover:underline text-xs truncate block max-w-[220px]"
-                                title="{{ feed.url }}">
-                                {{ feed.url[:60] }}{% if feed.url|length > 60 %}…{% endif %}
-                            </a>
-                        </td>
-                        <td><span class="badge badge-gray">{{ feed.category }}</span></td>
-                        <td>
-                            {% if feed.active %}
-                            <span class="badge badge-green">Active</span>
-                            {% else %}
-                            <span class="badge badge-red">Paused</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-slate-400 text-xs">{{ feed.created_at.strftime('%b %d, %Y') }}</td>
-                        <td>
-                            <div class="flex items-center gap-2">
-                                <button
-                                    onclick="openEditModal({{ feed.id }}, '{{ feed.name|e }}', '{{ feed.url|e }}', '{{ feed.category|e }}', {{ 'true' if feed.active else 'false' }})"
-                                    class="text-slate-500 hover:text-brand-600 transition-colors" title="Edit">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </button>
-                                <form action="{{ url_for('feeds.refresh', feed_id=feed.id) }}" method="POST"
-                                    class="inline">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                    <button type="submit" class="text-slate-500 hover:text-green-600 transition-colors"
-                                        title="Fetch New Articles">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                        </svg>
-                                    </button>
-                                </form>
-                                <form action="{{ url_for('feeds.toggle', feed_id=feed.id) }}" method="POST"
-                                    class="inline">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                    <button type="submit" class="text-slate-500 hover:text-amber-600 transition-colors"
-                                        title="{{ 'Pause' if feed.active else 'Activate' }}">
-                                        {% if feed.active %}
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        {% else %}
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        {% endif %}
-                                    </button>
-                                </form>
-                                <form action="{{ url_for('feeds.delete', feed_id=feed.id) }}" method="POST"
-                                    class="inline"
-                                    onsubmit="return confirm('Delete feed \'{{ feed.name|e }}\'? This will also remove all associated articles.')">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                    <button type="submit" class="text-slate-500 hover:text-red-600 transition-colors"
-                                        title="Delete">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                    d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z" />
-            </svg>
-            <p class="text-slate-400 text-sm">No RSS feeds added yet.</p>
-            <button onclick="document.getElementById('add-feed-modal').classList.remove('hidden')"
-                class="btn-primary mt-4 flex items-center gap-2 mx-auto text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Add Your First Feed
-            </button>
-        </div>
-        {% endif %}
-    </div>
+  /* ── TOOLBAR ── */
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .search-box { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0 12px; flex: 1; min-width: 220px; max-width: 340px; }
+  .search-box input { font-family: 'DM Mono', monospace; font-size: 11px; background: transparent; border: none; outline: none; color: var(--ink); padding: 8px 0; width: 100%; }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-icon { color: var(--muted); font-size: 13px; }
+  .cat-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cat-chip { font-family: 'DM Mono', monospace; font-size: 10px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); cursor: pointer; transition: all 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+  .cat-chip:hover { background: var(--cream); }
+  .cat-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .toolbar-right { display: flex; gap: 8px; margin-left: auto; }
+  .view-toggle { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .view-btn { padding: 6px 10px; font-size: 13px; cursor: pointer; color: var(--muted); transition: all 0.15s; border: none; background: transparent; font-family: 'DM Mono', monospace; }
+  .view-btn.active { background: var(--ink); color: var(--paper); }
+
+  /* ── CATEGORY SECTION ── */
+  .category-section { margin-bottom: 32px; }
+  .category-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; cursor: pointer; user-select: none; }
+  .category-label { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .category-count { font-size: 9px; background: var(--cream); color: var(--muted); padding: 2px 7px; border-radius: 8px; }
+  .category-line { flex: 1; height: 1px; background: var(--border); }
+  .category-toggle-all { font-size: 9px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  .category-toggle-all:hover { color: var(--ink); }
+  .category-collapse-btn { font-size: 11px; color: var(--muted); transition: transform 0.2s; }
+  .category-section.collapsed .category-collapse-btn { transform: rotate(-90deg); }
+  .category-section.collapsed .feeds-grid { display: none; }
+
+  /* ── FEEDS GRID ── */
+  .feeds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+
+  /* ── FEED CARD ── */
+  .feed-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: all 0.18s; position: relative; overflow: hidden; }
+  .feed-card:hover { border-color: #aaa; box-shadow: 0 3px 14px rgba(0,0,0,0.06); transform: translateY(-1px); }
+  .feed-card.inactive { opacity: 0.55; }
+  .feed-card-top { display: flex; align-items: flex-start; gap: 12px; }
+  .feed-logo { width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800; color: white; flex-shrink: 0; letter-spacing: -0.5px; }
+  .feed-info { flex: 1; min-width: 0; }
+  .feed-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+  .feed-tagline { font-size: 10px; color: var(--muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .feed-toggle { width: 36px; height: 20px; border-radius: 10px; background: var(--green); position: relative; cursor: pointer; flex-shrink: 0; margin-top: 2px; transition: background 0.2s; }
+  .feed-toggle::after { content: ''; position: absolute; top: 3px; right: 3px; width: 14px; height: 14px; border-radius: 50%; background: white; transition: 0.2s; }
+  .feed-toggle.off { background: var(--border); }
+  .feed-toggle.off::after { right: auto; left: 3px; }
+  
+  .feed-url-row { display: flex; align-items: center; gap: 6px; }
+  .feed-url-text { font-size: 9px; color: var(--muted); background: var(--cream); padding: 3px 8px; border-radius: 3px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'DM Mono', monospace; }
+  .copy-btn { font-size: 11px; cursor: pointer; padding: 3px 6px; background: var(--cream); border-radius: 3px; color: var(--muted); transition: all 0.1s; border: none; font-family: 'DM Mono', monospace; }
+  .copy-btn:hover { background: var(--border); color: var(--ink); }
+  
+  .feed-stats { display: flex; gap: 0; border-top: 1px solid var(--border); margin-top: 2px; padding-top: 10px; }
+  .feed-stat { flex: 1; text-align: center; }
+  .feed-stat + .feed-stat { border-left: 1px solid var(--border); }
+  .feed-stat-val { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 300; line-height: 1; }
+  .feed-stat-label { font-size: 8px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+  
+  .feed-card-actions { display: flex; gap: 6px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .feed-action-btn { font-family: 'DM Mono', monospace; font-size: 9px; padding: 5px 10px; border-radius: 3px; border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--muted); transition: all 0.1s; flex: 1; text-align: center; display: inline-block; text-decoration: none; }
+  .feed-action-btn:hover { background: var(--cream); color: var(--ink); }
+  .feed-action-btn.danger:hover { background: #fde8e8; color: var(--accent); border-color: #f0ccc7; }
+  
+  .feed-badge { position: absolute; top: 12px; right: 50px; font-size: 8px; padding: 2px 6px; border-radius: 3px; letter-spacing: 1px; text-transform: uppercase; }
+  .badge-new { background: #e8f5ed; color: var(--green); }
+  .badge-error { background: #fde8e8; color: var(--accent); }
+
+  /* ── ADD FEED CARD ── */
+  .add-feed-card { background: transparent; border: 1.5px dashed var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.15s; min-height: 160px; }
+  .add-feed-card:hover { border-color: var(--ink); background: var(--cream); }
+  .add-feed-plus { font-size: 28px; color: var(--border); transition: color 0.15s; }
+  .add-feed-card:hover .add-feed-plus { color: var(--ink); }
+  .add-feed-label { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; color: var(--muted); }
+  
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 10px; width: 520px; max-width: 95vw; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--cream); }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .modal-field { display: flex; flex-direction: column; gap: 6px; }
+  .modal-label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .modal-input { font-family: 'DM Mono', monospace; font-size: 11px; background: var(--paper); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; color: var(--ink); outline: none; transition: border-color 0.15s; }
+  .modal-input:focus { border-color: var(--ink); }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+  
+  .btn { font-family: 'DM Mono', monospace; font-size: 11px; padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer; transition: all 0.15s; letter-spacing: 0.4px; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--cream); color: var(--ink); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: #333; }
+</style>
+
+<div class="mb-6 flex justify-between items-center">
+  <div></div>
+  <div class="flex gap-2">
+    <button class="btn btn-ghost">↓ Export OPML</button>
+    <button class="btn btn-ghost" onclick="window.location.reload()">⟳ Sync All Status</button>
+    <button class="btn btn-primary" onclick="openModal('add')">+ Add Feed</button>
+  </div>
 </div>
 
-<!-- Add Feed Modal -->
-<div id="add-feed-modal" class="hidden modal-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
-    <div class="modal-box">
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="text-lg font-semibold text-slate-900">Add RSS Feed</h3>
-            <button onclick="document.getElementById('add-feed-modal').classList.add('hidden')"
-                class="text-slate-400 hover:text-slate-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        <form action="{{ url_for('feeds.add') }}" method="POST" class="space-y-4">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div>
-                <label class="label">Feed Name *</label>
-                <input type="text" name="name" class="input-field" placeholder="e.g. BBC News" required />
-            </div>
-            <div>
-                <label class="label">RSS URL *</label>
-                <input type="url" name="url" class="input-field" placeholder="https://feeds.example.com/rss.xml"
-                    required />
-            </div>
-            <div>
-                <label class="label">Category</label>
-                <input type="text" name="category" class="input-field" placeholder="e.g. Technology" value="General" />
-            </div>
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" name="active" checked class="toggle-input" />
-                <span class="text-sm text-slate-700">Active (fetch on next run)</span>
-            </label>
-            <div class="flex gap-3 pt-2">
-                <button type="submit" class="btn-primary flex-1">Add Feed</button>
-                <button type="button" onclick="document.getElementById('add-feed-modal').classList.add('hidden')"
-                    class="btn-secondary flex-1">Cancel</button>
-            </div>
-        </form>
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stat-pill">
+    <div class="stat-pill-icon" style="background:#e8edf5;">⊞</div>
+    <div class="stat-pill-info">
+      <div class="stat-pill-val">{{ strip.total }}</div>
+      <div class="stat-pill-label">Total Feeds</div>
     </div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-icon" style="background:#e8f5ed;">●</div>
+    <div class="stat-pill-info">
+      <div class="stat-pill-val">{{ strip.active }}</div>
+      <div class="stat-pill-label">Active</div>
+    </div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-icon" style="background:#fdf3e0;">📥</div>
+    <div class="stat-pill-info">
+      <div class="stat-pill-val">{{ strip.articles_today }}</div>
+      <div class="stat-pill-label">Articles Today</div>
+    </div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-icon" style="background:#fde8e8;">⚠</div>
+    <div class="stat-pill-info">
+      <div class="stat-pill-val">{{ strip.errors }}</div>
+      <div class="stat-pill-label">Feed Errors</div>
+    </div>
+  </div>
+  <div class="stat-pill">
+    <div class="stat-pill-icon" style="background:#ede8db;">◷</div>
+    <div class="stat-pill-info">
+      <div class="stat-pill-val">{{ strip.slots }}</div>
+      <div class="stat-pill-label">Slots Used</div>
+    </div>
+  </div>
 </div>
 
-<!-- Edit Feed Modal -->
-<div id="edit-feed-modal" class="hidden modal-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
-    <div class="modal-box">
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="text-lg font-semibold text-slate-900">Edit Feed</h3>
-            <button onclick="document.getElementById('edit-feed-modal').classList.add('hidden')"
-                class="text-slate-400 hover:text-slate-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-        <form id="edit-feed-form" method="POST" class="space-y-4">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <div>
-                <label class="label">Feed Name *</label>
-                <input type="text" name="name" id="edit-name" class="input-field" required />
-            </div>
-            <div>
-                <label class="label">RSS URL *</label>
-                <input type="url" name="url" id="edit-url" class="input-field" required />
-            </div>
-            <div>
-                <label class="label">Category</label>
-                <input type="text" name="category" id="edit-category" class="input-field" />
-            </div>
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" name="active" id="edit-active" class="toggle-input" />
-                <span class="text-sm text-slate-700">Active</span>
-            </label>
-            <div class="flex gap-3 pt-2">
-                <button type="submit" class="btn-primary flex-1">Save Changes</button>
-                <button type="button" onclick="document.getElementById('edit-feed-modal').classList.add('hidden')"
-                    class="btn-secondary flex-1">Cancel</button>
-            </div>
-        </form>
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="search-box">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="Search feeds..." oninput="filterFeeds()">
+  </div>
+    <div class="cat-filters">
+    <div class="cat-chip active" data-cat="all" onclick="setCat(this,'all')">
+      <span class="cat-dot" style="background:var(--ink);"></span>All
     </div>
+    {% for cat in categories %}
+    {% set cat_color = '#c8882f' %}
+    {% if 'tech' in cat|lower %}{% set cat_color = '#2f7dc8' %}
+    {% elif 'sport' in cat|lower %}{% set cat_color = '#2a7a4b' %}
+    {% elif 'bus' in cat|lower %}{% set cat_color = '#c84b2f' %}
+    {% elif 'global' in cat|lower %}{% set cat_color = '#7a3d9e' %}{% endif %}
+    <div class="cat-chip" data-cat="{{ cat|lower|replace(' ', '-') }}" onclick="setCat(this,'{{ cat|lower|replace(' ', '-') }}')">
+      <span class="cat-dot" style="background:{{ cat_color }};"></span>
+      {{ cat }}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="toolbar-right">
+    <div class="view-toggle">
+      <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')">⊞</button>
+      <button class="view-btn" id="listViewBtn" onclick="setView('list')">☰</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY SECTIONS -->
+{% for cat in categories %}
+{% set cat_color = '#c8882f' %}
+{% if 'tech' in cat|lower %}{% set cat_color = '#2f7dc8' %}
+{% elif 'sport' in cat|lower %}{% set cat_color = '#2a7a4b' %}
+{% elif 'bus' in cat|lower %}{% set cat_color = '#c84b2f' %}
+{% elif 'global' in cat|lower %}{% set cat_color = '#7a3d9e' %}{% endif %}
+<div class="category-section" id="cat-{{ cat|lower|replace(' ', '-') }}">
+  <div class="category-header" onclick="toggleCategory('cat-{{ cat|lower|replace(' ', '-') }}')">
+    <div style="width:10px;height:10px;border-radius:50%;background:{{ cat_color }};flex-shrink:0;"></div>
+    <div class="category-label">{{ cat }}</div>
+    <div class="category-count">
+      {% set cat_feeds = feeds|selectattr('category', 'equalto', cat)|list %}
+      {{ cat_feeds|length }} feeds
+    </div>
+    <div class="category-line"></div>
+    <div class="category-toggle-all" onclick="event.stopPropagation();toggleAll('{{ cat|lower|replace(' ', '-') }}')">Toggle all</div>
+    <span class="category-collapse-btn">▾</span>
+  </div>
+  
+  <div class="feeds-grid" id="grid-{{ cat|lower|replace(' ', '-') }}">
+    {% for feed in cat_feeds %}
+    <div class="feed-card {% if not feed.active %}inactive{% endif %}" data-cat="{{ cat|lower|replace(' ', '-') }}" data-name="{{ feed.name }}">
+      {% if (now - feed.created_at).days < 2 %}
+      <span class="feed-badge badge-new">NEW</span>
+      {% endif %}
+      
+      <div class="feed-card-top">
+        {% set logo_bg = '#111' %}
+        {% if 'tech' in cat|lower %}{% set logo_bg = '#0a8c1c' %}
+        {% elif 'sport' in cat|lower %}{% set logo_bg = '#bb1919' %}
+        {% elif 'bus' in cat|lower %}{% set logo_bg = '#c8571e' %}{% endif %}
+        <div class="feed-logo" style="background:{{ logo_bg }};">
+          {{ feed.name[:2]|upper }}
+        </div>
+        <div class="feed-info">
+          <div class="feed-name">{{ feed.name }}</div>
+          <div class="feed-tagline">{{ feed.description or 'No description provided for this feed source.' }}</div>
+        </div>
+        <div class="feed-toggle {% if not feed.active %}off{% endif %}" onclick="toggleFeed({{ feed.id }}, this)"></div>
+      </div>
+      
+      <div class="feed-url-row">
+        <span class="feed-url-text">{{ feed.url|replace('https://','')|replace('http://','') }}</span>
+        <button class="copy-btn" onclick="copyUrl('{{ feed.url }}')">⎘</button>
+      </div>
+      
+      <div class="feed-stats">
+        <div class="feed-stat">
+          <div class="feed-stat-val">{{ counts.today.get(feed.id, 0) }}</div>
+          <div class="feed-stat-label">Today</div>
+        </div>
+        <div class="feed-stat">
+          <div class="feed-stat-val">{{ counts.week.get(feed.id, 0) }}</div>
+          <div class="feed-stat-label">This Week</div>
+        </div>
+        <div class="feed-stat">
+          <div class="feed-stat-val" style="font-size: 14px;">{{ feed.updated_at.strftime('%H:%M') if feed.updated_at else '--' }}</div>
+          <div class="feed-stat-label">Last Fetch</div>
+        </div>
+      </div>
+      
+      <div class="feed-card-actions">
+        <button class="feed-action-btn" onclick="openModal('edit', {{ feed.id }}, '{{ feed.name|escape }}', '{{ feed.url|escape }}', '{{ feed.category|escape }}', '{{ feed.fetch_interval }}', '{{ feed.rewrite_profile }}')">⚙ Config</button>
+        <form action="{{ url_for('feeds.refresh', feed_id=feed.id) }}" method="POST" style="display:inline; flex:1;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="feed-action-btn w-full">⟳ Sync</button>
+        </form>
+        <form action="{{ url_for('feeds.delete', feed_id=feed.id) }}" method="POST" style="display:inline; flex:1;" onsubmit="return confirm('Delete this feed?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="feed-action-btn danger w-full">✕ Remove</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+    
+    <div class="add-feed-card" onclick="openModal('add', null, null, null, '{{ cat }}')">
+      <div class="add-feed-plus">+</div>
+      <div class="add-feed-label">Add {{ cat }} Feed</div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- ADD FEED MODAL (Image 4 Style) -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeOnBackdrop(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add New RSS Feed</div>
+      <button class="btn btn-ghost" onclick="closeModal()" style="padding: 4px 8px; font-size: 16px;">✕</button>
+    </div>
+    <form id="modalForm" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label">RSS Feed URL *</label>
+          <input class="modal-input" name="url" id="modalUrl" type="url" placeholder="https://example.com/feed.xml" required>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Display Name</label>
+          <input class="modal-input" name="name" id="modalName" type="text" placeholder="e.g. TechCrunch Startups" required>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="modal-field">
+            <label class="modal-label">Category</label>
+            <select class="modal-input" name="category" id="modalCat">
+              {% for cat in categories %}
+              <option value="{{ cat }}">{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">Fetch Interval</label>
+            <select class="modal-input" name="interval" id="modalInterval">
+              <option value="15">Every 15 min</option>
+              <option value="30" selected>Every 30 min</option>
+              <option value="60">Every 60 min</option>
+              <option value="360">Every 6 hours</option>
+              <option value="1440">Once a day</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Rewrite Profile</label>
+          <select class="modal-input" name="profile" id="modalProfile">
+            <option value="Default">Informative Editorial (default)</option>
+            <option value="SEO">SEO Optimised</option>
+            <option value="Short">Short Digest</option>
+            <option value="Creative">Creative Narrative</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="modalSubmitBtn">Add Feed</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>
-    function openEditModal(id, name, url, category, active) {
-        document.getElementById('edit-feed-form').action = `/feeds/${id}/edit`;
-        document.getElementById('edit-name').value = name;
-        document.getElementById('edit-url').value = url;
-        document.getElementById('edit-category').value = category;
-        document.getElementById('edit-active').checked = active;
-        document.getElementById('edit-feed-modal').classList.remove('hidden');
+  // Category collapse
+  function toggleCategory(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+  }
+
+  // Category filter
+  function setCat(el, cat) {
+    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    
+    const sections = document.querySelectorAll('.category-section');
+    sections.forEach(sec => {
+      if (cat === 'all' || sec.id === 'cat-' + cat) {
+        sec.style.display = 'block';
+      } else {
+        sec.style.display = 'none';
+      }
+    });
+  }
+
+  // Search filter
+  function filterFeeds() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.feed-card').forEach(card => {
+      const name = card.getAttribute('data-name').toLowerCase();
+      card.style.display = name.includes(q) ? '' : 'none';
+    });
+  }
+
+  // Toggle all in a category
+  function toggleAll(catId) {
+    const section = document.getElementById('cat-' + catId);
+    if (!section) return;
+    const toggles = section.querySelectorAll('.feed-toggle');
+    const allOn = Array.from(toggles).every(t => !t.classList.contains('off'));
+    
+    // This is a UI-only toggle for the visual state. 
+    // In a real app, you'd send a bulk request to the backend.
+    toggles.forEach(t => {
+      if (allOn) {
+        t.classList.add('off');
+        t.closest('.feed-card').classList.add('inactive');
+      } else {
+        t.classList.remove('off');
+        t.closest('.feed-card').classList.remove('inactive');
+      }
+    });
+  }
+
+  // Feed Toggle logic
+  function toggleFeed(id, el) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/feeds/${id}/toggle`;
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = 'csrf_token';
+    csrf.value = '{{ csrf_token() }}';
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  // View toggle
+  function setView(v) {
+    document.getElementById('gridViewBtn').classList.toggle('active', v === 'grid');
+    document.getElementById('listViewBtn').classList.toggle('active', v === 'list');
+    document.querySelectorAll('.feeds-grid').forEach(g => {
+      g.style.gridTemplateColumns = v === 'list' ? '1fr' : '';
+    });
+  }
+
+  // Modal logic
+  function openModal(mode, id, name, url, category, interval, profile) {
+    const overlay = document.getElementById('modalOverlay');
+    const form = document.getElementById('modalForm');
+    const title = document.getElementById('modalTitle');
+    const btn = document.getElementById('modalSubmitBtn');
+
+    if (mode === 'edit') {
+      title.textContent = 'Edit RSS Feed';
+      btn.textContent = 'Save Changes';
+      form.action = `/feeds/${id}/edit`;
+      document.getElementById('modalName').value = name || '';
+      document.getElementById('modalUrl').value = url || '';
+      document.getElementById('modalCat').value = category || 'Tech News';
+      document.getElementById('modalInterval').value = interval || 60;
+      document.getElementById('modalProfile').value = profile || 'Default';
+    } else {
+      title.textContent = 'Add New RSS Feed';
+      btn.textContent = 'Add Feed';
+      form.action = '/feeds/add';
+      form.reset();
+      if (category) document.getElementById('modalCat').value = category;
     }
+    overlay.classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  function closeOnBackdrop(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  }
+
+  function copyUrl(url) {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('URL copied to clipboard');
+    });
+  }
 </script>
 {% endblock %}

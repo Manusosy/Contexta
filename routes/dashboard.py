@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from models import db, Feed, Article, Setting, Log, User, Transaction, Coupon, PricingTier, PricingFeature, Announcement, Notification
+from datetime import datetime, timezone, timedelta
+from models import db, Feed, Article, Setting, Log, User, Transaction, Coupon, PricingTier, PricingFeature, Announcement, Notification, Feedback
 from services.billing_service import get_revenue_metrics
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -21,34 +22,94 @@ def admin_required(f):
 @dashboard_bp.route("/")
 @login_required
 def index():
-    total_feeds = Feed.query.count()
-    queued_articles = Article.query.filter_by(status="pending").count()
-    total_articles = Article.query.count()
-    active_model = Setting.get("ai_model", "openai/gpt-4o-mini")
+    if current_user.role != "admin":
+        return redirect(url_for("client.index"))
 
-    recent_logs = Log.query.order_by(Log.timestamp.desc()).limit(20).all()
-    last_run = Setting.get("last_run", "Never")
-    automation_status = Setting.get("automation_status", "idle")
-    schedule_enabled = Setting.get("schedule_enabled", "false") == "true"
-    schedule_frequency = Setting.get("schedule_frequency", "60")
+    # Recent activity for the admin dashboard should focus on ADMIN/SYSTEM feeds
+    admin_feed_ids = [f.id for f in Feed.query.filter_by(user_id=None).all()]
+    recent_articles = Article.query.filter(Article.feed_id.in_(admin_feed_ids)).order_by(Article.created_at.desc()).limit(10).all()
+    recent_logs = Log.query.filter_by(user_id=None).order_by(Log.timestamp.desc()).limit(8).all()
+    
+    # Platform Analytics (Already implemented correctly for all clients)
+    total_clients = User.query.filter_by(role="client").count()
+    active_clients = User.query.filter_by(role="client", is_active=True).count()
+    
+    # Paying members (active subscriptions)
+    from models import Subscription
+    paying_members = Subscription.query.filter_by(status="active").count()
+    
+    # Registrations trend (last 30 days)
+    now = datetime.now(timezone.utc)
+    
+    # New user growth (this week)
+    seven_days_ago = now - timedelta(days=7)
+    new_users_week = User.query.filter(User.role == "client", User.created_at >= seven_days_ago).count()
+    
+    # Weekly growth percentage
+    prev_week_start = now - timedelta(days=14)
+    prev_week_users = User.query.filter(User.role == "client", User.created_at >= prev_week_start, User.created_at < seven_days_ago).count()
+    growth_pct = 0
+    if prev_week_users > 0:
+        growth_pct = int(((new_users_week - prev_week_users) / prev_week_users) * 100)
+    elif new_users_week > 0:
+        growth_pct = 100
 
-    recent_articles = (
-        Article.query.order_by(Article.created_at.desc()).limit(10).all()
-    )
+    # Trend data points for frontend
+    trend_data = []
+    for i in range(29, -1, -1):
+        day = (now - timedelta(days=i)).date()
+        count = User.query.filter(User.role == "client", db.func.date(User.created_at) == day).count()
+        trend_data.append({"date": day.strftime('%b %d'), "count": count})
 
     return render_template(
         "dashboard/index.html",
-        total_feeds=total_feeds,
-        queued_articles=queued_articles,
-        total_articles=total_articles,
-        active_model=active_model,
-        recent_logs=recent_logs,
-        last_run=last_run,
-        automation_status=automation_status,
-        schedule_enabled=schedule_enabled,
-        schedule_frequency=schedule_frequency,
+        total_feeds=len(admin_feed_ids),
+        queued_articles=Article.query.filter(Article.feed_id.in_(admin_feed_ids), Article.status=="pending").count(),
+        total_articles=Article.query.filter(Article.feed_id.in_(admin_feed_ids)).count(),
+        active_model=Setting.get("ai_model", "openai/gpt-4o-mini"),
+        schedule_enabled=Setting.get("schedule_enabled") == "true",
+        schedule_frequency=Setting.get("schedule_frequency", "60"),
+        automation_status=Setting.get("automation_status", "idle"),
         recent_articles=recent_articles,
+        recent_logs=recent_logs,
+        # Analytics
+        total_clients=total_clients,
+        active_clients=active_clients,
+        paying_members=paying_members,
+        new_users_week=new_users_week,
+        growth_pct=growth_pct,
+        trend_data=trend_data
     )
+
+
+@dashboard_bp.route("/automation", methods=["GET", "POST"])
+@login_required
+@admin_required
+def automation():
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "run_now":
+            from services.automation_service import run_node_1_rss_fetcher, run_node_2_worker, cleanup_stale_locks
+            cleanup_stale_locks()
+            run_node_1_rss_fetcher()
+            run_node_2_worker()
+            flash("System heartbeat triggered! Node 1 and next Node 2 cycle processed.", "success")
+        return redirect(url_for("dashboard.automation"))
+
+    # Metrics specific to the automation center
+    stats = {
+        "pending": Article.query.filter_by(status="pending").count(),
+        "processing": Article.query.filter(Article.status.in_(["processing", "extracting", "rewriting", "publishing"])).count(),
+        "published_today": Article.query.filter(
+            Article.status == "published", 
+            Article.created_at >= datetime.now(timezone.utc).replace(hour=0, minute=0, second=0)
+        ).count(),
+        "failed": Article.query.filter_by(status="failed").count(),
+    }
+    
+    articles = Article.query.order_by(Article.created_at.desc()).limit(15).all()
+    
+    return render_template("admin/automation.html", stats=stats, articles=articles)
 
 
 @dashboard_bp.route("/search")
@@ -288,3 +349,22 @@ def notify_user_route():
     db.session.add(notification)
     db.session.commit()
     return jsonify({"success": True})
+@dashboard_bp.route("/feedback")
+@login_required
+@admin_required
+def feedback():
+    feedbacks = Feedback.query.order_by(Feedback.created_at.desc()).all()
+    return render_template("dashboard/feedback.html", feedbacks=feedbacks)
+
+
+@dashboard_bp.route("/feedback/<int:id>/status", methods=["POST"])
+@login_required
+@admin_required
+def update_feedback_status(id):
+    fb = db.get_or_404(Feedback, id)
+    status = request.form.get("status")
+    if status in ["pending", "reviewed", "resolved"]:
+        fb.status = status
+        db.session.commit()
+        return jsonify({"success": True, "status": fb.status})
+    return jsonify({"success": False, "error": "Invalid status"}), 400

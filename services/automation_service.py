@@ -1,267 +1,181 @@
-"""Automation Service — orchestrates the full RSS → AI → SEO → WP pipeline."""
-from datetime import datetime, timezone
-from models import db, Feed, Article, Setting
+"""
+Automation Service — orchestrates the 6-node pipeline.
+Nodes: RSS Fetcher (1), Worker (2), Extractor (3), Claude (4), WP (5), Error (6).
+"""
+import time
+from datetime import datetime, timezone, timedelta
+from models import db, Article, Setting
+from services import rss_service, scraper_service, ai_service, wordpress_service
 from utils.logger import log_event as _log
-from services.rss_service import fetch_all_active_feeds
-from services.scraper_service import scrape_article
-from services.ai_service import generate_article
-from services.seo_service import process_article as seo_process
-from services.wordpress_service import push_to_wordpress
+from config import get_config
+
+config = get_config()
 
 
-def run_automation(auto_push: bool = False) -> dict:
-    """
-    Run a single cycle of the automation pipeline:
-      1. Fetch all active RSS feeds (queues new URLs as 'pending')
-      2. Grab exactly 1 'pending' article from the database
-      3. Scrape → AI generate → SEO → save as 'generated'
-      4. Optionally push to WordPress as draft
-
-    Returns a summary dict.
-    """
-    # Only mark as running; set last_run at the very end.
-    Setting.set("automation_status", "running")
-    _log("Automation heartbeat started", "info")
-
-    processed = 0
-    pushed = 0
-    errors = 0
-    queued = 0
-
+def run_node_1_rss_fetcher():
+    """Trigger Node 1: Fetch all active feeds and queue new articles."""
     try:
-        # Step 1: Always update the queue with new items from RSS
-        queued = fetch_all_active_feeds()
-        
-        # Step 2: Grab pending articles based on max limit
-        max_articles_str = Setting.get("ai_max_articles_per_run", "1")
-        try:
-            max_articles = int(max_articles_str)
-        except ValueError:
-            max_articles = 1
-            
-        # If the user wants "one after another til all are done", we can't do INFINITE, 
-        # but we can process the current pending batch up to a reasonable limit.
-        pending_articles = Article.query.filter_by(status="pending").order_by(Article.created_at.asc()).limit(max_articles).all()
-
-        if not pending_articles:
-            _log("No pending articles found to process.", "info")
-            Setting.set("automation_status", "idle")
-            Setting.set("last_run", datetime.now(timezone.utc).isoformat())
-            return {"queued": queued, "processed": 0, "pushed": 0, "errors": 0}
-
-        for pending_article in pending_articles:
-            try:
-                user = None
-                # 1. Trial / Subscription Limit Check
-                if pending_article.feed and pending_article.feed.user_id:
-                    user_id = pending_article.feed.user_id
-                    from models import User, Subscription
-                    user = User.query.get(user_id)
-                    if user and user.subscription:
-                        sub = user.subscription
-                        tier = sub.tier
-                        if tier:
-                            # Count generated/pushed articles for this user
-                            current_usage = Article.query.join(Feed).filter(
-                                Feed.user_id == user_id,
-                                Article.status.in_(["generated", "pushed"])
-                            ).count()
-                            
-                            # Enforce Free Trial Lock (2 articles)
-                            if tier.has_free_trial and "(Trial)" in (sub.plan_name or "") and current_usage >= 2:
-                                _log(f"Trial limit reached for user {user.email}. Skipping article.", "warning", user_id=user_id)
-                                pending_article.status = "discarded"
-                                db.session.commit()
-                                continue
-                            
-                            # Enforce standard article limit if not unlimited (-1)
-                            if tier.article_limit != -1 and current_usage >= tier.article_limit:
-                                _log(f"Monthly limit reached for user {user.email}. Skipping article.", "warning", user_id=user_id)
-                                pending_article.status = "discarded"
-                                db.session.commit()
-                                continue
-                        else:
-                            # User exists but tier is missing? Fallback to trial logic below.
-                            pass
-                    
-                    # 1.1 Non-subscriber / Trial Logic (Enforce 2 articles)
-                    if not user or not user.subscriptions or not any(s.status == 'active' for s in user.subscriptions):
-                        # Count articles already generated by this user
-                        user_feed_ids = [f.id for f in Feed.query.filter_by(user_id=user_id).all()]
-                        trial_usage = Article.query.filter(
-                            Article.feed_id.in_(user_feed_ids),
-                            Article.status.in_(["generated", "pushed"])
-                        ).count() if user_feed_ids else 0
-                        
-                        if trial_usage >= 2:
-                            _log(f"Trial limit reached (2 articles) for user {user.email if user else user_id}. Skipping article.", "info", user_id=user_id)
-                            pending_article.status = "discarded"
-                            db.session.commit()
-                            continue
-                        
-                        # Mark as trial for processing
-                        is_trial = True
-                    else:
-                        is_trial = False
-                else:
-                    is_trial = False
-
-                # 2. API Key Check
-                api_key = Setting.get("ai_api_key")
-                if not api_key or api_key.startswith("http") or api_key == "sk-or-v1-REPLACE_ME":
-                    _log("Automation aborted — AI API Key is missing or invalid URL", "error", user_id=user.id if user else None)
-                    break
-
-                result = _process_article(pending_article, auto_push, user=user, is_trial=is_trial)
-                if result and result.get("success"):
-                    if result.get("pushed"):
-                        pushed += 1
-                    processed += 1
-                else:
-                    errors += 1
-            except Exception as e:
-                errors += 1
-                _log(f"Article processing error: {pending_article.source_url[:60]}", "error", str(e), user_id=user.id if user else None)
-
-        Setting.set("automation_status", "idle")
-        Setting.set("last_run", datetime.now(timezone.utc).isoformat())
-        
-        msg = f"Automation cycle complete. Queued: {queued}, Processed: {processed}, Pushed: {pushed}, Errors: {errors}"
-        _log(msg, "success" if errors == 0 else "warning")
-        return {"queued": queued, "processed": processed, "pushed": pushed, "errors": errors}
-
+        _log("Automation: Starting Node 1 (RSS Fetcher)", "info")
+        new_count = rss_service.fetch_all_active_feeds()
+        _log(f"Automation: Node 1 complete. {new_count} new articles pending.", "success")
+        return new_count
     except Exception as e:
-        Setting.set("automation_status", "failed")
-        Setting.set("last_run", datetime.now(timezone.utc).isoformat())
-        _log("Automation failed", "error", str(e))
-        return {"queued": queued, "processed": processed, "pushed": pushed, "errors": errors + 1, "fatal": str(e)}
+        _log("Automation: Node 1 failed", "error", str(e))
+        return 0
 
 
-def _process_article(article: Article, auto_push: bool, user=None, is_trial: bool = False) -> dict:
-    """Process a single pending Article through the AI/SEO pipeline in-place."""
-    url = article.source_url
-    original_title = article.original_title
-    user_id = user.id if user else None
+def run_node_2_worker():
+    """
+    Node 2: Queue Worker Loop.
+    Polls for PENDING articles, and processes ALL of them sequentially until the queue is empty.
+    Runs nodes 3-5 for each article.
+    """
+    processed_count = 0
+    from models import Setting as _S
 
-    # Live UI feedback
-    Setting.set("current_processing_article", original_title or url)
+    while True:
+        # 1. Pick one pending article
+        article = Article.query.filter_by(status="pending").order_by(Article.created_at.asc()).first()
+        
+        if not article:
+            break # No more work to do
 
-    # 1. Scrape
-    scraped = scrape_article(url)
-    if not scraped or not scraped.get("text"):
-        _log(f"Scrape failed or empty: {url[:60]}", "warning", user_id=user_id)
-        article.status = "failed_scrape"
+        _log(f"Worker: Picking article '{article.original_title[:40]}'", "info")
+
+        # Track which article is being processed
+        try:
+            _S.set("current_processing_article", article.original_title[:60] if article.original_title else "Unknown")
+        except Exception:
+            pass
+
+        # 2. Lock it
+        article.status = "processing"
+        article.locked_at = datetime.now(timezone.utc)
         db.session.commit()
-        return {"success": False, "pushed": False}
 
-    # 1.5 Relevance Check (New Filter)
-    if not check_relevance(scraped["text"]):
-        _log(f"Article discarded as irrelevant/low-quality: {url[:60]}", "info", user_id=user_id)
-        article.status = "discarded"
-        db.session.commit()
-        return {"success": True, "pushed": False, "discarded": True}
+        try:
+            # Node 3: Extraction
+            article.status = "extracting"
+            db.session.commit()
+            
+            scrape_result = scraper_service.scrape_article(article.source_url)
+            
+            if scrape_result.get("status") == "skipped":
+                article.status = "skipped"
+                article.error_log = scrape_result.get("reason")
+                db.session.commit()
+                continue
+                
+            if not scrape_result or not scrape_result.get("text"):
+                article.status = "failed"
+                article.error_log = "Extraction yielded no text or failed"
+                db.session.commit()
+                continue
 
-    # 2. AI Generate
-    generated_html = generate_article(scraped["text"], is_trial=is_trial)
-    if not generated_html:
-        _log(f"AI Generation failed: {url[:60]}", "warning", user_id=user_id)
-        article.status = "failed_ai"
-        db.session.commit()
-        return {"success": False, "pushed": False}
+            # Update article with extracted data
+            article.extracted_body = scrape_result["text"]
+            article.author = scrape_result.get("author") or article.author
+            article.main_image_url = scrape_result.get("image")
+            article.word_count = scrape_result.get("word_count", 0)
+            db.session.commit()
 
-    # 3. SEO Process
-    seo_data = seo_process(generated_html, original_title)
+            # Node 4: Rewriting
+            article.status = "rewriting"
+            db.session.commit()
+            
+            rewritten_data = ai_service.rewrite_article(article)
+            
+            if not rewritten_data or not rewritten_data.get("body_html"):
+                article.status = "failed"
+                # error_log is now set via the exception or kept as default
+                if not article.error_log:
+                    article.error_log = "AI rewriter failed to produce valid JSON"
+                db.session.commit()
+                continue
 
-    # 4. Update Article DB
-    article.generated_title = seo_data["seo_title"]
-    article.content = seo_data.get("content_html", generated_html)
-    article.meta_description = seo_data["meta_description"]
-    article.slug = seo_data["slug"]
-    article.primary_keyword = seo_data["primary_keyword"]
-    article.seo_score = seo_data["seo_score"]
-    article.status = "generated"
+            # Cache rewrite results into Article
+            article.generated_title = rewritten_data["headline"]
+            article.content = rewritten_data["body_html"]
+            article.meta_description = rewritten_data.get("meta_description")
+            article.slug = rewritten_data.get("slug")
+            article.primary_keyword = rewritten_data.get("focus_keyword")
+            article.word_count = rewritten_data.get("word_count", article.word_count)
+            db.session.commit()
+
+            # Node 5: Publishing
+            article.status = "publishing"
+            db.session.commit()
+            
+            wp_result = wordpress_service.push_to_wordpress(article, rewritten_data)
+            
+            if wp_result.get("success"):
+                article.status = "published"
+                article.wordpress_id = wp_result.get("wp_id")
+                article.error_log = None
+            else:
+                article.status = "failed"
+                article.error_log = f"WP: {wp_result.get('error')}"
+            
+            db.session.commit()
+            processed_count += 1
+            _log(f"Worker: Processed '{article.original_title[:30]}' -> {article.status}", "success")
+            
+            # Short sleep to respect rate limits if looping quickly
+            time.sleep(2)
+
+        except Exception as e:
+            # Node 6: Error Handler
+            _log(f"Worker Error: {str(e)}", "error")
+            article.status = "failed"
+            article.error_log = f"System Error: {str(e)}"
+            article.retry_count += 1
+            db.session.commit()
+            time.sleep(2) # Backoff slightly on error
+
+    return processed_count
+
+def cleanup_stale_locks():
+    """Reset articles that have been 'processing' for too long (> 10 mins)."""
+    stale_time = datetime.now(timezone.utc) - timedelta(minutes=10)
+    stale_articles = Article.query.filter(
+        Article.status.in_(["processing", "extracting", "rewriting", "publishing"]),
+        Article.locked_at < stale_time
+    ).all()
+    
+    for article in stale_articles:
+        _log(f"Resetting stale lock for article {article.id}", "warning")
+        article.status = "pending"
+        article.locked_at = None
     db.session.commit()
 
-    _log(f"Article generated: '{original_title[:60]}' | Words: ~{seo_data.get('word_count','?')} | SEO: {seo_data.get('seo_score','?')}", "success", user_id=user_id)
 
-    # 5. Pre-Publish Verification & Auto-push
-    pushed = False
-    if auto_push:
-        verify = Setting.get("wp_verify_publish", "true") == "true"
-        if verify and not _verify_article(article):
-            article.status = "failed_verification"
-            db.session.commit()
-            _log(f"Article failed pre-publish verification: '{original_title[:40]}'", "warning", user_id=user_id)
-            return {"success": True, "pushed": False, "article_id": article.id}
-
-        result = push_to_wordpress(article, user=user)
-        if result.get("success"):
-            article.wordpress_id = result["wp_id"]
-            article.status = "pushed"
-            db.session.commit()
-            pushed = True
-        else:
-            _log(f"WP push failed for '{original_title[:40]}'", "error", result.get("error", ""), user_id=user_id)
-
-    return {"success": True, "pushed": pushed, "article_id": article.id}
-
-
-def _verify_article(article: Article) -> bool:
+def run_automation(auto_push: bool = False):
     """
-    Verify that an article meets minimum standards before pushing to WordPress.
-    Checks for: generated_title (H1), meta description, slug, and minimum word count from settings.
+    Called by the 'Trigger Automation' button in UI.
+    Runs Node 1 once, then processes ONE article if any are pending.
+    Updates automation_status in Settings for the live-status endpoint.
     """
-    from bs4 import BeautifulSoup
+    from models import Setting as _Setting
 
-    if not article.generated_title or len(article.generated_title) < 5:
-        _log(f"Verification failed — missing title: '{str(article.original_title)[:40]}'", "warning")
-        return False
-    if not article.meta_description or len(article.meta_description) < 10:
-        _log(f"Verification failed — missing meta description: '{str(article.generated_title)[:40]}'", "warning")
-        return False
-    if not article.slug:
-        _log(f"Verification failed — missing slug: '{str(article.generated_title)[:40]}'", "warning")
-        return False
-    if not article.content:
-        _log(f"Verification failed — empty content: '{str(article.generated_title)[:40]}'", "warning")
-        return False
-
-    # Count real words from HTML content
     try:
-        soup = BeautifulSoup(article.content, "lxml")
-        plain_text = soup.get_text(separator=" ", strip=True)
-        word_count = len(plain_text.split())
-    except Exception:
-        word_count = len(article.content.split())
+        _Setting.set("automation_status", "running")
+        _Setting.set("current_processing_article", "Fetching RSS feeds...")
 
-    min_words_str = Setting.get("ai_word_count_min", "350")
-    try:
-        min_words = int(min_words_str)
-        # If the article was a trial, we allow a lower word count (200)
-        # Actually, let's just use the setting unless it's explicitly a trial run.
-        # But wait, _verify_article doesn't know about is_trial. 
-        # Let's just adjust min_words for verification if word_count is low but looks okay for a trial.
-    except ValueError:
-        min_words = 350
+        cleanup_stale_locks()
+        queued = run_node_1_rss_fetcher()
 
-    # For trial articles, we relax the 350-word minimum to 200
-    if word_count < min_words:
-        # Check if it was likely a trial article (short content)
-        if word_count >= 200:
-            # We'll allow it if it's close to the trial target
+        _Setting.set("current_processing_article", f"Processing queue ({queued} new)...")
+        run_node_2_worker()
+
+        _Setting.set("automation_status", "idle")
+        _Setting.set("current_processing_article", "")
+        _Setting.set("last_run", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))
+    except Exception as e:
+        _log(f"run_automation top-level error: {e}", "error")
+        try:
+            from models import Setting as _S
+            _S.set("automation_status", "idle")
+            _S.set("current_processing_article", "")
+        except Exception:
             pass
-        else:
-            _log(
-                f"Verification failed — word count too low ({word_count} < {min_words}): '{str(article.generated_title)[:40]}'",
-                "warning"
-            )
-            return False
-
-    # Check title does not contain generic AI refusal phrases
-    title_lower = article.generated_title.lower()
-    refusal_phrases = ["i cannot format", "i am an ai", "as an ai", "i'm sorry", "i cannot write", "i apologize"]
-    if any(phrase in title_lower for phrase in refusal_phrases):
-        _log(f"Verification failed — AI refusal detected in title: '{str(article.generated_title)[:60]}'", "warning")
-        return False
-
     return True

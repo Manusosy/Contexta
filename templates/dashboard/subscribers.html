@@ -1,83 +1,90 @@
 {% extends "base.html" %}
-
 {% block title %}Subscribers{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Subscriber Management</h1>
-    <p class="text-slate-500 dark:text-slate-400">View and manage all client accounts and their subscription status.</p>
-</div>
+<div style="display:flex; flex-direction:column; gap:24px;">
 
-<div
-    class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-    <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-        <thead class="bg-slate-50 dark:bg-slate-900/50">
-            <tr>
-                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">User</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Plan</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Joined</th>
-                <th class="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
-            </tr>
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+      <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Subscriber Management</h1>
+      <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">View and manage all client accounts and their subscription status.</p>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="section-card">
+    <div style="overflow-x:auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
         </thead>
-        <tbody class="divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-slate-800">
-            {% for user in users %}
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <div
-                            class="h-10 w-10 flex-shrink-0 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-700 dark:text-brand-300 font-bold">
-                            {{ (user.full_name or user.email or 'U')[0].upper() }}
-                        </div>
-                        <div class="ml-4">
-                            <div class="text-sm font-bold text-slate-900 dark:text-white">{{ user.full_name or
-                                user.email }}</div>
-                            <div class="text-xs text-slate-500 font-medium">{{ user.email or 'No email' }}</div>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">
-                    {% if user.subscriptions %}
-                    {{ user.subscriptions[0].plan_name }}
-                    {% else %}
-                    <span class="text-slate-400 italic">None</span>
-                    {% endif %}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    {% if user.is_active %}
-                    <span
-                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">Active</span>
-                    {% else %}
-                    <span
-                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">Inactive</span>
-                    {% endif %}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                    {% if user.created_at %}{{ user.created_at.strftime('%Y-%m-%d') }}{% else %}—{% endif %}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onclick="toggleUser('{{ user.id }}')"
-                        class="text-brand-600 hover:text-brand-900 dark:text-brand-400 dark:hover:text-brand-300 font-bold">
-                        {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
-                    </button>
-                    <span class="mx-2 text-slate-300">|</span>
-                    <a href="#" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">Details</a>
-                </td>
-            </tr>
-            {% endfor %}
-            {% if not users %}
-            <tr>
-                <td colspan="5" class="px-6 py-10 text-center text-slate-400 italic">No subscribers found yet.</td>
-            </tr>
-            {% endif %}
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div class="avatar-chip">
+                  {{ (user.full_name or user.email or 'U')[0].upper() }}
+                </div>
+                <div>
+                  <div style="font-size:12px; font-weight:700; color:var(--ink); font-family:'Syne',sans-serif;">{{ user.full_name or user.email }}</div>
+                  <div style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace;">{{ user.email or 'No email' }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace;">
+              {% if user.subscriptions %}
+                {{ user.subscriptions[0].plan_name }}
+              {% else %}
+                <span style="opacity:0.5;">None</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.is_active %}
+                <span class="badge badge-green">Active</span>
+              {% else %}
+                <span class="badge badge-gray">Inactive</span>
+              {% endif %}
+            </td>
+            <td style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace;">
+              {% if user.created_at %}{{ user.created_at.strftime('%Y-%m-%d') }}{% else %}—{% endif %}
+            </td>
+            <td style="text-align:right;">
+              <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px; font-size:10px; font-family:'DM Mono',monospace;">
+                <button onclick="toggleUser('{{ user.id }}')" style="background:none; border:none; color:var(--accent2); cursor:pointer; padding:0;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                  {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+                </button>
+                <span style="color:var(--border);">|</span>
+                <a href="#" style="color:var(--muted); text-decoration:none;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">Details</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+          {% if not users %}
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">No subscribers found yet.</div>
+            </td>
+          </tr>
+          {% endif %}
         </tbody>
-    </table>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <script>
-    async function toggleUser(id) {
-        const resp = await fetch(`/admin-portal/user/${id}/toggle-active`, { method: 'POST' });
-        if (resp.ok) window.location.reload();
-    }
+  async function toggleUser(id) {
+    const resp = await fetch(`/admin-portal/user/${id}/toggle-active`, { method: 'POST' });
+    if (resp.ok) window.location.reload();
+  }
 </script>
 {% endblock %}

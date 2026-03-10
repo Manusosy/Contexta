@@ -1,65 +1,107 @@
-"""WordPress Service — pushes articles to WordPress via REST API."""
+"""WordPress Service — pushes articles to WordPress via REST API with Yoast SEO support."""
 import requests
 from requests.auth import HTTPBasicAuth
 from models import Setting, db
 from utils.logger import log_event as _log
+from config import get_config
+
+config = get_config()
 
 
-def push_to_wordpress(article, user=None) -> dict:
+def push_to_wordpress(article, rewritten_data: dict) -> dict:
     """
-    Push an Article instance to WordPress as a draft.
-    Returns dict with success bool and optional wp_id.
+    Push rewritten content to WordPress via REST API.
+    Node 5 Specification: Map fields → categories/tags → meta → publish (draft).
     """
-    # Use user-specific settings if available, else fallback to global Settings
-    wp_url = (user.wp_url if user and user.wp_url else Setting.get("wp_url", "")).rstrip("/")
-    wp_user = user.wp_user if user and user.wp_user else Setting.get("wp_user", "")
-    wp_password = user.wp_password if user and user.wp_password else Setting.get("wp_password", "")
+    wp_url = (getattr(config, "WP_URL", "") or Setting.get("wp_url", "")).rstrip("/")
+    wp_user = getattr(config, "WP_USER", "") or Setting.get("wp_user", "")
+    wp_password = getattr(config, "WP_APP_PASSWORD", "") or Setting.get("wp_password", "")
     
-    # Use user-specific category if available, else global fallback
-    default_category_raw = user.wp_default_category if user and user.wp_default_category else Setting.get("wp_default_category", "1")
-    try:
-        default_category = int(default_category_raw)
-    except (ValueError, TypeError):
-        default_category = 1
-
     if not all([wp_url, wp_user, wp_password]):
-        user_msg = f" for user {user.email}" if user else ""
-        _log(f"WordPress push skipped — credentials not configured{user_msg}", "warning", user_id=user.id if user else None)
-        return {"success": False, "error": "WordPress credentials not configured."}
+        _log("WordPress push skipped — incomplete credentials", "warning")
+        return {"success": False, "error": "WP Credentials missing"}
 
-    endpoint = f"{wp_url}/wp-json/wp/v2/posts"
     auth = HTTPBasicAuth(wp_user, wp_password)
+    headers = {"User-Agent": "Contexta/2.0 Automation Pipeline"}
 
-    title = article.generated_title or article.original_title or "Untitled"
+    # 1. Resolve Categories & Tags (Name to ID)
+    cat_ids = _resolve_ids(wp_url, auth, "categories", rewritten_data.get("suggested_categories", []))
+    tag_ids = _resolve_ids(wp_url, auth, "tags", rewritten_data.get("suggested_tags", []))
+
+    # 2. Build Payload
     payload = {
-        "title": title,
-        "content": article.content or "",
-        "status": "draft",
-        "categories": [default_category],
+        "title": rewritten_data.get("headline", article.original_title),
+        "content": rewritten_data.get("body_html", ""),
+        "excerpt": rewritten_data.get("excerpt", ""),
+        "slug": rewritten_data.get("slug", ""),
+        "status": getattr(config, "WP_DEFAULT_STATUS", "draft"),
+        "categories": cat_ids,
+        "tags": tag_ids,
         "meta": {
-            "_yoast_wpseo_metadesc": article.meta_description or "",
-            "_yoast_wpseo_focuskw": article.primary_keyword or "",
-        },
-        "slug": article.slug or "",
+            "_yoast_wpseo_metadesc": rewritten_data.get("meta_description", ""),
+            "_yoast_wpseo_focuskw": rewritten_data.get("focus_keyword", ""),
+        }
     }
 
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Contexta/1.0"
-        }
-        response = requests.post(endpoint, json=payload, auth=auth, headers=headers, timeout=30)
+        response = requests.post(
+            f"{wp_url}/wp-json/wp/v2/posts",
+            json=payload,
+            auth=auth,
+            headers=headers,
+            timeout=45
+        )
+        
         if response.status_code in (200, 201):
-            data = response.json()
-            wp_id = data.get("id")
-            _log(f"Pushed to WordPress: '{title}' (WP ID: {wp_id})", "success", user_id=user.id if user else None)
+            wp_id = response.json().get("id")
+            _log(f"Published to WP: {wp_id}", "success")
             return {"success": True, "wp_id": wp_id}
         else:
-            error_msg = response.text[:200]
-            _log(f"WordPress push failed: {response.status_code}", "error", error_msg, user_id=user.id if user else None)
-            return {"success": False, "error": f"HTTP {response.status_code}: {error_msg}"}
+            _log(f"WP Publish failed: {response.status_code}", "error", response.text[:200])
+            return {"success": False, "error": response.text[:200]}
+            
     except Exception as e:
-        _log("WordPress push exception", "error", str(e), user_id=user.id if user else None)
+        _log("WP Service exception", "error", str(e))
         return {"success": False, "error": str(e)}
+
+
+def _resolve_ids(wp_url, auth, endpoint_type, names) -> list[int]:
+    """Helper to find or create ID for a given name in WP (categories/tags)."""
+    if not names:
+        return []
+    
+    resolved_ids = []
+    headers = {"User-Agent": "Contexta/2.0 Automation Pipeline"}
+    
+    for name in names:
+        try:
+            # Check if exists
+            search_resp = requests.get(
+                f"{wp_url}/wp-json/wp/v2/{endpoint_type}?search={name}",
+                auth=auth,
+                headers=headers
+            )
+            data = search_resp.json()
+            
+            # Exact match check
+            found_id = next((item["id"] for item in data if item["name"].lower() == name.lower()), None)
+            
+            if found_id:
+                resolved_ids.append(found_id)
+            else:
+                # Create new
+                create_resp = requests.post(
+                    f"{wp_url}/wp-json/wp/v2/{endpoint_type}",
+                    json={"name": name},
+                    auth=auth,
+                    headers=headers
+                )
+                if create_resp.status_code in (200, 201):
+                    resolved_ids.append(create_resp.json().get("id"))
+        except:
+            continue
+            
+    return resolved_ids
 
 
 def test_connection(user=None) -> dict:
