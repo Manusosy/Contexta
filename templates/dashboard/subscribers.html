@@ -7,8 +7,8 @@
   <!-- Header -->
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <div>
-      <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Subscriber Management</h1>
-      <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">View and manage all client accounts and their subscription status.</p>
+      <h1 style="font-family:var(--font-d); font-size:22px; font-weight:700; color:var(--white); letter-spacing:-0.5px;">Subscriber Management</h1>
+      <p style="font-size:11px; color:var(--text-muted); font-family:var(--font-m); margin-top:4px;">View and manage all client accounts and their subscription status.</p>
     </div>
   </div>
 
@@ -34,12 +34,12 @@
                   {{ (user.full_name or user.email or 'U')[0].upper() }}
                 </div>
                 <div>
-                  <div style="font-size:12px; font-weight:700; color:var(--ink); font-family:'Syne',sans-serif;">{{ user.full_name or user.email }}</div>
-                  <div style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace;">{{ user.email or 'No email' }}</div>
+                  <div style="font-size:12px; font-weight:700; color:var(--white); font-family:var(--font-d);">{{ user.full_name or user.email }}</div>
+                  <div style="font-size:10px; color:var(--text-muted); font-family:var(--font-m);">{{ user.email or 'No email' }}</div>
                 </div>
               </div>
             </td>
-            <td style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace;">
+            <td style="font-size:11px; color:var(--text-muted); font-family:var(--font-m);">
               {% if user.subscriptions %}
                 {{ user.subscriptions[0].plan_name }}
               {% else %}
@@ -53,11 +53,11 @@
                 <span class="badge badge-gray">Inactive</span>
               {% endif %}
             </td>
-            <td style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace;">
+            <td style="font-size:10px; color:var(--text-muted); font-family:var(--font-m);">
               {% if user.created_at %}{{ user.created_at.strftime('%Y-%m-%d') }}{% else %}—{% endif %}
             </td>
             <td style="text-align:right;">
-              <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px; font-size:10px; font-family:'DM Mono',monospace;">
+              <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px; font-size:10px; font-family:var(--font-m);">
                 <button onclick="toggleUser('{{ user.id }}')" style="background:none; border:none; color:var(--accent2); cursor:pointer; padding:0;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
                   {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
                 </button>

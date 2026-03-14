@@ -6,14 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Register — Contexta</title>
     <meta name="description" content="Secure administration portal registration." />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
         rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    fontFamily: { 
+                        sans: ['"Inter"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', 'sans-serif']
+                    },
                     colors: {
                         slate: { 50: '#f8fafc', 100: '#f1f5f9', 800: '#1e293b', 900: '#0f172a' },
                         brand: { 50: '#f0fdfa', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' }
@@ -89,6 +92,12 @@
                     <input type="password" id="confirm_password" name="confirm_password" required placeholder="••••••••"
                         minlength="8"
                         class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm outline-none">
+                </div>
+
+                <div class="space-y-1.5 pt-1">
+                    <label for="admin_invite_code" class="block text-sm font-medium text-slate-300">Admin Invite Code</label>
+                    <input type="password" id="admin_invite_code" name="admin_invite_code" required placeholder="Enter invite code"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm outline-none font-mono">
                 </div>
 
                 <div class="pt-5">

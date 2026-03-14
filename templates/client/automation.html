@@ -7,12 +7,12 @@
   <!-- ── Header ── -->
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <div>
-      <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Automation Center</h1>
-      <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Configure and monitor your AI editorial pipeline.</p>
+      <h1 style="font-family:var(--font-d); font-size:22px; font-weight:700; color:var(--white); letter-spacing:-0.5px;">Automation Center</h1>
+      <p style="font-size:11px; color:var(--text-muted); font-family:var(--font-m); margin-top:4px;">Configure and monitor your AI editorial pipeline.</p>
     </div>
     <div style="display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:99px; border:1px solid var(--border); background:var(--surface);">
-      <span style="width:7px; height:7px; background:{% if sub %}var(--green){% else %}#c8882f{% endif %}; border-radius:50%; display:inline-block; animation:pulse 2s infinite;"></span>
-      <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:{% if sub %}var(--green){% else %}#c8882f{% endif %}; font-family:'DM Mono',monospace; font-weight:500;">
+      <span style="width:7px; height:7px; background: {{ 'var(--green)' if sub else '#c8882f' }}; border-radius:50%; display:inline-block; animation:pulse 2s infinite;"></span>
+      <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color: {{ 'var(--green)' if sub else '#c8882f' }}; font-family:var(--font-m); font-weight:500;">
         {% if sub %}System Online{% else %}Trial Mode{% endif %}
       </span>
     </div>
@@ -33,19 +33,19 @@
         <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0; border-bottom:1px solid var(--border);">
           <div style="padding:16px 20px; border-right:1px solid var(--border);">
             <div class="stat-label">Last Run</div>
-            <div style="font-family:'Fraunces',serif; font-size:15px; font-weight:300; color:var(--ink);">{{ Setting.get('last_run')|truncate(16, True, '') or 'Never' }}</div>
+            <div style="font-family:var(--font-s); font-size:15px; font-weight:300; color:var(--white);">{{ Setting.get('last_run')|truncate(16, True, '') or 'Never' }}</div>
           </div>
           <div style="padding:16px 20px; border-right:1px solid var(--border);">
             <div class="stat-label">Status</div>
-            <div style="font-family:'Fraunces',serif; font-size:15px; font-weight:300; color:var(--ink);">{{ Setting.get('automation_status')|title or 'Idle' }}</div>
+            <div style="font-family:var(--font-s); font-size:15px; font-weight:300; color:var(--white);">{{ Setting.get('automation_status')|title or 'Idle' }}</div>
           </div>
           <div style="padding:16px 20px; border-right:1px solid var(--border);">
             <div class="stat-label">Queued</div>
-            <div style="font-family:'Fraunces',serif; font-size:22px; font-weight:300; color:var(--accent2);">{{ pending_count }}</div>
+            <div style="font-family:var(--font-s); font-size:22px; font-weight:300; color:var(--brand-lt);">{{ pending_count }}</div>
           </div>
           <div style="padding:16px 20px;">
             <div class="stat-label">Worker</div>
-            <div style="font-family:'Fraunces',serif; font-size:15px; font-weight:300; color:{% if Setting.get('schedule_enabled') == 'true' %}var(--green){% else %}var(--muted){% endif %};">
+            <div style="font-family:var(--font-s); font-size:15px; font-weight:300; color: {{ 'var(--green)' if Setting.get('schedule_enabled') == 'true' else 'var(--muted)' }};">
               {{ 'Active' if Setting.get('schedule_enabled') == 'true' else 'Disabled' }}
             </div>
           </div>
@@ -73,23 +73,23 @@
                 Delete (<span id="selected-count">0</span>)
               </button>
             </div>
-            <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace;">Latest 15</span>
+            <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:var(--font-m);">Latest 15</span>
           </div>
         </div>
 
         <!-- Select all row -->
-        <div style="padding:10px 20px; background:var(--cream); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px;">
+        <div style="padding:10px 20px; background:var(--bg-lt); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px;">
           <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this)" style="cursor:pointer; accent-color:var(--accent);">
-          <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace;">Select All</span>
+          <span style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:var(--font-m);">Select All</span>
         </div>
 
         {% for art in articles|default([]) %}
-        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--border); transition:background 0.1s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 20px; border-bottom:1px solid var(--border); transition:background 0.1s;" onmouseover="this.style.background='var(--bg-lt)'" onmouseout="this.style.background='transparent'">
           <div style="display:flex; align-items:center; gap:12px; min-width:0;">
             <input type="checkbox" value="{{ art.id }}" onchange="updateSelection()" class="article-checkbox" style="cursor:pointer; accent-color:var(--accent); flex-shrink:0;">
-            <span style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; flex-shrink:0;">{{ art.created_at.strftime('%H:%M') }}</span>
+            <span style="font-size:10px; color:var(--muted); font-family:var(--font-m); flex-shrink:0;">{{ art.created_at.strftime('%H:%M') }}</span>
             <div style="min-width:0;">
-              <div style="font-size:11px; color:var(--ink); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px;">{{ art.original_title }}</div>
+              <div style="font-size:11px; color:var(--ink); font-family:var(--font-m); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px;">{{ art.original_title }}</div>
               <div style="font-size:10px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:250px;">{{ art.source_url|truncate(50) if art.source_url else '' }}</div>
             </div>
           </div>
@@ -138,11 +138,11 @@
 
       <!-- Upgrade Card -->
       {% if not sub %}
-      <div style="background:var(--ink); border-radius:6px; padding:20px; position:relative; overflow:hidden;">
-        <div style="position:absolute; top:-10px; right:-10px; width:60px; height:60px; background:var(--accent); opacity:0.1; border-radius:50%;"></div>
-        <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--paper); margin-bottom:8px;">Premium Editorial</div>
-        <p style="font-size:10px; color:#888; font-family:'DM Mono',monospace; margin-bottom:16px;">Upgrade to write up to 20 professional articles per month and unlock advanced CMS syncing.</p>
-        <a href="{{ url_for('client.subscription') }}" class="btn-accent" style="width:100%; justify-content:center; display:flex; padding:8px;">View Plans</a>
+      <div style="background:var(--bg-deep); border:1px solid var(--border); border-radius:6px; padding:20px; position:relative; overflow:hidden;">
+        <div style="position:absolute; top:-10px; right:-10px; width:60px; height:60px; background:var(--brand); opacity:0.1; border-radius:50%;"></div>
+        <div style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--white); margin-bottom:8px;">Premium Editorial</div>
+        <p style="font-size:10px; color:var(--text-muted); font-family:var(--font-m); margin-bottom:16px;">Upgrade to write up to 20 professional articles per month and unlock advanced CMS syncing.</p>
+        <a href="{{ url_for('client.subscription') }}" class="btn-primary" style="width:100%; justify-content:center; display:flex; padding:8px;">View Plans</a>
       </div>
       {% endif %}
 

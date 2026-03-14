@@ -25,9 +25,12 @@ def index():
     if current_user.role != "admin":
         return redirect(url_for("client.index"))
 
-    # Recent activity for the admin dashboard should focus on ADMIN/SYSTEM feeds
+    # Recent activity for the admin dashboard: Focused on success and active processing (limit 7)
     admin_feed_ids = [f.id for f in Feed.query.filter_by(user_id=None).all()]
-    recent_articles = Article.query.filter(Article.feed_id.in_(admin_feed_ids)).order_by(Article.created_at.desc()).limit(10).all()
+    recent_articles = Article.query.filter(
+        Article.feed_id.in_(admin_feed_ids),
+        Article.status.in_(['published', 'pushed', 'generated', 'processing', 'rewriting', 'extracting'])
+    ).order_by(Article.created_at.desc()).limit(7).all()
     recent_logs = Log.query.filter_by(user_id=None).order_by(Log.timestamp.desc()).limit(8).all()
     
     # Platform Analytics (Already implemented correctly for all clients)
@@ -65,7 +68,7 @@ def index():
         "dashboard/index.html",
         total_feeds=len(admin_feed_ids),
         queued_articles=Article.query.filter(Article.feed_id.in_(admin_feed_ids), Article.status=="pending").count(),
-        total_articles=Article.query.filter(Article.feed_id.in_(admin_feed_ids)).count(),
+        total_articles=Article.query.filter(Article.feed_id.in_(admin_feed_ids), Article.status=="published").count(),
         active_model=Setting.get("ai_model", "openai/gpt-4o-mini"),
         schedule_enabled=Setting.get("schedule_enabled") == "true",
         schedule_frequency=Setting.get("schedule_frequency", "60"),
@@ -89,11 +92,10 @@ def automation():
     if request.method == "POST":
         action = request.form.get("action")
         if action == "run_now":
-            from services.automation_service import run_node_1_rss_fetcher, run_node_2_worker, cleanup_stale_locks
-            cleanup_stale_locks()
-            run_node_1_rss_fetcher()
-            run_node_2_worker()
-            flash("System heartbeat triggered! Node 1 and next Node 2 cycle processed.", "success")
+            from services.automation_service import run_automation_async
+            app = current_app._get_current_object()
+            run_automation_async(app, user_id=None)
+            flash("System automation triggered in background!", "success")
         return redirect(url_for("dashboard.automation"))
 
     # Metrics specific to the automation center
@@ -271,13 +273,12 @@ def pricing_discounts():
 
     now = datetime.utcnow()
     coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
-    # Auto-mark expired coupons as inactive and normalize tz for template
+    now = datetime.utcnow()
+    coupons = Coupon.query.order_by(Coupon.created_at.desc()).all()
+    # Normalize tz for template
     for c in coupons:
         if c.expires_at:
             c.expires_at = c.expires_at.replace(tzinfo=None)
-            if c.expires_at < now and c.is_active:
-                c.is_active = False
-    db.session.commit()
     return render_template("dashboard/discounts.html", coupons=coupons, now=now)
 
 
@@ -368,3 +369,34 @@ def update_feedback_status(id):
         db.session.commit()
         return jsonify({"success": True, "status": fb.status})
     return jsonify({"success": False, "error": "Invalid status"}), 400
+
+@dashboard_bp.route("/profile", methods=["GET", "POST"])
+@login_required
+@admin_required
+def profile():
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "update_profile":
+            full_name = request.form.get("full_name")
+            email = request.form.get("email")
+            if full_name:
+                current_user.full_name = full_name
+            if email:
+                current_user.email = email
+            db.session.commit()
+            flash("Profile information updated.", "success")
+        elif action == "change_password":
+            current_password = request.form.get("current_password")
+            new_password = request.form.get("new_password")
+            confirm_password = request.form.get("confirm_password")
+            if not current_user.check_password(current_password):
+                flash("Incorrect current password.", "error")
+            elif new_password != confirm_password:
+                flash("New passwords do not match.", "error")
+            else:
+                current_user.set_password(new_password)
+                db.session.commit()
+                flash("Password updated successfully.", "success")
+        return redirect(url_for("dashboard.profile"))
+    
+    return render_template("admin/profile.html")

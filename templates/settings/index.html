@@ -6,8 +6,8 @@
 
   <!-- Header -->
   <div>
-    <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Settings</h1>
-    <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Configure your AI, WordPress, and SEO preferences.</p>
+    <h1 style="font-family:var(--font-d); font-size:22px; font-weight:700; color:var(--white); letter-spacing:-0.5px;">Settings</h1>
+    <p style="font-size:11px; color:var(--text-muted); font-family:var(--font-m); margin-top:4px;">Configure your AI, WordPress, and SEO preferences.</p>
   </div>
 
   <!-- Tabs -->
@@ -93,23 +93,23 @@
         </div>
 
         <div style="border-top:1px solid var(--border); padding-top:20px;">
-          <p style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--ink); margin-bottom:12px;">AI Behavior</p>
+          <p style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--white); margin-bottom:12px;">AI Behavior</p>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-              <input type="checkbox" name="ai_preserve_tone" {{ 'checked' if s.get('ai_preserve_tone')=='true' }} style="accent-color:var(--ink);" />
-              <span style="font-size:11px; font-family:'DM Mono',monospace; color:var(--ink);">Preserve original tone</span>
+              <input type="checkbox" name="ai_preserve_tone" {{ 'checked' if s.get('ai_preserve_tone')=='true' }} style="accent-color:var(--brand);" />
+              <span style="font-size:11px; font-family:var(--font-m); color:var(--white);">Preserve original tone</span>
             </label>
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-              <input type="checkbox" name="ai_avoid_generic" {{ 'checked' if s.get('ai_avoid_generic')=='true' }} style="accent-color:var(--ink);" />
-              <span style="font-size:11px; font-family:'DM Mono',monospace; color:var(--ink);">Avoid generic AI phrasing</span>
+              <input type="checkbox" name="ai_avoid_generic" {{ 'checked' if s.get('ai_avoid_generic')=='true' }} style="accent-color:var(--brand);" />
+              <span style="font-size:11px; font-family:var(--font-m); color:var(--white);">Avoid generic AI phrasing</span>
             </label>
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-              <input type="checkbox" name="ai_no_long_dashes" {{ 'checked' if s.get('ai_no_long_dashes')=='true' }} style="accent-color:var(--ink);" />
-              <span style="font-size:11px; font-family:'DM Mono',monospace; color:var(--ink);">No long dashes (em dashes)</span>
+              <input type="checkbox" name="ai_no_long_dashes" {{ 'checked' if s.get('ai_no_long_dashes')=='true' }} style="accent-color:var(--brand);" />
+              <span style="font-size:11px; font-family:var(--font-m); color:var(--white);">No long dashes (em dashes)</span>
             </label>
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-              <input type="checkbox" name="ai_regional_insight" {{ 'checked' if s.get('ai_regional_insight')=='true' }} style="accent-color:var(--ink);" />
-              <span style="font-size:11px; font-family:'DM Mono',monospace; color:var(--ink);">Add regional insight</span>
+              <input type="checkbox" name="ai_regional_insight" {{ 'checked' if s.get('ai_regional_insight')=='true' }} style="accent-color:var(--brand);" />
+              <span style="font-size:11px; font-family:var(--font-m); color:var(--white);">Add regional insight</span>
             </label>
           </div>
         </div>

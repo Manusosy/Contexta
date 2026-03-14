@@ -1,53 +1,52 @@
 /* =====================================================
-   Contexta — Editorial Design System (FeedForge Style)
-   Fonts: Syne (headings), DM Mono (body), Fraunces (editorial)
+   Contexta — Unified Component Bridge
    ===================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap');
-
-/* ── Design Tokens ── */
+/* Bridging legacy tokens to the new Design System */
 :root {
-  --ink: #0e0e0e;
-  --paper: #f5f0e8;
-  --cream: #ede8db;
-  --accent: #c84b2f;
-  --accent2: #2f7dc8;
-  --muted: #888070;
-  --border: #d4cfc0;
-  --green: #2a7a4b;
-  --surface: #ffffff;
+  --ink: var(--white);
+  --paper: var(--bg-deep);
+  --cream: var(--bg-lt);
+  --accent: var(--brand);
+  --accent2: var(--brand-lt);
+  --muted: var(--text-muted);
+  --border: var(--border);
+  --green: #22c55e;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --surface: var(--bg-mid);
 }
-
-/* ── Base Reset ── */
-* { box-sizing: border-box; }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: 'DM Mono', monospace;
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: var(--font-d);
 }
 
-/* ── Sidebar Navigation ── */
 .sidebar-link {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 24px;
+  padding: 10px 16px;
+  margin: 4px 12px;
   font-size: 13px;
-  color: #888;
+  color: #94a3b8;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
   letter-spacing: 0.2px;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-s);
+  font-weight: 500;
   text-decoration: none;
-  border-radius: 0;
+  border-radius: 8px;
   height: auto;
 }
 
 /* Collapsed state adjustments */
 .collapsed .sidebar-link {
-  padding: 12px 0;
+  margin: 4px 8px;
+  padding: 10px 0;
   justify-content: center;
   gap: 0;
 }
@@ -66,31 +65,29 @@ body {
 }
 
 .sidebar-link:hover {
-  color: var(--paper);
-  background: #1a1a1a;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05); /* Soft highlight */
 }
 
 .sidebar-link.active {
-  color: var(--paper);
-  background: #1a1a1a;
-  font-weight: 500;
+  color: #ffffff;
+  background: #4f46e5;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
 .sidebar-link.active::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: var(--accent);
+  display: none;
 }
 
 .sidebar-section-label {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #444;
+  color: #64748b;
   padding: 16px 24px 8px;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-s);
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -127,8 +124,9 @@ body {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
 .card-header {
@@ -153,8 +151,9 @@ body {
 .section-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
 .section-header {
@@ -458,24 +457,28 @@ body {
 
 .data-table th {
   text-align: left;
-  padding: 10px 20px;
-  font-size: 9px;
-  font-weight: 500;
-  color: var(--muted);
+  padding: 12px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  background: var(--cream);
+  letter-spacing: 1px;
+  background: var(--brand);
   border-bottom: 1px solid var(--border);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-s);
 }
 
 .data-table td {
-  padding: 13px 20px;
-  font-size: 11px;
+  padding: 16px 20px;
+  font-size: 13px;
   border-bottom: 1px solid var(--border);
-  color: var(--ink);
+  color: var(--text);
   vertical-align: middle;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--font-s);
+}
+
+.data-table tr {
+  border-bottom: 1px solid var(--border);
 }
 
 .data-table tr:last-child td {
@@ -498,47 +501,32 @@ body {
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 3px;
-  font-size: 9px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
   font-family: 'DM Mono', monospace;
   letter-spacing: 0.5px;
+  color: #ffffff;
 }
 
-.badge-blue {
-  background: #e8edf5;
-  color: var(--accent2);
-}
-
-.badge-green {
-  background: #e8f5ed;
-  color: var(--green);
-}
-
-.badge-red {
-  background: #fde8e8;
-  color: var(--accent);
-}
-
-.badge-gray {
-  background: var(--cream);
-  color: var(--muted);
-}
-
-.badge-amber {
-  background: #fdf3e0;
-  color: #c8882f;
-}
+.badge-blue { background: #2563eb !important; color: #ffffff !important; font-weight: 700; }
+.badge-green { background: #10b981 !important; color: #ffffff !important; font-weight: 700; }
+.badge-red { background: #ef4444 !important; color: #ffffff !important; font-weight: 700; }
+.badge-gray { background: #64748b !important; color: #ffffff !important; font-weight: 700; }
+.badge-amber { background: #f59e0b !important; color: #ffffff !important; font-weight: 700; }
 
 /* ── Status Badges ── */
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: 3px;
-  font-size: 9px;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 600;
   font-family: 'DM Mono', monospace;
+  border: 1px solid transparent;
 }
 
 .status-badge::before {
@@ -549,14 +537,17 @@ body {
   display: inline-block;
 }
 
-.badge-idle::before    { background: var(--muted); }
-.badge-idle            { background: var(--cream); color: var(--muted); }
+.badge-idle::before    { background: #ffffff; opacity: 0.6; }
+.badge-idle            { background: rgba(255,255,255,0.1); color: #ffffff; border: 1px solid rgba(255,255,255,0.1); }
 
-.badge-running::before { background: var(--accent2); animation: pulse 1s infinite; }
-.badge-running         { background: #e8edf5; color: var(--accent2); }
+.badge-active::before  { background: #ffffff; }
+.badge-active          { background: #10b981 !important; color: #ffffff !important; font-weight: 800; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 0 15px rgba(16,185,129,0.3); }
 
-.badge-failed::before  { background: var(--accent); }
-.badge-failed          { background: #fde8e8; color: var(--accent); }
+.badge-running::before { background: #ffffff; animation: pulse 1s infinite; }
+.badge-running         { background: #2563eb !important; color: #ffffff !important; }
+
+.badge-failed::before  { background: #ffffff; }
+.badge-failed          { background: #ef4444 !important; color: #ffffff !important; }
 
 /* ── Pipeline Steps ── */
 .pipeline-step {

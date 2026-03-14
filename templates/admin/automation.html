@@ -156,19 +156,19 @@
                         class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">RSS Batch Limit
                         </p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">5 New Articles / Run</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ Setting.get('ai_max_articles_per_run', '1') }} New Articles / Run</p>
                     </div>
                     <div
                         class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Worker Interval
                         </p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">60 Seconds</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ Setting.get('schedule_frequency', '60') }} Minutes</p>
                     </div>
                     <div
                         class="p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Target Word Count
                         </p>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">800+ Words</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ Setting.get('ai_word_count_target', '600') }}+ Words</p>
                     </div>
                 </div>
             </div>

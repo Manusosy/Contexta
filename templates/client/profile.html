@@ -5,8 +5,8 @@
 <div style="display:flex; flex-direction:column; gap:24px;">
 
   <div>
-    <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">My Profile</h1>
-    <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Manage your account information and security settings.</p>
+    <h1 style="font-family:var(--font-d); font-size:22px; font-weight:700; color:var(--white); letter-spacing:-0.5px;">My Profile</h1>
+    <p style="font-size:11px; color:var(--muted); font-family:var(--font-m); margin-top:4px;">Manage your account information and security settings.</p>
   </div>
 
   <!-- ── Avatar + Account Details ── -->
@@ -22,8 +22,8 @@
         {{ (current_user.full_name or current_user.email or 'U')[0].upper() }}
       </div>
       <div>
-        <div style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--ink);">{{ current_user.full_name or 'Account User' }}</div>
-        <div style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace;">{{ current_user.email }}</div>
+        <div style="font-family:var(--font-d); font-size:16px; font-weight:700; color:var(--white);">{{ current_user.full_name or 'Account User' }}</div>
+        <div style="font-size:11px; color:var(--muted); font-family:var(--font-m);">{{ current_user.email }}</div>
       </div>
     </div>
     <div class="config-row">

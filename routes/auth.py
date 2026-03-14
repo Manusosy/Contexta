@@ -206,18 +206,22 @@ def admin_register():
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
+        invite_code = request.form.get("admin_invite_code", "").strip()
 
-        if not email or not password or not full_name:
-            flash("Name, email, and password are required.", "error")
+        if not email or not password or not full_name or not invite_code:
+            flash("Name, email, password, and invite code are required.", "error")
             return redirect(url_for("auth.admin_register"))
 
         if password != confirm_password:
             flash("Passwords do not match.", "error")
             return redirect(url_for("auth.admin_register"))
             
-        # SECURITY RESTRICTION: Config-based or generic
-        # Allowed Admin Domains logic will be handled via env variables if deemed necessary in production.
-        pass
+        # SECURITY RESTRICTION: Require invite code for admin creation
+        import os
+        expected_code = os.environ.get("ADMIN_INVITE_CODE", "ctx-admin-2026")
+        if invite_code != expected_code:
+            flash("Invalid administrator invite code.", "error")
+            return redirect(url_for("auth.admin_register"))
 
         if User.query.filter_by(email=email).first():
             flash("An account with this email already exists.", "error")

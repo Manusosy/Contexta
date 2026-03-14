@@ -4,19 +4,23 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Register — Contexta</title>
-    <meta name="description" content="Create an account on Contexta AI Editorial Platform." />
+    <title>Create Account — Contexta</title>
+    <meta name="description" content="Join Contexta — Automation That Understands Context." />
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}" />
     <!-- Reusing same aesthetic as Login -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
         rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    fontFamily: { 
+                        sans: ['"Inter"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', 'sans-serif']
+                    },
                     colors: {
                         brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' }
                     },
@@ -144,15 +148,11 @@
 
         <!-- Logo mark -->
         <div class="flex flex-col items-center mb-10">
-            <div
-                class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.6)] mb-4">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+            <div class="mb-4">
+                <img src="{{ url_for('static', filename='img/favicon.png') }}" alt="Contexta" width="56" height="56" style="border-radius:12px;box-shadow:0 0 36px rgba(59,130,246,0.4);display:block;" />
             </div>
             <h1 class="text-3xl font-bold text-white tracking-tight">Contexta</h1>
-            <p class="text-slate-400 text-sm mt-1.5 text-center">AI Editorial Automation Platform</p>
+            <p class="text-slate-400 text-sm mt-1.5 text-center">Automation That Understands Context</p>
         </div>
 
         <!-- Card -->

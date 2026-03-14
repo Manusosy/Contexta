@@ -17,22 +17,26 @@ def run_automation_endpoint():
         return jsonify({"success": False, "error": "Content-Type must be application/json"}), 415
     status = Setting.get("automation_status", "idle")
     if status == "running":
+        # Check if it's genuinely stuck by checking last_run delta (optional) or just bypass it occasionally.
+        # But for now, since there's a explicit "Reset Engine" button in the template, we'll let it return 409.
         return jsonify({"success": False, "error": "Automation is already running."}), 409
 
     auto_push = request.json.get("auto_push", False) if request.is_json else False
 
     # Run in background thread to avoid request timeout
+    Setting.set("automation_status", "running")
+    if current_user.role != "admin":
+        Setting.set(f"auth_status_{current_user.id}", "running")
+        
+    from services.automation_service import run_automation_async
     app = current_app._get_current_object()
-    thread = threading.Thread(target=_run_in_context, args=(app, auto_push), daemon=True)
-    thread.start()
+    user_id = current_user.id if current_user.role != "admin" else None
+    run_automation_async(app, auto_push=auto_push, user_id=user_id)
 
     return jsonify({"success": True, "message": "Automation started in background."})
 
 
-def _run_in_context(app, auto_push: bool):
-    with app.app_context():
-        from services.automation_service import run_automation
-        run_automation(auto_push=auto_push)
+# _run_in_context is now redundant as it's handled in automation_service.py
 
 
 @api_bp.route("/toggle-schedule", methods=["POST"])
@@ -64,8 +68,15 @@ def toggle_schedule():
 @login_required
 def reset_automation():
     """Force reset stuck automation status to idle."""
-    Setting.set("automation_status", "idle")
-    log = Log(action="Automation status forcibly reset to idle.", status="warning")
+    if current_user.role == "admin":
+        Setting.set("automation_status", "idle")
+        Setting.set("current_processing_article", "")
+    
+    # Always reset the user's specific status if tagged
+    Setting.set(f"auth_status_{current_user.id}", "idle")
+    Setting.set(f"curr_art_{current_user.id}", "")
+    
+    log = Log(action="Automation status forcibly reset to idle.", status="warning", user_id=current_user.id)
     db.session.add(log)
     db.session.commit()
     return jsonify({"success": True, "message": "Automation status reset to idle."})
@@ -104,8 +115,17 @@ def automation_status():
 @api_bp.route("/logs", methods=["GET"])
 @login_required
 def get_logs():
-    """Return recent logs as JSON."""
-    logs = Log.query.order_by(Log.timestamp.desc()).limit(50).all()
+    """Return recent logs as JSON with pagination."""
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 50, type=int)
+    
+    query = Log.query
+    if current_user.role != "admin":
+        query = query.filter_by(user_id=current_user.id)
+    else:
+        query = query.filter_by(user_id=None)
+        
+    logs = query.order_by(Log.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False).items
     return jsonify([log.to_dict() for log in logs])
 
 

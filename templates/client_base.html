@@ -8,31 +8,40 @@
   <meta name="description" content="{{ Setting.get('site_name', 'Contexta') }} — Manage your subscription and account." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            mono: ['DM Mono', 'monospace'],
-            sans: ['DM Mono', 'monospace'],
-            syne: ['Syne', 'sans-serif'],
-            fraunces: ['Fraunces', 'serif'],
+            sans: ['"Inter"', 'sans-serif'],
+            display: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           }
         }
       }
     }
   </script>
+  <script>
+    (function() {
+      var theme = localStorage.getItem('theme');
+      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
-
-  <style>
-    body { background: #f5f0e8; color: #0e0e0e; font-family: 'DM Mono', monospace; }
-  </style>
 </head>
 
-<body class="min-h-screen flex overflow-hidden" style="background:#f5f0e8;"
+<body class="min-h-screen flex overflow-hidden bg-[var(--bg)] text-[var(--text)] font-[var(--font-d)]"
   x-data="{ 
     sidebarOpen: window.innerWidth >= 1024,
     sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
@@ -66,16 +75,15 @@
       '-translate-x-full lg:translate-x-0': !sidebarOpen,
       'collapsed': sidebarCollapsed
     }"
-    :style="{ width: sidebarCollapsed ? '72px' : '240px' }"
-    class="fixed inset-y-0 left-0 z-50 flex flex-col lg:static transform transition-all duration-300 ease-in-out"
-    style="height:100vh; background:#0e0e0e; border-right:1px solid #1a1a1a;">
+    class="fixed inset-y-0 left-0 z-50 flex flex-col lg:static transform transition-all duration-300 ease-in-out border-r border-[var(--border)] bg-[var(--bg-mid)]"
+    style="height:100vh;">
 
     <!-- Logo -->
-    <div style="padding:24px 20px; border-bottom:1px solid #2a2a2a; height:80px; display:flex; align-items:center; overflow:hidden;">
+    <div style="padding:24px 20px; border-bottom:1px solid var(--border); height:80px; display:flex; align-items:center; overflow:hidden;">
       <a href="{{ url_for('client.index') }}" class="block no-underline">
         <div style="display:flex; align-items:center; gap:12px;">
-          <div style="flex-shrink:0; background:var(--accent); width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-family:'Syne',sans-serif; font-weight:800; font-size:18px;">C</div>
-          <div x-show="!sidebarCollapsed" x-transition.opacity style="font-family:'Fraunces',serif; font-size:18px; font-weight:600; color:#f5f0e8; letter-spacing:-0.5px; white-space:nowrap;">
+          <div style="flex-shrink:0; background:var(--brand); width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:var(--white); font-family:var(--font-d); font-weight:800; font-size:18px;">C</div>
+          <div x-show="!sidebarCollapsed" x-transition.opacity style="font-family:var(--font-d); font-size:18px; font-weight:600; color:var(--white); letter-spacing:-0.5px; white-space:nowrap;">
             {{ Setting.get('site_name', 'Contexta') }}
           </div>
         </div>
@@ -167,7 +175,7 @@
     <!-- Bottom actions -->
     <div x-show="!sidebarCollapsed" x-transition.opacity style="padding:16px 0; border-top:1px solid #1a1a1a;">
       {% if current_user.role == 'admin' %}
-      <a href="{{ url_for('dashboard.index') }}" class="sidebar-link" style="color:#c8882f;" title="Return to Admin">
+      <a href="{{ url_for('dashboard.index') }}" class="sidebar-link" style="color:var(--brand-lt);" title="Return to Admin">
         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
         </svg>
@@ -187,7 +195,7 @@
   </aside>
 
   <!-- ══ MAIN ══ -->
-  <div class="flex-1 flex flex-col h-screen" style="overflow:hidden; background:#f5f0e8;">
+  <div class="flex-1 flex flex-col h-screen" style="overflow:hidden; background:var(--bg);">
 
     <!-- Header -->
     <header class="topbar shrink-0">
@@ -242,7 +250,7 @@
           <div x-show="notesOpen" @click.away="notesOpen = false" x-transition.opacity
             style="position:absolute; right:0; top:calc(100% + 8px); width:320px; background:var(--surface); border:1px solid var(--border); border-radius:4px; z-index:100; box-shadow:0 8px 32px rgba(0,0,0,0.1);">
             <div style="padding:14px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-family:'Syne',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--ink);">Notifications</span>
+              <span style="font-family:var(--font-d); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--white);">Notifications</span>
               <span x-show="unreadCount > 0" class="badge" style="background:var(--cream); color:var(--accent); font-size:9px;">{{ unreadCount }} New</span>
             </div>
             <div style="max-height:300px; overflow-y:auto;" class="no-scrollbar">
@@ -276,9 +284,9 @@
 
           <!-- Dropdown menu -->
           <div x-show="profileOpen" @click.away="profileOpen = false" x-transition.opacity class="profile-dropdown">
-            <div style="padding:16px; border-bottom:1px solid var(--border); background:var(--paper);">
-              <div style="font-size:11px; font-weight:700; color:var(--ink); font-family:'Syne',sans-serif;">{{ current_user.full_name or 'Subcriber' }}</div>
-              <div style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:2px; overflow:hidden; text-overflow:ellipsis;">{{ current_user.email }}</div>
+            <div style="padding:16px; border-bottom:1px solid var(--border); background:var(--bg-lt);">
+              <div style="font-size:11px; font-weight:700; color:var(--white); font-family:var(--font-d);">{{ current_user.full_name or 'Subscriber' }}</div>
+              <div style="font-size:10px; color:var(--text-muted); font-family:var(--font-m); margin-top:2px; overflow:hidden; text-overflow:ellipsis;">{{ current_user.email }}</div>
             </div>
             
             <a href="{{ url_for('client.profile') }}" class="dropdown-item">
@@ -308,7 +316,7 @@
     </header>
 
     <!-- Scrollable content -->
-    <div class="flex-1 overflow-y-auto" style="padding:32px 36px; background:#f5f0e8;">
+    <div class="flex-1 overflow-y-auto" style="padding:32px 36px; background:var(--bg-deep);">
 
       <!-- Flash Messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}

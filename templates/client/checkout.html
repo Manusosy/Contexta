@@ -4,8 +4,8 @@
 {% block content %}
 <div class="max-w-4xl mx-auto space-y-8" style="font-family:'Inter',sans-serif;">
     <div>
-        <h1 style="font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--ink); letter-spacing:-0.5px;">Secure Checkout</h1>
-        <p style="font-family:'DM Mono',monospace; font-size:13px; color:var(--muted); mt-2;">Complete your transaction to activate your license.</p>
+        <h1 style="font-family:var(--font-d); font-size:28px; font-weight:800; color:var(--white); letter-spacing:-0.5px;">Secure Checkout</h1>
+        <p class="mt-2" style="font-family:var(--font-m); font-size:13px; color:var(--muted);">Complete your transaction to activate your license.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-10" x-data="{ 
@@ -49,7 +49,7 @@
         <!-- Payment Methods -->
         <div class="space-y-6">
             <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:32px; box-shadow:0 4px 20px rgba(0,0,0,0.03);">
-                <h2 style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:1px; margin-bottom:24px; display:flex; align-items:center; gap:12px;">
+                <h2 style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; margin-bottom:24px; display:flex; align-items:center; gap:12px;">
                     Select Payment Method
                     <div style="height:1px; background:var(--border); flex:1;"></div>
                 </h2>
@@ -57,12 +57,12 @@
                 <div class="flex flex-col sm:flex-row gap-4 mb-8">
                     {% if Setting.get('mpesa_consumer_key') %}
                     <button @click="method = 'mpesa'"
-                        :style="method === 'mpesa' ? 'border-color:var(--accent); background:var(--cream);' : 'border-color:var(--border); background:transparent;'"
+                        :style="method === 'mpesa' ? 'border-color:var(--accent); background:var(--bg-lt);' : 'border-color:var(--border); background:transparent;'"
                         style="flex:1; padding:16px; border-radius:8px; border:1px solid; text-align:left; transition:all 0.2s; cursor:pointer;">
                         <div class="flex items-center justify-between">
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <img src="/static/img/payments/mpesa.png" alt="M-Pesa" style="width:24px; height:24px; object-fit:contain;">
-                                <span style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--ink);">M-Pesa</span>
+                                <span style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--white);">M-Pesa</span>
                             </div>
                             <div style="width:16px; height:16px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center;"
                                 :style="method === 'mpesa' ? 'border-color:var(--accent);' : ''">
@@ -74,12 +74,12 @@
 
                     {% if paypal_client_id %}
                     <button @click="method = 'paypal'"
-                        :style="method === 'paypal' ? 'border-color:var(--accent); background:var(--cream);' : 'border-color:var(--border); background:transparent;'"
+                        :style="method === 'paypal' ? 'border-color:var(--accent); background:var(--bg-lt);' : 'border-color:var(--border); background:transparent;'"
                         style="flex:1; padding:16px; border-radius:8px; border:1px solid; text-align:left; transition:all 0.2s; cursor:pointer;">
                         <div class="flex items-center justify-between">
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <img src="/static/img/payments/paypal.png" alt="PayPal" style="width:24px; height:24px; object-fit:contain;">
-                                <span style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--ink);">PayPal</span>
+                                <span style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--white);">PayPal</span>
                             </div>
                             <div style="width:16px; height:16px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center;"
                                 :style="method === 'paypal' ? 'border-color:var(--accent);' : ''">
@@ -92,7 +92,7 @@
 
                 {% if not Setting.get('mpesa_consumer_key') and not paypal_client_id %}
                 <div style="background:var(--paper); border:1px dashed var(--border); padding:24px; border-radius:8px; text-align:center;">
-                    <p style="font-family:'DM Mono',monospace; font-size:13px; color:var(--muted);">No payment methods are currently configured. Please contact support.</p>
+                    <p style="font-family:var(--font-m); font-size:13px; color:var(--muted);">No payment methods are currently configured. Please contact support.</p>
                 </div>
                 {% endif %}
 
@@ -104,17 +104,17 @@
                         <input type="hidden" name="coupon_code" :value="couponApplied ? couponCode : ''">
 
                         <div>
-                            <label style="display:block; font-family:'DM Mono',monospace; font-size:10px; font-weight:700; text-transform:uppercase; color:var(--muted); letter-spacing:1px; margin-bottom:8px;">M-Pesa Phone Number</label>
+                            <label style="display:block; font-family:var(--font-m); font-size:10px; font-weight:700; text-transform:uppercase; color:var(--muted); letter-spacing:1px; margin-bottom:8px;">M-Pesa Phone Number</label>
                             <input type="text" id="phone_number" name="phone_number" required placeholder="2547XXXXXXXX"
-                                style="width:100%; padding:14px; border:1px solid var(--border); border-radius:8px; background:var(--paper); color:var(--ink); font-family:'DM Mono',monospace; font-size:14px; outline:none; transition:all 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-                            <p style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-top:8px;">Enter number starting with country code (e.g., 2547...). You'll receive an STK push prompt.</p>
+                                style="width:100%; padding:14px; border:1px solid var(--border); border-radius:8px; background:var(--paper); color:var(--white); font-family:var(--font-m); font-size:14px; outline:none; transition:all 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                            <p style="font-family:var(--font-m); font-size:11px; color:var(--muted); margin-top:8px;">Enter number starting with country code (e.g., 2547...). You'll receive an STK push prompt.</p>
                         </div>
 
-                        <div style="background:var(--cream); padding:20px; border-radius:8px; border:1px solid var(--border); display:flex; gap:16px; align-items:flex-start;">
+                        <div style="background:var(--bg-lt); padding:20px; border-radius:8px; border:1px solid var(--border); display:flex; gap:16px; align-items:flex-start;">
                             <input type="checkbox" id="auto_renew_mpesa" name="auto_renew" value="on" style="width:18px; height:18px; margin-top:2px; accent-color:var(--accent);">
                             <label for="auto_renew_mpesa" style="cursor:pointer;">
-                                <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--ink);">Enable Auto-Renewal</div>
-                                <div style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-top:4px;">We'll automatically charge your M-Pesa each month. Cancel anytime.</div>
+                                <div style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--white);">Enable Auto-Renewal</div>
+                                <div style="font-family:var(--font-m); font-size:11px; color:var(--muted); margin-top:4px;">We'll automatically charge your M-Pesa each month. Cancel anytime.</div>
                             </label>
                         </div>
 
@@ -122,7 +122,7 @@
                             <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:16px; font-size:14px; font-weight:700;">
                                 Pay KES <span x-text="kesPrice.toLocaleString()"></span> via M-Pesa
                             </button>
-                            <p style="text-align:center; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:12px;">
+                            <p style="text-align:center; font-family:var(--font-m); font-size:10px; color:var(--muted); margin-top:12px;">
                                 ≈ $<span x-text="discountedPrice"></span> USD · Incl. 16% VAT &amp; 1.5% DST
                             </p>
                         </div>
@@ -132,12 +132,12 @@
                 <!-- PayPal Form -->
                 <div x-show="method === 'paypal'" x-transition x-cloak class="mt-6">
                     <div id="paypal-button-container" style="min-height:150px;"></div>
-                    <p style="text-align:center; font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-top:16px;">PayPal payments are processed securely in USD.</p>
+                    <p style="text-align:center; font-family:var(--font-m); font-size:11px; color:var(--muted); margin-top:16px;">PayPal payments are processed securely in USD.</p>
                 </div>
 
             </div>
 
-            <div style="display:flex; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-size:11px; font-family:'DM Mono',monospace;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-size:11px; font-family:var(--font-m);">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 256-bit SSL Encrypted Payment
             </div>
@@ -145,17 +145,17 @@
 
         <!-- Order Summary -->
         <div class="order-first md:order-last">
-            <div style="background:var(--cream); border:1px solid var(--border); border-radius:12px; padding:32px; position:sticky; top:24px;">
-                <h2 style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:32px;">Order Summary</h2>
+            <div style="background:var(--bg-lt); border:1px solid var(--border); border-radius:12px; padding:32px; position:sticky; top:24px;">
+                <h2 style="font-family:var(--font-d); font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:32px;">Order Summary</h2>
 
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px;">
                     <div>
-                        <h3 style="font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:var(--ink);">{{ tier.name }}</h3>
-                        <p style="font-family:'DM Mono',monospace; font-size:13px; color:var(--muted); margin-top:4px;">{{ tier.interval.capitalize() }} billing</p>
+                        <h3 style="font-family:var(--font-d); font-size:20px; font-weight:800; color:var(--white);">{{ tier.name }}</h3>
+                        <p style="font-family:var(--font-m); font-size:13px; color:var(--muted); margin-top:4px;">{{ tier.interval.capitalize() }} billing</p>
                     </div>
                     <div style="text-right">
-                        <div style="font-family:'Syne',sans-serif; font-size:24px; font-weight:800; color:var(--ink);">${{ "{:.2f}".format(tier.price) }}</div>
-                        <p style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); mt-1;">≈ KES {{ "{:,.0f}".format(kes_price) }}</p>
+                        <div style="font-family:var(--font-d); font-size:24px; font-weight:800; color:var(--white);">${{ "{:.2f}".format(tier.price) }}</div>
+                        <p style="font-family:var(--font-m); font-size:11px; color:var(--muted); mt-1;">≈ KES {{ "{:,.0f}".format(kes_price) }}</p>
                     </div>
                 </div>
 
@@ -163,10 +163,10 @@
 
                 <!-- Coupon Section -->
                 <div class="mb-8">
-                    <label style="display:block; font-family:'DM Mono',monospace; font-size:10px; font-weight:700; text-transform:uppercase; color:var(--muted); letter-spacing:1px; margin-bottom:12px;">Have a coupon?</label>
+                    <label style="display:block; font-family:var(--font-m); font-size:10px; font-weight:700; text-transform:uppercase; color:var(--muted); letter-spacing:1px; margin-bottom:12px;">Have a coupon?</label>
                     <div class="flex gap-2">
                         <input type="text" x-model="couponCode" :disabled="couponApplied"
-                            style="flex:1; padding:10px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--ink); font-family:'DM Mono',monospace; font-size:13px; outline:none;" placeholder="Enter code">
+                            style="flex:1; padding:10px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--white); font-family:var(--font-m); font-size:13px; outline:none;" placeholder="Enter code">
                         <button type="button" @click="applyCoupon" :disabled="couponApplied || couponLoading"
                             class="btn-primary" style="padding:10px 20px;">
                             <span x-show="!couponLoading">Apply</span>
@@ -180,21 +180,21 @@
                 <div style="height:1px; background:var(--border); margin:32px 0;"></div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;" :class="couponApplied ? 'opacity-50' : ''">
-                    <span style="font-family:'DM Mono',monospace; font-size:13px; color:var(--muted);">Subtotal (USD)</span>
-                    <span style="font-family:'Syne',sans-serif; font-size:18px; font-weight:700; color:var(--ink);">${{ "{:.2f}".format(tier.price) }}</span>
+                    <span style="font-family:var(--font-m); font-size:13px; color:var(--muted);">Subtotal (USD)</span>
+                    <span style="font-family:var(--font-d); font-size:18px; font-weight:700; color:var(--white);">${{ "{:.2f}".format(tier.price) }}</span>
                 </div>
                 
                 <div x-show="couponApplied" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <span style="font-family:'DM Mono',monospace; font-size:13px; font-weight:700; color:var(--ink);">Discount Total (USD)</span>
-                    <span style="font-family:'Syne',sans-serif; font-size:24px; font-weight:800; color:var(--accent);">$<span x-text="discountedPrice"></span></span>
+                    <span style="font-family:var(--font-m); font-size:13px; font-weight:700; color:var(--white);">Discount Total (USD)</span>
+                    <span style="font-family:var(--font-d); font-size:24px; font-weight:800; color:var(--accent);">$<span x-text="discountedPrice"></span></span>
                 </div>
 
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">M-Pesa equivalent</span>
-                    <span style="font-family:'DM Mono',monospace; font-size:14px; font-weight:700; color:var(--ink);">KES <span x-text="kesPrice.toLocaleString()"></span></span>
+                    <span style="font-family:var(--font-m); font-size:11px; color:var(--muted);">M-Pesa equivalent</span>
+                    <span style="font-family:var(--font-m); font-size:14px; font-weight:700; color:var(--white);">KES <span x-text="kesPrice.toLocaleString()"></span></span>
                 </div>
 
-                <p style="font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); line-height:1.6; margin-top:32px;">
+                <p style="font-family:var(--font-m); font-size:10px; color:var(--muted); line-height:1.6; margin-top:32px;">
                     Prices include 16% VAT &amp; 1.5% Digital Service Tax (Finance Act 2020).
                 </p>
             </div>

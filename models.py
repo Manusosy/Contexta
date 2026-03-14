@@ -52,6 +52,9 @@ class Article(db.Model):
     slug = db.Column(db.String(300))
     primary_keyword = db.Column(db.String(200))
     seo_score = db.Column(db.Integer, default=0)
+    relevance_score = db.Column(db.Integer, nullable=True)
+    topic_category = db.Column(db.String(100), nullable=True)
+    content_strategy = db.Column(db.String(100), nullable=True)
     # Status: pending | processing | extracting | rewriting | publishing | published | failed | skipped | permanently_failed
     status = db.Column(db.String(50), default="pending")
     wordpress_id = db.Column(db.Integer, nullable=True)
@@ -78,6 +81,9 @@ class Article(db.Model):
             "original_title": self.original_title,
             "generated_title": self.generated_title,
             "seo_score": self.seo_score,
+            "relevance_score": self.relevance_score,
+            "topic_category": self.topic_category,
+            "content_strategy": self.content_strategy,
             "status": self.status,
             "wordpress_id": self.wordpress_id,
             "created_at": self.created_at.isoformat(),
@@ -288,8 +294,30 @@ class User(UserMixin, db.Model):
     # WordPress Settings (Per User)
     wp_url = db.Column(db.String(500))
     wp_user = db.Column(db.String(100))
-    wp_password = db.Column(db.String(200))
+    _wp_password = db.Column("wp_password", db.String(500)) # Encrypted at rest
     wp_default_category = db.Column(db.Integer)
+
+    @property
+    def wp_password(self):
+        """Decrypt the WordPress password on access."""
+        if not self._wp_password:
+            return None
+        from flask import current_app
+        from utils.security import decrypt_data
+        # Use a default secret if current_app is not available (rare in this app)
+        secret = current_app.config.get("SECRET_KEY", "dev-secret") if current_app else "dev-secret"
+        return decrypt_data(self._wp_password, secret)
+
+    @wp_password.setter
+    def wp_password(self, value):
+        """Encrypt the WordPress password on save."""
+        if not value:
+            self._wp_password = None
+            return
+        from flask import current_app
+        from utils.security import encrypt_data
+        secret = current_app.config.get("SECRET_KEY", "dev-secret") if current_app else "dev-secret"
+        self._wp_password = encrypt_data(value, secret)
 
     # Billing Profile
     billing_company = db.Column(db.String(200))
@@ -302,6 +330,7 @@ class User(UserMixin, db.Model):
     feeds = db.relationship("Feed", backref="user", lazy=True, cascade="all, delete-orphan")
     subscriptions = db.relationship("Subscription", backref="user", lazy=True, cascade="all, delete-orphan")
     transactions = db.relationship("Transaction", backref="user", lazy=True, cascade="all, delete-orphan")
+    notifications = db.relationship("Notification", backref="user", lazy=True, cascade="all, delete-orphan")
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)

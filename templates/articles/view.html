@@ -5,12 +5,12 @@
 <div class="space-y-6">
 
     <!-- Breadcrumb -->
-    <div class="flex items-center gap-2 text-sm text-slate-500">
+    <div class="flex items-center gap-2 text-sm text-slate-500" style="font-family:var(--font-d);">
         <a href="{{ url_for('articles.index') }}" class="hover:text-brand-600">Articles</a>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
-        <span class="text-slate-800 font-medium truncate max-w-xs">{{ (article.generated_title or article.original_title
+        <span class="text-white font-medium truncate max-w-xs">{{ (article.generated_title or article.original_title
             or 'Untitled')[:50] }}</span>
     </div>
 
@@ -23,10 +23,10 @@
 
                 <!-- Title -->
                 <div class="card p-5">
-                    <label class="label">Article Title</label>
+                    <label class="label" style="font-family:var(--font-m);">Article Title</label>
                     <input type="text" name="generated_title" id="generated-title"
                         value="{{ article.generated_title or article.original_title or '' }}"
-                        class="input-field text-lg font-semibold" placeholder="Generated article title..." />
+                        class="input-field text-lg font-semibold" style="font-family:var(--font-d); color:var(--white);" placeholder="Generated article title..." />
                 </div>
 
                 <!-- Content Editor -->
@@ -79,9 +79,9 @@
 
                 <!-- Publish Actions -->
                 <div class="card p-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-4">Publish</h3>
+                    <h3 class="text-sm font-semibold text-white mb-4" style="font-family:var(--font-d);">Publish</h3>
                     <div class="space-y-3">
-                        <button type="submit" class="btn-primary w-full flex items-center justify-center gap-2">
+                        <button type="submit" class="btn-primary w-full flex items-center justify-center gap-2" style="font-family:var(--font-m);">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -112,38 +112,38 @@
                         {% if article.status in ['failed', 'failed_scrape', 'failed_ai', 'failed_verification'] %}
                         <form action="{{ url_for('articles.retry', article_id=article.id) }}" method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit"
-                                class="btn-secondary w-full flex items-center justify-center gap-2 mt-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Retry Processing
-                            </button>
-                        </form>
-                        {% endif %}
-
-                        <form action="{{ url_for('articles.delete', article_id=article.id) }}" method="POST"
-                            onsubmit="return confirm('Permanently delete this article?')">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn-danger w-full mt-2">Delete Article</button>
-                        </form>
-                    </div>
-                </div>
-
+                             <button type="submit"
+                                 class="btn-secondary w-full flex items-center justify-center gap-2 mt-2">
+                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                 </svg>
+                                 Retry Processing
+                             </button>
+                         </form>
+                         {% endif %}
+ 
+                         <form action="{{ url_for('articles.delete', article_id=article.id) }}" method="POST"
+                             onsubmit="return confirm('Permanently delete this article?')">
+     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                             <button type="submit" class="btn-danger w-full mt-2">Delete Article</button>
+                         </form>
+                     </div>
+                 </div>
+ 
                 <!-- Article Info -->
                 <div class="card p-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-4">Article Info</h3>
+                    <h3 class="text-sm font-semibold mb-4" style="color:var(--white); font-family:var(--font-d);">Article Info</h3>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
-                            <span class="text-slate-500">Status</span>
+                            <span style="color:var(--muted);">Status</span>
                             {% if article.status == 'generated' %}<span class="badge badge-blue">Generated</span>
                             {% elif article.status == 'pushed' %}<span class="badge badge-green">Pushed</span>
                             {% elif article.status == 'failed' %}<span class="badge badge-red">Failed</span>
                             {% else %}<span class="badge badge-gray">Pending</span>{% endif %}
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-slate-500">SEO Score</span>
+                            <span style="color:var(--muted);">SEO Score</span>
                             <span
                                 class="font-semibold {% if article.seo_score >= 70 %}text-emerald-600{% elif article.seo_score >= 40 %}text-amber-600{% else %}text-red-500{% endif %}">
                                 {{ article.seo_score }}/100
@@ -151,17 +151,17 @@
                         </div>
                         {% if article.primary_keyword %}
                         <div class="flex justify-between">
-                            <span class="text-slate-500">Keyword</span>
-                            <span class="text-slate-700 font-medium">{{ article.primary_keyword }}</span>
+                            <span style="color:var(--muted);">Keyword</span>
+                            <span style="color:var(--white);" class="font-medium">{{ article.primary_keyword }}</span>
                         </div>
                         {% endif %}
                         <div class="flex justify-between">
-                            <span class="text-slate-500">Words</span>
-                            <span class="text-slate-700 font-medium">{{ article.word_count or 0 }}</span>
+                            <span style="color:var(--muted);">Words</span>
+                            <span style="color:var(--white);" class="font-medium">{{ article.word_count or 0 }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-slate-500">Created</span>
-                            <span class="text-slate-700">{{ article.created_at.strftime('%b %d, %Y') }}</span>
+                            <span style="color:var(--muted);">Created</span>
+                            <span style="color:var(--white);">{{ article.created_at.strftime('%b %d, %Y') }}</span>
                         </div>
                         {% if article.source_url %}
                         <div class="pt-1">
@@ -180,7 +180,7 @@
 
                 <!-- SEO Fields -->
                 <div class="card p-5">
-                    <h3 class="text-sm font-semibold text-slate-700 mb-4">SEO</h3>
+                    <h3 class="text-sm font-semibold mb-4" style="color:var(--white); font-family:var(--font-d);">SEO</h3>
                     <div class="space-y-4">
                         <div>
                             <label class="label">Meta Description
@@ -194,7 +194,7 @@
                         <div>
                             <label class="label">URL Slug</label>
                             <input type="text" name="slug" value="{{ article.slug or '' }}"
-                                class="input-field text-sm font-mono" placeholder="url-slug-here" />
+                                class="input-field text-sm" style="font-family:var(--font-m);" placeholder="url-slug-here" />
                         </div>
                     </div>
                 </div>

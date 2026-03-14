@@ -5,10 +5,10 @@
 <div style="display:flex; flex-direction:column; gap:24px;">
 
   <!-- Header -->
-  <div>
-    <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Revenue & Growth</h1>
-    <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Monitor your MRR, ARR, and transaction history.</p>
-  </div>
+    <div>
+      <h1 style="font-family:var(--font-d); font-size:22px; font-weight:700; color:var(--white); letter-spacing:-0.5px;">Revenue & Growth</h1>
+      <p style="font-size:11px; color:var(--text-muted); font-family:var(--font-m); margin-top:4px;">Monitor your MRR, ARR, and transaction history.</p>
+    </div>
 
   <!-- Stats -->
   <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
@@ -16,21 +16,21 @@
     <!-- MRR -->
     <div class="stat-card accent-green">
       <div class="stat-label">Monthly Recurring Revenue</div>
-      <div style="font-family:'Fraunces',serif; font-size:32px; font-weight:300; color:var(--ink); margin-bottom:4px;">${{ "{:,.2f}".format(metrics.mrr) }}</div>
+      <div style="font-family:var(--font-s); font-size:32px; font-weight:300; color:var(--white); margin-bottom:4px;">${{ "{:,.2f}".format(metrics.mrr) }}</div>
       <div class="stat-delta" style="color:var(--green);">● +12.5% vs last month</div>
     </div>
 
     <!-- ARR -->
     <div class="stat-card accent-blue">
       <div class="stat-label">Annual Recurring Revenue</div>
-      <div style="font-family:'Fraunces',serif; font-size:32px; font-weight:300; color:var(--ink); margin-bottom:4px;">${{ "{:,.2f}".format(metrics.arr) }}</div>
+      <div style="font-family:var(--font-s); font-size:32px; font-weight:300; color:var(--white); margin-bottom:4px;">${{ "{:,.2f}".format(metrics.arr) }}</div>
       <div class="stat-delta">Projected yearly revenue</div>
     </div>
 
     <!-- Active Subs -->
     <div class="stat-card accent-amber">
       <div class="stat-label">Active Subscribers</div>
-      <div style="font-family:'Fraunces',serif; font-size:32px; font-weight:300; color:var(--ink); margin-bottom:4px;">{{ metrics.active_subscribers }}</div>
+      <div style="font-family:var(--font-s); font-size:32px; font-weight:300; color:var(--white); margin-bottom:4px;">{{ metrics.active_subscribers }}</div>
       <div class="stat-delta">Total paying customers</div>
     </div>
 

@@ -7,13 +7,13 @@
   <!-- ── HEADER ── -->
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
     <div>
-      <h1 style="font-family:'Syne',sans-serif; font-size:26px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Billing & Subscription</h1>
+      <h1 style="font-family:var(--font-d); font-size:26px; font-weight:700; color:var(--white); letter-spacing:-0.5px;">Billing & Subscription</h1>
     </div>
     <div style="display:flex; align-items:center; gap:12px;">
-      <button onclick="window.print()" style="padding:10px 18px; border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); background:var(--paper); cursor:pointer; transition:all 0.15s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='var(--paper)'">
+      <button onclick="window.print()" style="padding:10px 18px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-m); font-size:12px; color:var(--muted); background:var(--bg-deep); cursor:pointer; transition:all 0.15s;" onmouseover="this.style.background='var(--bg-lt)'" onmouseout="this.style.background='var(--bg-deep)'">
         Download All Invoices
       </button>
-      <a href="{{ url_for('client.subscription') }}" class="btn-primary" style="padding:10px 20px; background:var(--accent); color:white; border-radius:4px; font-family:'DM Mono',monospace; font-size:12px; text-decoration:none; font-weight:600;">
+      <a href="{{ url_for('client.subscription') }}" class="btn-primary" style="padding:10px 20px; background:var(--accent); color:white; border-radius:4px; font-family:var(--font-m); font-size:12px; text-decoration:none; font-weight:600;">
         Upgrade Plan
       </a>
     </div>
@@ -22,18 +22,18 @@
   <div style="height:1px; background:var(--border); margin-top:-8px;"></div>
 
   <!-- ── CURRENT PLAN CARD ── -->
-  <div class="section-card" style="padding:32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:24px; background:var(--paper); border:1px solid var(--border);">
+  <div class="section-card" style="padding:32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:24px; background:var(--bg-deep); border:1px solid var(--border);">
     <div style="display:flex; align-items:center; gap:24px;">
-      <div style="width:56px; height:56px; background:var(--ink); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--accent); flex-shrink:0;">
+      <div style="width:56px; height:56px; background:var(--white); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--accent); flex-shrink:0;">
         <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464a1 1 0 10-1.414-1.414l.707-.707a1 1 0 001.414 1.414l-.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.477.859h4z"/></svg>
       </div>
       <div>
-        <h2 style="font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--ink);">
+        <h2 style="font-family:var(--font-d); font-size:20px; font-weight:700; color:var(--white);">
           {{ sub.plan_name if sub else 'Free Tier' }} — 
           <span style="font-weight:400; color:var(--muted);">${{ '%.2f'|format(sub.tier.price) if sub and sub.tier else '0.00' }}/month</span>
         </h2>
-        <div style="font-size:12px; font-family:'DM Mono',monospace; color:var(--muted); margin-top:4px;">
-          Next billing date: <span style="color:var(--ink); font-weight:600;">{{ sub.current_period_end.strftime('%B %d, %Y') if sub and sub.current_period_end else 'N/A' }}</span> · 
+        <div style="font-size:12px; font-family:var(--font-m); color:var(--muted); margin-top:4px;">
+          Next billing date: <span style="color:var(--white); font-weight:600;">{{ sub.current_period_end.strftime('%B %d, %Y') if sub and sub.current_period_end else 'N/A' }}</span> · 
           {{ 'Renews automatically' if sub and sub.auto_renew else 'Manual renewal' }}
         </div>
       </div>
@@ -41,11 +41,11 @@
     <div style="display:flex; align-items:center; gap:12px;">
       <form action="{{ url_for('client.cancel_subscription') }}" method="POST" onsubmit="return confirm('Are you sure?')">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" style="padding:12px 24px; border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); background:var(--paper); cursor:pointer;">
+        <button type="submit" style="padding:12px 24px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-m); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); background:var(--bg-deep); cursor:pointer;">
           Cancel Plan
         </button>
       </form>
-      <a href="{{ url_for('client.subscription') }}" style="padding:12px 24px; border:none; border-radius:4px; font-family:'DM Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--paper); background:var(--ink); cursor:pointer; text-decoration:none; font-weight:600;">
+      <a href="{{ url_for('client.subscription') }}" style="padding:12px 24px; border:none; border-radius:4px; font-family:var(--font-m); font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--bg-deep); background:var(--white); cursor:pointer; text-decoration:none; font-weight:600;">
         Change Plan
       </a>
     </div>
@@ -53,55 +53,55 @@
 
   <!-- ── USAGE STATS ── -->
   <div>
-    <h3 style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:12px;">
+    <h3 style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:12px;">
       This Month's Usage
       <div style="height:1px; background:var(--border); flex:1;"></div>
     </h3>
     
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px; margin-top:24px;">
       <!-- Card 1: Posts Published -->
-      <div class="section-card" style="padding:32px 24px; background:var(--paper); border:1px solid var(--border);">
-        <div style="font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:20px;">Posts Published</div>
+      <div class="section-card" style="padding:32px 24px; background:var(--bg-deep); border:1px solid var(--border);">
+        <div style="font-family:var(--font-m); font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--text-muted); margin-bottom:20px;">Posts Published</div>
         <div style="display:flex; align-items:baseline; gap:8px;">
-          <span style="font-family:'Fraunces',serif; font-size:48px; color:var(--ink); font-weight:300;">{{ article_count }}</span>
-          <span style="font-family:'DM Mono',monospace; font-size:18px; color:var(--muted);">/ {{ article_limit if article_limit != -1 else '∞' }}</span>
+          <span style="font-family:var(--font-s); font-size:48px; color:var(--white); font-weight:300;">{{ article_count }}</span>
+          <span style="font-family:var(--font-m); font-size:18px; color:var(--text-muted);">/ {{ article_limit if article_limit != -1 else '∞' }}</span>
         </div>
-        <div style="height:6px; background:var(--cream); border-radius:3px; margin:20px 0 12px; overflow:hidden;">
+        <div style="height:6px; background:var(--bg-lt); border-radius:3px; margin:20px 0 12px; overflow:hidden;">
           <div style="height:100%; background:var(--green); width:{{ [((article_count/article_limit)*100)|int, 100]|min if article_limit != -1 else 0 }}%; border-radius:3px; transition:width 0.5s;"></div>
         </div>
-        <div style="font-size:11px; font-family:'DM Mono',monospace; color:var(--muted);">
+        <div style="font-size:11px; font-family:var(--font-m); color:var(--text-muted);">
           {{ (((article_count/article_limit)*100)|int if article_limit != -1 else 0) }}% used · 
           {% if article_limit != -1 %}{{ article_limit - article_count }} remaining{% else %}Unlimited{% endif %}
         </div>
       </div>
 
       <!-- Card 2: AI Rewrites -->
-      <div class="section-card" style="padding:32px 24px; background:var(--paper); border:1px solid var(--border);">
-        <div style="font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:20px;">AI Rewrites</div>
+      <div class="section-card" style="padding:32px 24px; background:var(--bg-deep); border:1px solid var(--border);">
+        <div style="font-family:var(--font-m); font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--text-muted); margin-bottom:20px;">AI Rewrites</div>
         <div style="display:flex; align-items:baseline; gap:8px;">
-          <span style="font-family:'Fraunces',serif; font-size:48px; color:var(--ink); font-weight:300;">{{ rewrite_count }}</span>
-          <span style="font-family:'DM Mono',monospace; font-size:18px; color:var(--muted);">/ {{ rewrite_limit if rewrite_limit != -1 else '∞' }}</span>
+          <span style="font-family:var(--font-s); font-size:48px; color:var(--white); font-weight:300;">{{ rewrite_count }}</span>
+          <span style="font-family:var(--font-m); font-size:18px; color:var(--text-muted);">/ {{ rewrite_limit if rewrite_limit != -1 else '∞' }}</span>
         </div>
-        <div style="height:6px; background:var(--cream); border-radius:3px; margin:20px 0 12px; overflow:hidden;">
-          <div style="height:100%; background:#c8882f; width:{{ [((rewrite_count/rewrite_limit)*100)|int, 100]|min if rewrite_limit != -1 else 0 }}%; border-radius:3px; transition:width 0.5s;"></div>
+        <div style="height:6px; background:var(--bg-lt); border-radius:3px; margin:20px 0 12px; overflow:hidden;">
+          <div style="height:100%; background:var(--brand); width:{{ [((rewrite_count/rewrite_limit)*100)|int, 100]|min if rewrite_limit != -1 else 0 }}%; border-radius:3px; transition:width 0.5s;"></div>
         </div>
-        <div style="font-size:11px; font-family:'DM Mono',monospace; color:var(--muted);">
+        <div style="font-size:11px; font-family:var(--font-m); color:var(--text-muted);">
           {{ (((rewrite_count/rewrite_limit)*100)|int if rewrite_limit != -1 else 0) }}% used · 
-          {% if rewrite_count >= (rewrite_limit * 0.8) and rewrite_limit != -1 %}<span style="color:#c8882f; font-weight:600;">consider upgrading</span>{% else %}optimal usage{% endif %}
+          {% if rewrite_count >= (rewrite_limit * 0.8) and rewrite_limit != -1 %}<span style="color:var(--brand-lt); font-weight:600;">consider upgrading</span>{% else %}optimal usage{% endif %}
         </div>
       </div>
 
       <!-- Card 3: Feed Sources -->
-      <div class="section-card" style="padding:32px 24px; background:var(--paper); border:1px solid var(--border);">
-        <div style="font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:20px;">Feed Sources</div>
+      <div class="section-card" style="padding:32px 24px; background:var(--bg-deep); border:1px solid var(--border);">
+        <div style="font-family:var(--font-m); font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--text-muted); margin-bottom:20px;">Feed Sources</div>
         <div style="display:flex; align-items:baseline; gap:8px;">
-          <span style="font-family:'Fraunces',serif; font-size:48px; color:var(--ink); font-weight:300;">{{ feed_count }}</span>
-          <span style="font-family:'DM Mono',monospace; font-size:18px; color:var(--muted);">/ {{ feed_limit if feed_limit != -1 else '∞' }}</span>
+          <span style="font-family:var(--font-s); font-size:48px; color:var(--white); font-weight:300;">{{ feed_count }}</span>
+          <span style="font-family:var(--font-m); font-size:18px; color:var(--text-muted);">/ {{ feed_limit if feed_limit != -1 else '∞' }}</span>
         </div>
-        <div style="height:6px; background:var(--cream); border-radius:3px; margin:20px 0 12px; overflow:hidden;">
-          <div style="height:100%; background:#c8882f; width:{{ [((feed_count/feed_limit)*100)|int, 100]|min if feed_limit != -1 else 0 }}%; border-radius:3px; transition:width 0.5s;"></div>
+        <div style="height:6px; background:var(--bg-lt); border-radius:3px; margin:20px 0 12px; overflow:hidden;">
+          <div style="height:100%; background:var(--brand); width:{{ [((feed_count/feed_limit)*100)|int, 100]|min if feed_limit != -1 else 0 }}%; border-radius:3px; transition:width 0.5s;"></div>
         </div>
-        <div style="font-size:11px; font-family:'DM Mono',monospace; color:var(--muted);">
+        <div style="font-size:11px; font-family:var(--font-m); color:var(--text-muted);">
           {{ (((feed_count/feed_limit)*100)|int if feed_limit != -1 else 0) }}% used · 
           {% if feed_limit != -1 %}{{ feed_limit - feed_count }} slots left{% else %}Unlimited{% endif %}
         </div>
@@ -111,7 +111,7 @@
 
   <!-- ── INVOICE HISTORY ── -->
   <div>
-    <h3 style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:12px;">
+    <h3 style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:12px;">
       Invoice History
       <div style="height:1px; background:var(--border); flex:1;"></div>
     </h3>
@@ -120,37 +120,37 @@
     <div class="section-card" style="margin-top:24px; padding:0; border:1px solid var(--border); overflow:hidden;">
       <div style="overflow-x:auto;">
         <table class="data-table" style="width:100%; border-collapse:collapse;">
-          <thead style="background:var(--cream); border-bottom:1px solid var(--border);">
+          <thead style="background:var(--bg-lt); border-bottom:1px solid var(--border);">
             <tr>
-              <th style="padding:16px 24px; text-align:left; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:500;">Description/Date</th>
-              <th style="padding:16px 24px; text-align:left; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:500;">Amount</th>
-              <th style="padding:16px 24px; text-align:left; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:500;">Status</th>
-              <th style="padding:16px 24px; text-align:right; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:500;">Invoice</th>
+              <th style="padding:16px 24px; text-align:left; font-family:var(--font-m); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:500;">Description/Date</th>
+              <th style="padding:16px 24px; text-align:left; font-family:var(--font-m); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:500;">Amount</th>
+              <th style="padding:16px 24px; text-align:left; font-family:var(--font-m); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:500;">Status</th>
+              <th style="padding:16px 24px; text-align:right; font-family:var(--font-m); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:500;">Invoice</th>
             </tr>
           </thead>
-          <tbody style="background:var(--paper);">
+          <tbody style="background:var(--bg-deep);">
             {% for tx in transactions %}
-            <tr style="border-bottom:1px solid var(--border); transition: background 0.1s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='var(--paper)'">
+            <tr style="border-bottom:1px solid var(--border); transition: background 0.1s;" onmouseover="this.style.background='var(--bg-lt)'" onmouseout="this.style.background='var(--bg-deep)'">
               <td style="padding:20px 24px;">
-                <div style="font-family:'Fraunces',serif; font-size:15px; color:var(--ink); font-style:italic;">
+                <div style="font-family:var(--font-s); font-size:15px; color:var(--white); font-style:italic;">
                   {{ sub.plan_name if sub else 'Subscription' }} — {{ tx.created_at.strftime('%B %Y') }}
                 </div>
-                <div style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-top:4px;">{{ tx.created_at.strftime('%b %d, %Y') }}</div>
+                <div style="font-family:var(--font-m); font-size:11px; color:var(--text-muted); margin-top:4px;">{{ tx.created_at.strftime('%b %d, %Y') }}</div>
               </td>
               <td style="padding:20px 24px;">
-                <span style="font-weight:700; color:var(--ink); font-family:'DM Mono',monospace;">${{ "%.2f"|format(tx.amount) }}</span>
+                <span style="font-weight:700; color:var(--white); font-family:var(--font-m);">${{ "%.2f"|format(tx.amount) }}</span>
               </td>
               <td style="padding:20px 24px;">
                 {% if tx.status == 'completed' %}
-                <span style="background:#e8f5ed; color:var(--green); font-family:'DM Mono',monospace; font-size:10px; padding:4px 10px; border-radius:4px; border:1px solid rgba(42,122,75,0.1);">Paid</span>
+                <span style="background:#e8f5ed; color:var(--green); font-family:var(--font-m); font-size:10px; padding:4px 10px; border-radius:4px; border:1px solid rgba(42,122,75,0.1);">Paid</span>
                 {% elif tx.status == 'failed' %}
-                <span style="background:#fde8e8; color:var(--accent); font-family:'DM Mono',monospace; font-size:10px; padding:4px 10px; border-radius:4px;">Failed</span>
+                <span style="background:#fde8e8; color:var(--accent); font-family:var(--font-m); font-size:10px; padding:4px 10px; border-radius:4px;">Failed</span>
                 {% else %}
-                <span style="background:var(--cream); color:var(--muted); font-family:'DM Mono',monospace; font-size:10px; padding:4px 10px; border-radius:4px;">{{ tx.status|title }}</span>
+                <span style="background:var(--bg-lt); color:var(--muted); font-family:var(--font-m); font-size:10px; padding:4px 10px; border-radius:4px;">{{ tx.status|title }}</span>
                 {% endif %}
               </td>
               <td style="padding:20px 24px; text-align:right;">
-                <a href="{{ url_for('client.receipt', tx_id=tx.id) }}" style="font-family:'DM Mono',monospace; font-size:11px; color:var(--accent2); text-decoration:underline;">Download</a>
+                <a href="{{ url_for('client.receipt', tx_id=tx.id) }}" style="font-family:var(--font-m); font-size:11px; color:var(--accent2); text-decoration:underline;">Download</a>
               </td>
             </tr>
             {% endfor %}
@@ -159,7 +159,7 @@
       </div>
     </div>
     {% else %}
-    <div style="padding:40px; text-align:center; color:var(--muted); font-family:'DM Mono',monospace; font-size:12px; background:var(--paper); border:1px solid var(--border); border-radius:6px; margin-top:24px;">
+    <div style="padding:40px; text-align:center; color:var(--muted); font-family:var(--font-m); font-size:12px; background:var(--bg-deep); border:1px solid var(--border); border-radius:6px; margin-top:24px;">
       No invoice history found.
     </div>
     {% endif %}
@@ -170,46 +170,46 @@
     
     <!-- Left: Payment Method -->
     <div>
-      <h3 style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+      <h3 style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:12px; margin-bottom:24px;">
         Payment Method
         <div style="height:1px; background:var(--border); flex:1;"></div>
       </h3>
 
       {% if sub and sub.payment_method %}
-      <div style="background:var(--paper); border:1px solid var(--border); border-radius:8px; padding:24px; position:relative; overflow:hidden;">
+      <div style="background:var(--bg-deep); border:1px solid var(--border); border-radius:8px; padding:24px; position:relative; overflow:hidden;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
           <div style="display:flex; align-items:center; gap:12px;">
             {% if sub.payment_method == 'mpesa' %}
             <div style="width:40px; height:40px; background:#4CAF50; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-weight:900; font-size:18px;">M</div>
             <div>
-              <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700;">M-Pesa</div>
-              <div style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">Mobile Payment</div>
+              <div style="font-family:var(--font-d); font-size:14px; font-weight:700;">M-Pesa</div>
+              <div style="font-family:var(--font-m); font-size:11px; color:var(--muted);">Mobile Payment</div>
             </div>
             {% elif sub.payment_method == 'paypal' %}
             <div style="width:40px; height:40px; background:#003087; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white;">
               <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 01-.633-.74L4.944 3.729C5.04 3.12 5.57 2.663 6.188 2.663h9.706c3.591 0 5.886 1.834 6.415 5.105.272 1.581.046 2.885-.674 3.98-.745 1.134-1.974 1.886-3.676 2.226l-.129.026c-1.213.251-2.203.258-2.98.221l-.093-.005h-.06c-.753 0-1.398.543-1.52 1.29l-1.233 7.538a.642.642 0 01-.633.538h-4.435z"/></svg>
             </div>
             <div>
-              <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700;">PayPal</div>
-              <div style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">Global Payments</div>
+              <div style="font-family:var(--font-d); font-size:14px; font-weight:700;">PayPal</div>
+              <div style="font-family:var(--font-m); font-size:11px; color:var(--muted);">Global Payments</div>
             </div>
             {% endif %}
           </div>
-          <span style="font-family:'DM Mono',monospace; font-size:10px; color:var(--green); background:rgba(42,122,75,0.05); padding:2px 8px; border-radius:4px; border:1px solid rgba(42,122,75,0.1);">PRIMARY</span>
+          <span style="font-family:var(--font-m); font-size:10px; color:var(--green); background:rgba(42,122,75,0.05); padding:2px 8px; border-radius:4px; border:1px solid rgba(42,122,75,0.1);">PRIMARY</span>
         </div>
 
-        <div style="font-family:'DM Mono',monospace; font-size:14px; color:var(--ink); padding:16px; background:var(--cream); border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-family:var(--font-m); font-size:14px; color:var(--white); padding:16px; background:var(--bg-lt); border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
           <span>{{ sub.payment_details or 'Account Connected' }}</span>
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
         </div>
 
         <div style="display:flex; gap:16px; margin-top:20px;">
-          <a href="{{ url_for('client.subscription') }}" style="font-family:'DM Mono',monospace; font-size:11px; color:var(--accent2); text-decoration:underline;">Update Payment Method</a>
+          <a href="{{ url_for('client.subscription') }}" style="font-family:var(--font-m); font-size:11px; color:var(--accent2); text-decoration:underline;">Update Payment Method</a>
         </div>
       </div>
       {% else %}
-      <div style="background:var(--paper); border:1px solid var(--border); border-radius:8px; padding:32px; text-align:center;">
-        <div style="font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); margin-bottom:20px;">No payment method on file.</div>
+      <div style="background:var(--bg-deep); border:1px solid var(--border); border-radius:8px; padding:32px; text-align:center;">
+        <div style="font-family:var(--font-m); font-size:12px; color:var(--muted); margin-bottom:20px;">No payment method on file.</div>
         <a href="{{ url_for('client.subscription') }}" class="btn-primary" style="display:inline-block; text-decoration:none; padding:10px 20px; font-size:11px;">Add Payment Method</a>
       </div>
       {% endif %}
@@ -217,40 +217,40 @@
 
     <!-- Right: Billing Details -->
     <div>
-      <div style="background:var(--paper); border:1px solid var(--border); border-radius:6px; padding:32px;">
-        <h4 style="font-family:'Syne',sans-serif; font-size:18px; font-weight:700; color:var(--ink); margin-bottom:24px;">Billing Details</h4>
+      <div style="background:var(--bg-deep); border:1px solid var(--border); border-radius:6px; padding:32px;">
+        <h4 style="font-family:var(--font-d); font-size:18px; font-weight:700; color:var(--white); margin-bottom:24px;">Billing Details</h4>
         
         <div style="display:flex; flex-direction:column; gap:16px;">
           <div style="display:flex; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid var(--border);">
-            <span style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">Full Name</span>
-            <span style="font-family:'DM Mono',monospace; font-size:12px; color:var(--ink); font-weight:500;">{{ current_user.full_name or '—' }}</span>
+            <span style="font-family:var(--font-m); font-size:11px; color:var(--muted);">Full Name</span>
+            <span style="font-family:var(--font-m); font-size:12px; color:var(--white); font-weight:500;">{{ current_user.full_name or '—' }}</span>
           </div>
           <div style="display:flex; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid var(--border);">
-            <span style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">Company</span>
-            <span style="font-family:'DM Mono',monospace; font-size:12px; color:var(--ink); font-weight:500;">{{ current_user.billing_company or '—' }}</span>
+            <span style="font-family:var(--font-m); font-size:11px; color:var(--muted);">Company</span>
+            <span style="font-family:var(--font-m); font-size:12px; color:var(--white); font-weight:500;">{{ current_user.billing_company or '—' }}</span>
           </div>
           <div style="display:flex; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid var(--border);">
-            <span style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">Email</span>
-            <span style="font-family:'DM Mono',monospace; font-size:12px; color:var(--ink); font-weight:500; text-decoration:underline;">{{ current_user.email }}</span>
+            <span style="font-family:var(--font-m); font-size:11px; color:var(--muted);">Email</span>
+            <span style="font-family:var(--font-m); font-size:12px; color:var(--white); font-weight:500; text-decoration:underline;">{{ current_user.email }}</span>
           </div>
           <div style="display:flex; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid var(--border);">
-            <span style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">Country</span>
-            <span style="font-family:'DM Mono',monospace; font-size:12px; color:var(--ink); font-weight:500;">{{ current_user.billing_country or 'Select Country' }}</span>
+            <span style="font-family:var(--font-m); font-size:11px; color:var(--muted);">Country</span>
+            <span style="font-family:var(--font-m); font-size:12px; color:var(--white); font-weight:500;">{{ current_user.billing_country or 'Select Country' }}</span>
           </div>
           <div style="display:flex; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid var(--border);">
-            <span style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">VAT / Tax ID</span>
-            <span style="font-family:'DM Mono',monospace; font-size:12px; color:var(--ink); font-weight:500;">{{ current_user.billing_tax_id or '—' }}</span>
+            <span style="font-family:var(--font-m); font-size:11px; color:var(--muted);">VAT / Tax ID</span>
+            <span style="font-family:var(--font-m); font-size:12px; color:var(--white); font-weight:500;">{{ current_user.billing_tax_id or '—' }}</span>
           </div>
           <div style="display:flex; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid var(--border); margin-bottom:8px;">
-            <span style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);">Address</span>
-            <span style="font-family:'DM Mono',monospace; font-size:12px; color:var(--ink); font-weight:500; text-align:right; max-width:200px;">
+            <span style="font-family:var(--font-m); font-size:11px; color:var(--muted);">Address</span>
+            <span style="font-family:var(--font-m); font-size:12px; color:var(--white); font-weight:500; text-align:right; max-width:200px;">
               {{ current_user.billing_address or '—' }}<br>
               {{ current_user.billing_city }}{% if current_user.billing_city and current_user.billing_zip %}, {% endif %}{{ current_user.billing_zip }}
             </span>
           </div>
         </div>
 
-        <button onclick="document.getElementById('billingModal').style.display='flex'" class="btn-secondary" style="width:100%; justify-content:center; padding:12px; margin-top:12px; font-family:'DM Mono',monospace; font-size:11px; font-weight:600; background:var(--cream);">
+        <button onclick="document.getElementById('billingModal').style.display='flex'" class="btn-secondary" style="width:100%; justify-content:center; padding:12px; margin-top:12px; font-family:var(--font-m); font-size:11px; font-weight:600; background:var(--bg-lt);">
           Edit Billing Details
         </button>
       </div>
@@ -261,31 +261,31 @@
 
 <!-- ── EDIT BILLING MODAL ── -->
 <div id="billingModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:20px;">
-  <div style="background:var(--paper); border-radius:8px; width:100%; max-width:500px; padding:32px; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
-    <h3 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); margin-bottom:8px;">Edit Billing Details</h3>
-    <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:24px;">Information used for your official receipts.</p>
+  <div style="background:var(--bg-deep); border-radius:8px; width:100%; max-width:500px; padding:32px; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+    <h3 style="font-family:var(--font-d); font-size:22px; font-weight:700; color:var(--white); margin-bottom:8px;">Edit Billing Details</h3>
+    <p style="font-size:11px; color:var(--muted); font-family:var(--font-m); margin-bottom:24px;">Information used for your official receipts.</p>
     
     <form action="{{ url_for('client.billing') }}" method="POST" style="display:flex; flex-direction:column; gap:16px;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       
       <div>
-        <label style="display:block; font-size:10px; font-family:'DM Mono',monospace; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Full Name</label>
-        <input type="text" name="full_name" value="{{ current_user.full_name or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:12px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor='var(--border)'">
+        <label style="display:block; font-size:10px; font-family:var(--font-m); text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Full Name</label>
+        <input type="text" name="full_name" value="{{ current_user.full_name or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-m); font-size:12px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--white)'" onblur="this.style.borderColor='var(--border)'">
       </div>
 
       <div>
-        <label style="display:block; font-size:10px; font-family:'DM Mono',monospace; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Company Name</label>
-        <input type="text" name="billing_company" value="{{ current_user.billing_company or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:12px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--ink)'" onblur="this.style.borderColor='var(--border)'">
+        <label style="display:block; font-size:10px; font-family:var(--font-m); text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Company Name</label>
+        <input type="text" name="billing_company" value="{{ current_user.billing_company or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-m); font-size:12px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--white)'" onblur="this.style.borderColor='var(--border)'">
       </div>
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
         <div>
-          <label style="display:block; font-size:10px; font-family:'DM Mono',monospace; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">VAT / Tax ID</label>
-          <input type="text" name="billing_tax_id" value="{{ current_user.billing_tax_id or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:12px;">
+          <label style="display:block; font-size:10px; font-family:var(--font-m); text-transform:uppercase; color:var(--muted); margin-bottom:6px;">VAT / Tax ID</label>
+          <input type="text" name="billing_tax_id" value="{{ current_user.billing_tax_id or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-m); font-size:12px;">
         </div>
         <div>
-          <label style="display:block; font-size:10px; font-family:'DM Mono',monospace; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Country</label>
-          <select name="billing_country" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:12px; background:var(--paper); color:var(--ink);">
+          <label style="display:block; font-size:10px; font-family:var(--font-m); text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Country</label>
+          <select name="billing_country" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-m); font-size:12px; background:var(--bg-deep); color:var(--white);">
             <option value="">Select Country</option>
             <option value="Kenya" {% if current_user.billing_country == 'Kenya' %}selected{% endif %}>Kenya</option>
             <option value="United States" {% if current_user.billing_country == 'United States' %}selected{% endif %}>United States</option>
@@ -301,23 +301,23 @@
       </div>
 
       <div>
-        <label style="display:block; font-size:10px; font-family:'DM Mono',monospace; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Address</label>
-        <input type="text" name="billing_address" value="{{ current_user.billing_address or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:12px;">
+        <label style="display:block; font-size:10px; font-family:var(--font-m); text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Address</label>
+        <input type="text" name="billing_address" value="{{ current_user.billing_address or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-m); font-size:12px;">
       </div>
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
         <div>
-          <label style="display:block; font-size:10px; font-family:'DM Mono',monospace; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">City</label>
-          <input type="text" name="billing_city" value="{{ current_user.billing_city or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:12px;">
+          <label style="display:block; font-size:10px; font-family:var(--font-m); text-transform:uppercase; color:var(--muted); margin-bottom:6px;">City</label>
+          <input type="text" name="billing_city" value="{{ current_user.billing_city or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-m); font-size:12px;">
         </div>
         <div>
-          <label style="display:block; font-size:10px; font-family:'DM Mono',monospace; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Postal Code</label>
-          <input type="text" name="billing_zip" value="{{ current_user.billing_zip or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:12px;">
+          <label style="display:block; font-size:10px; font-family:var(--font-m); text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Postal Code</label>
+          <input type="text" name="billing_zip" value="{{ current_user.billing_zip or '' }}" style="width:100%; padding:10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-m); font-size:12px;">
         </div>
       </div>
 
       <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-top:12px;">
-        <button type="button" onclick="document.getElementById('billingModal').style.display='none'" style="background:none; border:none; font-family:'DM Mono',monospace; font-size:11px; font-weight:600; color:var(--muted); cursor:pointer;">Cancel</button>
+        <button type="button" onclick="document.getElementById('billingModal').style.display='none'" style="background:none; border:none; font-family:var(--font-m); font-size:11px; font-weight:600; color:var(--muted); cursor:pointer;">Cancel</button>
         <button type="submit" class="btn-primary" style="padding:10px 24px; font-size:11px;">Save Changes</button>
       </div>
     </form>

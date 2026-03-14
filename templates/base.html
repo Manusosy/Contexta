@@ -9,31 +9,50 @@
     content="{{ Setting.get('site_name', 'Contexta') }} — AI-powered RSS to editorial content automation platform." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            mono: ['DM Mono', 'monospace'],
-            sans: ['DM Mono', 'monospace'],
-            syne: ['Syne', 'sans-serif'],
-            fraunces: ['Fraunces', 'serif'],
+            sans: ['"Inter"', 'sans-serif'],
+            display: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           }
         }
       }
     }
   </script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+  <script>
+    (function() {
+      var theme = localStorage.getItem('theme');
+      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
 
-  <style>
-    body { background: #f5f0e8; color: #0e0e0e; font-family: 'DM Mono', monospace; }
-    aside { background: #0e0e0e; }
-  </style>
-</head>
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+  </script>
 
-<body class="min-h-screen flex overflow-hidden" style="background:#f5f0e8;">
+<body class="min-h-screen flex overflow-hidden bg-[var(--bg-deep)] text-[var(--text)] font-[var(--font-d)]">
 
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -44,7 +63,7 @@
       mobileMenuOpen: false,
       mounted: false
     }" x-init="$nextTick(() => mounted = true); window.addEventListener('resize', () => { if (window.innerWidth >= 1024) sidebarOpen = true; }); $watch('sidebarCollapsed', val => localStorage.setItem('adminSidebarCollapsed', val))"
-    class="flex h-screen w-full overflow-hidden" style="background:#f5f0e8;">
+    class="flex h-screen w-full overflow-hidden bg-[var(--bg-deep)]">
 
     <!-- Mobile sidebar backdrop -->
     <div x-show="mobileMenuOpen"
@@ -57,16 +76,15 @@
         '-translate-x-full lg:translate-x-0': !sidebarOpen && !mobileMenuOpen,
         'collapsed': sidebarCollapsed
       }"
-      :style="{ width: sidebarCollapsed ? '72px' : '240px' }"
       class="fixed inset-y-0 left-0 z-50 flex flex-col lg:static transform transition-all duration-300 ease-in-out"
-      style="height:100vh; background:#0e0e0e; border-right:1px solid #1a1a1a;">
+      style="height:100vh; background: #000000;">
 
       <!-- Logo -->
-      <div style="padding:24px 20px; border-bottom:1px solid #2a2a2a; height:80px; display:flex; align-items:center; overflow:hidden;">
+      <div style="padding:24px 20px; border-bottom:1px solid rgba(255,255,255,0.1); height:80px; display:flex; align-items:center; overflow:hidden;">
         <a href="{{ url_for('dashboard.index') }}" class="block no-underline">
           <div style="display:flex; align-items:center; gap:12px;">
-            <div style="flex-shrink:0; background:var(--accent); width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-family:'Syne',sans-serif; font-weight:800; font-size:18px;">C</div>
-            <div x-show="!sidebarCollapsed" x-transition.opacity style="font-family:'Fraunces',serif; font-size:18px; font-weight:600; color:#f5f0e8; letter-spacing:-0.5px; white-space:nowrap;">
+            <div style="flex-shrink:0; background:var(--brand); width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; color:white; font-family:var(--font-d); font-weight:800; font-size:18px;">C</div>
+            <div x-show="!sidebarCollapsed" x-transition.opacity style="font-family:var(--font-d); font-size:18px; font-weight:600; color:var(--white); letter-spacing:-0.5px; white-space:nowrap;">
               {{ Setting.get('site_name', 'Contexta') }}
             </div>
           </div>
@@ -86,16 +104,38 @@
           <span x-show="!sidebarCollapsed">Dashboard</span>
         </a>
 
-        <a href="{{ url_for('feeds.index') }}"
-          class="sidebar-link {% if 'feeds' in request.endpoint %}active{% endif %}" title="Feeds">
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z" />
-          </svg>
-          <span x-show="!sidebarCollapsed">Feeds</span>
-          {% if total_feeds is defined and total_feeds and not sidebarCollapsed %}
-          <span style="margin-left:auto; background:#c84b2f; color:white; font-size:9px; padding:1px 6px; border-radius:8px;">{{ total_feeds }}</span>
-          {% endif %}
-        </a>
+        <!-- Automations submenu -->
+        <div x-data="{ autoOpen: {% if 'feeds' in request.endpoint %}true{% else %}false{% endif %} }"
+             x-init="$watch('sidebarCollapsed', val => { if(val) autoOpen = false })">
+          <button @click="autoOpen = !autoOpen"
+            class="sidebar-link w-full {% if 'feeds' in request.endpoint %}active{% endif %}"
+            style="text-align:left; background:none; border:none; cursor:pointer; width:100%;" title="Automations">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            <span x-show="!sidebarCollapsed" style="flex:1; text-align:left;">Automations</span>
+            <svg x-show="!sidebarCollapsed" :class="autoOpen ? 'rotate-180' : ''" class="transition-transform duration-200" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.5;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div x-show="autoOpen" x-collapse style="padding-left:40px; padding-bottom:4px;">
+            <a href="{{ url_for('feeds.index') }}" style="display:flex; align-items:center; justify-content:space-between; padding:8px 24px 8px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">
+              RSS Feeds
+              {% if total_feeds is defined and total_feeds %}
+              <span style="background:var(--brand); color:white; font-size:9px; padding:2px 6px; border-radius:8px; line-height:1;">{{ total_feeds }}</span>
+              {% endif %}
+            </a>
+            <a href="#" style="display:flex; align-items:center; justify-content:space-between; padding:8px 24px 8px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">
+              YouTube to Article
+              <span style="font-size:8px; border:1px solid var(--text-dim); padding:2px 4px; border-radius:4px; line-height:1; color:var(--brand-lt);">BETA</span>
+            </a>
+            <a href="#" style="display:flex; align-items:center; justify-content:space-between; padding:8px 24px 8px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">
+              LexKenya Legal
+              <span style="font-size:8px; border:1px solid var(--text-dim); padding:2px 4px; border-radius:4px; line-height:1; color:var(--brand-lt);">BETA</span>
+            </a>
+            <a href="#" style="display:block; padding:8px 24px 8px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Voice Agents</a>
+          </div>
+        </div>
 
         <a href="{{ url_for('articles.index') }}"
           class="sidebar-link {% if 'articles' in request.endpoint %}active{% endif %}" title="Articles">
@@ -131,8 +171,8 @@
             </svg>
           </button>
           <div x-show="subsOpen" x-collapse style="padding-left:40px; padding-bottom:4px;">
-            <a href="{{ url_for('dashboard.subscribers') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Active Lists</a>
-            <a href="{{ url_for('dashboard.subscriber_cancellations') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Cancellations</a>
+            <a href="{{ url_for('dashboard.subscribers') }}" style="display:block; padding:7px 24px 7px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Active Lists</a>
+            <a href="{{ url_for('dashboard.subscriber_cancellations') }}" style="display:block; padding:7px 24px 7px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Cancellations</a>
           </div>
         </div>
 
@@ -175,16 +215,16 @@
             </svg>
           </button>
           <div x-show="pricingOpen" x-collapse style="padding-left:40px; padding-bottom:4px;">
-            <a href="{{ url_for('dashboard.pricing') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Pricing Tiers</a>
-            <a href="{{ url_for('dashboard.pricing_features') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Pricing Features</a>
-            <a href="{{ url_for('dashboard.pricing_settings') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Price Settings</a>
-            <a href="{{ url_for('dashboard.pricing_discounts') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Discounts / Coupons</a>
-            <a href="{{ url_for('dashboard.pricing_adjustments') }}" style="display:block; padding:7px 24px 7px 0; font-size:11px; color:#777; text-decoration:none;" onmouseover="this.style.color='#f5f0e8'" onmouseout="this.style.color='#777'">Adjustments</a>
+            <a href="{{ url_for('dashboard.pricing') }}" style="display:block; padding:7px 24px 7px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Pricing Tiers</a>
+            <a href="{{ url_for('dashboard.pricing_features') }}" style="display:block; padding:7px 24px 7px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Pricing Features</a>
+            <a href="{{ url_for('dashboard.pricing_settings') }}" style="display:block; padding:7px 24px 7px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Price Settings</a>
+            <a href="{{ url_for('dashboard.pricing_discounts') }}" style="display:block; padding:7px 24px 7px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Discounts / Coupons</a>
+            <a href="{{ url_for('dashboard.pricing_adjustments') }}" style="display:block; padding:7px 24px 7px 0; font-size:12px; color:rgba(255,255,255,0.7); font-family:var(--font-s); text-decoration:none; transition:color 0.15s;" onmouseover="this.style.color='#ffffff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">Adjustments</a>
           </div>
         </div>
 
       <!-- Sidebar Footer -->
-      <div style="padding:16px 20px; border-top:1px solid #1a1a1a;">
+      <div style="padding:16px 20px;" class="border-t border-[var(--border)]">
         <a href="{{ url_for('public.index') }}" class="sidebar-link" style="color:#aaa;" title="Back to Website">
           <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.7; flex-shrink:0;">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -217,41 +257,50 @@
           <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
         </div>
 
-        <div style="display:flex; align-items:center; gap:10px;">
-          <!-- Search -->
-          <form action="{{ url_for('dashboard.search') }}" method="GET" style="position:relative; display:none;" class="sm:block">
-            <input type="text" name="q" placeholder="Search..."
-              style="background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:6px 12px 6px 32px; font-size:11px; font-family:'DM Mono',monospace; color:var(--ink); outline:none; width:200px;"
-              {% if request.args.get('q') %}value="{{ request.args.get('q') }}"{% endif %}>
-            <svg style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#888;" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <div style="display:flex; align-items:center; gap:20px;">
+          <!-- Quick Search -->
+          <form action="{{ url_for('dashboard.search') }}" method="GET" class="hidden lg:block" style="position:relative;">
+            <input type="text" name="q" placeholder="Quick Search..."
+              style="background:var(--cream); border:none; border-radius:6px; padding:10px 16px 10px 40px; font-size:14px; font-family:var(--font-s); color:var(--ink); outline:none; width:360px; transition:box-shadow 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);"
+              {% if request.args.get('q') %}value="{{ request.args.get('q') }}"{% endif %}
+              onfocus="this.style.boxShadow='0 0 0 2px var(--brand-dim)'" onblur="this.style.boxShadow='inset 0 1px 2px rgba(0,0,0,0.05)'">
+            <svg style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-muted);" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </form>
 
-          <!-- Status indicator -->
-          <div style="display:flex; align-items:center; gap:6px; padding:5px 12px; background:var(--surface); border:1px solid var(--border); border-radius:99px;">
-            <div id="status-dot" style="width:8px; height:8px; border-radius:50%; background:#888; position:relative;">
-              <div style="position:absolute; inset:0; border-radius:50%; background:#888; animation:pulse 2s infinite; opacity:0.3;"></div>
-            </div>
-            <span id="status-text" style="font-size:9px; font-family:'DM Mono',monospace; letter-spacing:1.5px; text-transform:uppercase; color:#888; font-weight:500;">Idle</span>
+
+
+          <!-- Toolbar Icons -->
+          <div style="display:flex; align-items:center; gap:14px; color:var(--text-dim);">
+            <button style="background:none; border:none; cursor:pointer; color:inherit; padding:6px; transition:color 0.2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--text-dim)'" title="Toggle Theme" onclick="toggleTheme()">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            </button>
+
+            <a href="{{ url_for('dashboard.feedback') }}" style="display:inline-flex; background:none; border:none; cursor:pointer; color:inherit; padding:6px; transition:color 0.2s; position:relative;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--text-dim)'" title="Notifications">
+              <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              {% set unread_count = (current_user.notifications|selectattr('is_read', 'equalto', false)|list|length) if current_user.is_authenticated and current_user.notifications else 0 %}
+              {% if unread_count > 0 %}
+              <span style="position:absolute; top:2px; right:4px; width:16px; height:16px; background:#f97316; color:white; font-size:10px; font-weight:700; font-family:var(--font-d); display:flex; align-items:center; justify-content:center; border-radius:50%; border:2px solid var(--paper); line-height:1;">{{ unread_count }}</span>
+              {% endif %}
+            </a>
           </div>
+
+          <div style="width:1px; height:40px; background:var(--border); margin:0 8px;"></div> <!-- Divider -->
 
           <!-- User dropdown -->
           <div style="position:relative;" x-data="{ open: false }">
-            <button @click="open = !open" style="background:none; border:none; cursor:pointer; padding:0;">
-              <div class="avatar-chip" style="background:#c84b2f;">
-                {{ (current_user.full_name or current_user.email or 'U')[0].upper() }}
-              </div>
+            <button @click="open = !open" style="background:none; border:none; cursor:pointer; padding:4px 8px; display:flex; align-items:center; gap:8px; border-radius:8px; transition:background 0.2s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ current_user.email }}&backgroundColor=d97706" alt="Avatar" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--cream);">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--text-dim);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <div x-show="open" @click.away="open = false" x-transition
-              style="position:absolute; right:0; top:calc(100% + 8px); width:180px; background:var(--surface); border:1px solid var(--border); border-radius:4px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,0.1);">
+              style="position:absolute; right:0; top:calc(100% + 4px); width:200px; background:var(--surface); border:1px solid var(--border); border-radius:8px; z-index:100; box-shadow:0 12px 32px rgba(0,0,0,0.15); overflow:hidden;">
               <div style="padding:12px 16px; border-bottom:1px solid var(--border);">
-                <div style="font-size:11px; font-weight:500; font-family:'DM Mono',monospace; color:var(--ink);">{{ current_user.full_name or current_user.email }}</div>
-                <div style="font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px;">{{ current_user.role.title() }}</div>
+                <span style="font-size:14px; font-weight:700; font-family:var(--font-d); color:var(--ink); line-height:1.2; display:block; margin-bottom:2px;">{{ current_user.full_name or 'Admin Name' }}</span>
+                <span style="font-size:12px; font-weight:500; font-family:var(--font-s); color:var(--text-dim);">{{ current_user.email }}</span>
               </div>
-              <a href="{{ url_for('client.profile') }}" style="display:block; padding:10px 16px; font-size:11px; color:var(--ink); text-decoration:none; font-family:'DM Mono',monospace;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">My Profile</a>
-              {% if current_user.role == 'admin' %}
-              <a href="{{ url_for('settings.index') }}" style="display:block; padding:10px 16px; font-size:11px; color:var(--ink); text-decoration:none; font-family:'DM Mono',monospace;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">App Settings</a>
-              {% endif %}
-              <a href="{{ url_for('auth.logout') }}" style="display:block; padding:10px 16px; font-size:11px; color:var(--accent); text-decoration:none; font-family:'DM Mono',monospace; border-top:1px solid var(--border);" onmouseover="this.style.background='#fde8e8'" onmouseout="this.style.background='transparent'">Log out</a>
+              <a href="{% if current_user.role == 'admin' %}{{ url_for('dashboard.profile') }}{% else %}{{ url_for('client.profile') }}{% endif %}" style="display:block; padding:12px 16px; font-size:13px; color:var(--ink); font-weight:500; text-decoration:none; font-family:var(--font-d); transition:background 0.15s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">Account Settings</a>
+              <div style="height:1px; background:var(--border); margin:4px 0;"></div>
+              <a href="{{ url_for('auth.logout') }}" style="display:block; padding:12px 16px; font-size:13px; color:var(--accent); font-weight:500; text-decoration:none; font-family:var(--font-d); transition:background 0.15s;" onmouseover="this.style.background='#fde8e8'" onmouseout="this.style.background='transparent'">Log out</a>
             </div>
           </div>
         </div>

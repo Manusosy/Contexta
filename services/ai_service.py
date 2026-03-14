@@ -30,6 +30,7 @@ Title: {original_title}
 Published: {pub_date}
 Source URL: {source_url}
 Tags/Categories from feed: {source_tags}
+Context Engine Topic: {topic_category}
 
 Full article body:
 ---
@@ -43,7 +44,7 @@ Target audience: {target_audience}
 Tone of voice: {tone}
 
 YOUR TASK:
-Produce a new, 100% original article on this topic.
+Produce a new, 100% original {content_strategy} on this topic.
 Return ONLY a JSON object in this exact structure:
 
 {{
@@ -98,6 +99,8 @@ def rewrite_article(article: Article) -> dict:
         pub_date=article.original_pub_date,
         source_url=article.source_url,
         source_tags=article.source_tags or "",
+        topic_category=getattr(article, "topic_category", "General"),
+        content_strategy=getattr(article, "content_strategy", "News Article"),
         extracted_body=article.extracted_body[:15000], 
         site_name=Setting.get("site_name", "Contexta"),
         site_niche=getattr(config, "SITE_NICHE", "Technology / AI"),

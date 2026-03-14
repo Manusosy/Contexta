@@ -7,8 +7,8 @@
   <!-- ── Header ── -->
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <div>
-      <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">RSS Feeds</h1>
-      <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Manage the sources for your automated content pipeline.</p>
+      <h1 style="font-family:var(--font-d); font-size:22px; font-weight:700; color:var(--white); letter-spacing:-0.5px;">RSS Feeds</h1>
+      <p style="font-size:11px; color:var(--muted); font-family:var(--font-m); margin-top:4px;">Manage the sources for your automated content pipeline.</p>
     </div>
     <button onclick="toggleAddFeedModal()" class="btn-primary" style="display:flex; align-items:center; gap:6px;">
       <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -35,21 +35,21 @@
           <tr>
             <td>
               <div style="display:flex; align-items:center; gap:10px;">
-                <div class="feed-favicon" style="background:var(--ink);">{{ feed.name[0].upper() }}</div>
-                <span style="font-size:12px; font-weight:500; color:var(--ink); font-family:'DM Mono',monospace;">{{ feed.name }}</span>
+                <div class="feed-favicon" style="background:var(--white);">{{ feed.name[0].upper() }}</div>
+                <span style="font-size:12px; font-weight:500; color:var(--white); font-family:var(--font-m);">{{ feed.name }}</span>
               </div>
             </td>
             <td style="max-width:220px;">
-              <span style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">{{ feed.url }}</span>
+              <span style="font-size:10px; color:var(--muted); font-family:var(--font-m); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">{{ feed.url }}</span>
             </td>
             <td>
               <span class="badge badge-green">● Active</span>
             </td>
             <td>
-              <span style="font-family:'Fraunces',serif; font-size:18px; font-weight:300; color:var(--muted);">{{ feed.articles|length }}</span>
+              <span style="font-family:var(--font-s); font-size:18px; font-weight:300; color:var(--muted);">{{ feed.articles|length }}</span>
             </td>
             <td style="text-align:right;">
-              <a href="#" style="font-size:10px; color:var(--muted); text-decoration:none; font-family:'DM Mono',monospace;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">···</a>
+              <a href="#" style="font-size:10px; color:var(--muted); text-decoration:none; font-family:var(--font-m);" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--muted)'">···</a>
             </td>
           </tr>
           {% endfor %}
@@ -77,10 +77,10 @@
 
   <!-- ── Upgrade Banner (at limit) ── -->
   {% if feed_limit != -1 and feeds|length >= feed_limit %}
-  <div style="background:var(--ink); border-radius:6px; padding:20px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+  <div style="background:var(--white); color:var(--bg-deep); border-radius:6px; padding:20px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;">
     <div>
-      <div style="font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:var(--paper);">Unlock More RSS Feeds</div>
-      <p style="font-size:11px; color:#888; font-family:'DM Mono',monospace; margin-top:4px;">{{ feed_limit }} feed{{ 's' if feed_limit > 1 else '' }} reached. Upgrade to add more sources.</p>
+      <div style="font-family:var(--font-d); font-size:14px; font-weight:700; color:var(--paper);">Unlock More RSS Feeds</div>
+      <p style="font-size:11px; color:#888; font-family:var(--font-m); margin-top:4px;">{{ feed_limit }} feed{{ 's' if feed_limit > 1 else '' }} reached. Upgrade to add more sources.</p>
     </div>
     <a href="{{ url_for('client.subscription') }}" class="btn-accent" style="white-space:nowrap; padding:8px 20px;">View Plans</a>
   </div>
@@ -93,18 +93,18 @@
   <div class="modal-box" style="max-width:440px;">
     {% if feed_limit != -1 and feeds|length >= feed_limit %}
     <div style="text-align:center; padding:8px 0;">
-      <div style="width:48px; height:48px; background:var(--cream); border-radius:6px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+      <div style="width:48px; height:48px; background:var(--bg-lt); border-radius:6px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
         <svg width="20" height="20" fill="none" stroke="var(--muted)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
       </div>
-      <h3 style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--ink); margin-bottom:8px;">Feed Limit Reached</h3>
-      <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:20px;">Your current plan allows {{ feed_limit }} RSS feed{{ 's' if feed_limit > 1 else '' }}. Upgrade to add more.</p>
+      <h3 style="font-family:var(--font-d); font-size:16px; font-weight:700; color:var(--white); margin-bottom:8px;">Feed Limit Reached</h3>
+      <p style="font-size:11px; color:var(--muted); font-family:var(--font-m); margin-bottom:20px;">Your current plan allows {{ feed_limit }} RSS feed{{ 's' if feed_limit > 1 else '' }}. Upgrade to add more.</p>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <a href="{{ url_for('client.subscription') }}" class="btn-primary" style="justify-content:center; width:100%; padding:10px;">View Upgrade Options</a>
         <button onclick="toggleAddFeedModal()" class="btn-secondary" style="justify-content:center; width:100%;">Cancel</button>
       </div>
     </div>
     {% else %}
-    <h3 style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--ink); margin-bottom:20px;">Add New Source</h3>
+    <h3 style="font-family:var(--font-d); font-size:16px; font-weight:700; color:var(--white); margin-bottom:20px;">Add New Source</h3>
     <form method="POST" action="{{ url_for('client.feeds') }}" style="display:flex; flex-direction:column; gap:16px;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <div>

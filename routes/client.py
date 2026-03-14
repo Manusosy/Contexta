@@ -6,6 +6,7 @@ from services.wordpress_service import push_to_wordpress, test_connection as wp_
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from datetime import datetime, timedelta, timezone
+from config import get_config
 
 client_bp = Blueprint("client", __name__)
 
@@ -161,7 +162,8 @@ def index():
         active_model=Setting.get("ai_model", "openai/gpt-4o-mini"),
         schedule_enabled=Setting.get("schedule_enabled") == "true",
         schedule_frequency=Setting.get("schedule_frequency", "60"),
-        automation_status=Setting.get("automation_status", "idle"),
+        automation_status=Setting.get(f"auth_status_{current_user.id}", "idle"),
+        config=get_config()
     )
 
 
@@ -271,11 +273,10 @@ def automation():
     if request.method == "POST":
         action = request.form.get("action")
         if action == "run_now":
-            from services.automation_service import run_node_1_rss_fetcher, run_node_2_worker, cleanup_stale_locks
-            cleanup_stale_locks()
-            run_node_1_rss_fetcher()
-            run_node_2_worker()
-            flash("Automation heartbeat triggered successfully!", "success")
+            from services.automation_service import run_automation_async
+            app = current_app._get_current_object()
+            run_automation_async(app, user_id=current_user.id)
+            flash("Automation heartbeat triggered in background!", "success")
         return redirect(url_for("client.automation"))
 
     user_feed_ids = [f.id for f in Feed.query.filter_by(user_id=current_user.id).all()]

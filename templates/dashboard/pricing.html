@@ -7,7 +7,7 @@
   <!-- Header -->
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <div>
-      <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Pricing & Tiers</h1>
+      <h1 style="font-family:var(--font-d); font-size:26px; font-weight:700; color:var(--white); letter-spacing:-0.5px;">Billing & Subscription</h1>
       <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Manage what subscription plans are available and visible on your landing page.</p>
     </div>
     <button onclick="document.getElementById('addTierModal').style.display='flex'" class="btn-primary" style="display:flex; align-items:center; gap:6px;">
@@ -18,15 +18,15 @@
 
   <!-- Tiers -->
   <div class="section-card" style="padding:24px;">
-    <h3 style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--ink); margin-bottom:20px;">Active Tiers</h3>
+    <h3 style="font-family:var(--font-d); font-size:16px; font-weight:700; color:var(--white); margin-bottom:20px;">Active Tiers</h3>
     
     {% if tiers %}
     <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:20px;">
       {% for tier in tiers %}
       <div style="border:1px solid var(--border); border-radius:6px; padding:20px; display:flex; flex-direction:column;">
         <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px;">
-          <div style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--ink);">{{ tier.name }}</div>
-          <div style="font-family:'Fraunces',serif; font-size:20px; font-weight:300; color:var(--ink);">${{ "%.2f"|format(tier.price) }}</div>
+          <div style="font-family:var(--font-d); font-size:16px; font-weight:700; color:var(--white);">{{ tier.name }}</div>
+          <div style="font-family:var(--font-s); font-size:20px; font-weight:300; color:var(--white);">${{ "%.2f"|format(tier.price) }}</div>
         </div>
         <div style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
           <span style="text-transform:capitalize;">{{ tier.interval }}</span>

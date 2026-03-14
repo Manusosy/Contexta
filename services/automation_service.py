@@ -24,18 +24,28 @@ def run_node_1_rss_fetcher():
         return 0
 
 
-def run_node_2_worker():
+def run_node_2_worker(user_id=None):
     """
     Node 2: Queue Worker Loop.
     Polls for PENDING articles, and processes ALL of them sequentially until the queue is empty.
     Runs nodes 3-5 for each article.
+    If user_id is provided, only processes articles for that user's feeds.
     """
     processed_count = 0
-    from models import Setting as _S
+    from models import Setting as _S, Feed
 
     while True:
         # 1. Pick one pending article
-        article = Article.query.filter_by(status="pending").order_by(Article.created_at.asc()).first()
+        query = Article.query.filter_by(status="pending")
+        
+        if user_id:
+            # Join with Feed to filter by user_id
+            query = query.join(Feed).filter(Feed.user_id == user_id)
+        else:
+            # Global run: typically admin feeds (user_id is None)
+            query = query.join(Feed).filter(Feed.user_id == None)
+
+        article = query.order_by(Article.created_at.asc()).first()
         
         if not article:
             break # No more work to do
@@ -78,6 +88,29 @@ def run_node_2_worker():
             article.main_image_url = scrape_result.get("image")
             article.word_count = scrape_result.get("word_count", 0)
             db.session.commit()
+
+            # Node 3.5: Context Analysis
+            article.status = "analyzing"
+            db.session.commit()
+            
+            from services.context_engine import analyze_article_context, detect_duplicates
+            
+            if detect_duplicates(article):
+                article.status = "skipped"
+                article.error_log = "Context Engine: Duplicate content skipped."
+                db.session.commit()
+                continue
+                
+            context_data = analyze_article_context(article)
+            article.content_strategy = context_data.get("recommended_strategy", "News Article")
+            db.session.commit()
+            
+            # Content Strategy Filtering
+            if article.relevance_score < 50 or article.content_strategy.lower() == "skip":
+                article.status = "skipped"
+                article.error_log = f"Context Engine: Skipped. Score: {article.relevance_score}, Strategy: {article.content_strategy}"
+                db.session.commit()
+                continue
 
             # Node 4: Rewriting
             article.status = "rewriting"
@@ -134,13 +167,21 @@ def run_node_2_worker():
 
     return processed_count
 
-def cleanup_stale_locks():
+def cleanup_stale_locks(user_id=None):
     """Reset articles that have been 'processing' for too long (> 10 mins)."""
+    from models import Feed
     stale_time = datetime.now(timezone.utc) - timedelta(minutes=10)
-    stale_articles = Article.query.filter(
+    query = Article.query.filter(
         Article.status.in_(["processing", "extracting", "rewriting", "publishing"]),
         Article.locked_at < stale_time
-    ).all()
+    )
+    
+    if user_id:
+        query = query.join(Feed).filter(Feed.user_id == user_id)
+    else:
+        query = query.join(Feed).filter(Feed.user_id == None)
+
+    stale_articles = query.all()
     
     for article in stale_articles:
         _log(f"Resetting stale lock for article {article.id}", "warning")
@@ -149,7 +190,7 @@ def cleanup_stale_locks():
     db.session.commit()
 
 
-def run_automation(auto_push: bool = False):
+def run_automation(auto_push: bool = False, user_id=None):
     """
     Called by the 'Trigger Automation' button in UI.
     Runs Node 1 once, then processes ONE article if any are pending.
@@ -158,24 +199,63 @@ def run_automation(auto_push: bool = False):
     from models import Setting as _Setting
 
     try:
-        _Setting.set("automation_status", "running")
-        _Setting.set("current_processing_article", "Fetching RSS feeds...")
+        # Note: automation_status and current_processing_article are global settings.
+        # In a multi-user environment, these should ideally be per-user. 
+        # For now, we'll prefix them if it's a specific user to avoid total overlap,
+        # but the logic remains simple.
+        status_key = "automation_status" if not user_id else f"auth_status_{user_id}"
+        article_key = "current_processing_article" if not user_id else f"curr_art_{user_id}"
 
-        cleanup_stale_locks()
-        queued = run_node_1_rss_fetcher()
+        _Setting.set(status_key, "running")
+        _Setting.set(article_key, "Fetching RSS feeds...")
 
-        _Setting.set("current_processing_article", f"Processing queue ({queued} new)...")
-        run_node_2_worker()
+        cleanup_stale_locks(user_id=user_id)
+        
+        # Node 1: Fetch feeds
+        from models import Feed
+        if user_id:
+            feeds = Feed.query.filter_by(user_id=user_id, active=True).all()
+        else:
+            feeds = Feed.query.filter_by(user_id=None, active=True).all()
+            
+        queued = 0
+        for feed in feeds:
+            queued += len(rss_service.fetch_feed(feed))
 
-        _Setting.set("automation_status", "idle")
-        _Setting.set("current_processing_article", "")
-        _Setting.set("last_run", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))
+        _Setting.set(article_key, f"Processing queue ({queued} new)...")
+        run_node_2_worker(user_id=user_id)
+
+        _Setting.set(status_key, "idle")
+        _Setting.set(article_key, "")
+        if not user_id:
+            _Setting.set("last_run", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))
+        else:
+            _Setting.set(f"last_run_{user_id}", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"))
+
     except Exception as e:
-        _log(f"run_automation top-level error: {e}", "error")
+        _log(f"run_automation error for user {user_id}: {e}", "error")
         try:
             from models import Setting as _S
-            _S.set("automation_status", "idle")
-            _S.set("current_processing_article", "")
+            status_key = "automation_status" if not user_id else f"auth_status_{user_id}"
+            article_key = "current_processing_article" if not user_id else f"curr_art_{user_id}"
+            _S.set(status_key, "idle")
+            _S.set(article_key, "")
         except Exception:
             pass
     return True
+
+def run_automation_async(app, auto_push=False, user_id=None):
+    """Trigger automation in a non-blocking background thread."""
+    import threading
+    thread = threading.Thread(
+        target=_run_in_app_context,
+        args=(app, auto_push, user_id),
+        daemon=True
+    )
+    thread.start()
+    return thread
+
+def _run_in_app_context(app, auto_push, user_id):
+    """Wrapper to run automation with app context."""
+    with app.app_context():
+        run_automation(auto_push=auto_push, user_id=user_id)

@@ -9,18 +9,23 @@
         content="{{ Setting.get('site_name', 'Contexta') }} — AI-powered RSS to editorial content automation platform." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    fontFamily: { 
+                        sans: ['"Inter"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
                     colors: {
                         brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a' },
-                        slate: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' }
                     }
                 }
             }
@@ -28,11 +33,23 @@
     </script>
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+    <script>
+      (function() {
+        var theme = localStorage.getItem('theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+
 </head>
 
 <body
-    class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col relative w-full selection:bg-brand-500 selection:text-white">
+    class="bg-slate-50 dark:bg-zinc-950 font-sans text-slate-800 dark:text-zinc-300 antialiased min-h-screen flex flex-col relative w-full selection:bg-brand-500 selection:text-white transition-colors duration-300">
 
     <!-- Announcement Bar -->
     {% set global_announcement = Announcement.query.filter_by(is_active=True).filter(Announcement.target.in_(['public',
@@ -56,7 +73,7 @@
         <div class="space-y-3 pointer-events-auto shadow-2xl drop-shadow">
             {% for category, message in messages %}
             <div
-                class="flash flash-{{ category }} flex items-start gap-3 border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur shadow-xl rounded-xl p-4">
+                class="flash flash-{{ category }} flex items-start gap-3 border border-slate-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur shadow-xl rounded-xl p-4">
                 {% if category == 'success' %}
                 <div class="p-1 rounded-full bg-emerald-100 text-emerald-600 shrink-0 mt-0.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +106,7 @@
     {% block content %}{% endblock %}
 
     <footer
-        class="mt-auto py-12 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors">
+        class="mt-auto py-12 border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-colors">
         <div
             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-2">
@@ -105,7 +122,7 @@
                     </div>
                     {% endif %}
                 </div>
-                <span class="font-bold text-slate-900 dark:text-white">{{ Setting.get('site_name', 'Contexta') }}</span>
+                <span class="font-bold text-slate-900 dark:text-zinc-100">{{ Setting.get('site_name', 'Contexta') }}</span>
             </div>
 
             <nav class="flex items-center gap-8 text-sm text-slate-500 dark:text-slate-400">

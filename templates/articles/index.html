@@ -7,20 +7,20 @@
   <!-- Header -->
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
     <div>
-      <h1 style="font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--ink); letter-spacing:-0.5px;">Articles</h1>
-      <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">{{ pagination.total }} article{{ 's' if pagination.total != 1 }} total.</p>
+      <h1 style="font-family:var(--font-d); font-size:22px; font-weight:700; color:var(--white); letter-spacing:-0.5px;">Articles</h1>
+      <p style="font-size:11px; color:var(--text-muted); font-family:var(--font-m); margin-top:4px;">{{ pagination.total }} article{{ 's' if pagination.total != 1 }} total.</p>
     </div>
     <div style="display:flex; align-items:center; gap:16px;">
       <!-- Search Input -->
       <form action="{{ url_for('articles.index') }}" method="GET" style="position:relative; display:flex;">
         <input type="hidden" name="status" value="{{ current_status }}">
-        <svg style="position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:0.4;" width="14" height="14" fill="none" stroke="var(--ink)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input type="text" name="q" value="{{ q }}" placeholder="Search articles..." style="padding:8px 16px 8px 34px; border:1px solid var(--border); border-radius:4px; font-size:11px; font-family:'DM Mono',monospace; width:220px; outline:none;" />
+        <svg style="position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:0.4;" width="14" height="14" fill="none" stroke="var(--white)" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" name="q" value="{{ q }}" placeholder="Search articles..." style="padding:8px 16px 8px 34px; border:1px solid var(--border); border-radius:4px; font-size:11px; font-family:var(--font-m); width:220px; background:var(--bg-mid); color:var(--white); outline:none;" />
       </form>
       
       <!-- Bulk Actions -->
       <div id="bulk-actions" style="display:none; align-items:center; gap:12px;">
-        <span style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace;"><span id="selected-count">0</span> selected</span>
+        <span style="font-size:11px; color:var(--muted); font-family:var(--font-m);"><span id="selected-count">0</span> selected</span>
         <button onclick="bulkDelete()" class="btn-danger" style="display:flex; align-items:center; gap:6px; padding:8px 12px; font-size:10px;">
           <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           Delete Selected
@@ -33,9 +33,9 @@
           Export
           <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
-        <div class="dropdown-menu" style="display:none; position:absolute; right:0; top:100%; margin-top:4px; background:var(--paper); border:1px solid var(--border); border-radius:4px; min-width:140px; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:100;">
-          <a href="{{ url_for('articles.export_csv', status=current_status, q=q) }}" style="display:block; padding:10px 16px; font-size:11px; font-family:'DM Mono',monospace; color:var(--ink); text-decoration:none;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='none'">Export as CSV</a>
-          <a href="{{ url_for('articles.export_json', status=current_status, q=q) }}" style="display:block; padding:10px 16px; font-size:11px; font-family:'DM Mono',monospace; color:var(--ink); text-decoration:none;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='none'">Export as JSON</a>
+        <div class="dropdown-menu" style="display:none; position:absolute; right:0; top:100%; margin-top:4px; background:var(--bg-deep); border:1px solid var(--border); border-radius:4px; min-width:140px; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:100;">
+          <a href="{{ url_for('articles.export_csv', status=current_status, q=q) }}" style="display:block; padding:10px 16px; font-size:11px; font-family:var(--font-m); color:var(--white); text-decoration:none;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='none'">Export as CSV</a>
+          <a href="{{ url_for('articles.export_json', status=current_status, q=q) }}" style="display:block; padding:10px 16px; font-size:11px; font-family:var(--font-m); color:var(--white); text-decoration:none;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='none'">Export as JSON</a>
         </div>
       </div>
     </div>
@@ -46,9 +46,9 @@
     {% set tabs = [('', 'All'), ('pending', 'Pending'), ('generated', 'Generated'), ('pushed', 'Pushed'), ('failed', 'Failed')] %}
     {% for val, label in tabs %}
       {% if val == (current_status or '') %}
-      <a href="{{ url_for('articles.index', status=val, q=q) }}" style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--accent); text-decoration:none; padding-bottom:8px; border-bottom:2px solid var(--accent);">{{ label }}</a>
+      <a href="{{ url_for('articles.index', status=val, q=q) }}" style="font-family:var(--font-d); font-size:12px; font-weight:700; color:var(--brand); text-decoration:none; padding-bottom:8px; border-bottom:2px solid var(--brand);">{{ label }}</a>
       {% else %}
-      <a href="{{ url_for('articles.index', status=val, q=q) }}" style="font-family:'Syne',sans-serif; font-size:12px; font-weight:600; color:var(--muted); text-decoration:none; padding-bottom:8px; border-bottom:2px solid transparent;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">{{ label }}</a>
+      <a href="{{ url_for('articles.index', status=val, q=q) }}" style="font-family:var(--font-d); font-size:12px; font-weight:600; color:var(--text-muted); text-decoration:none; padding-bottom:8px; border-bottom:2px solid transparent;" onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--text-muted)'">{{ label }}</a>
       {% endif %}
     {% endfor %}
   </div>
@@ -61,7 +61,7 @@
         <thead>
           <tr>
             <th style="width:40px; text-align:center;">
-              <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this)" style="accent-color:var(--ink); cursor:pointer;" />
+              <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this)" style="accent-color:var(--white); cursor:pointer;" />
             </th>
             <th>Generated Title</th>
             <th>Source</th>
@@ -75,10 +75,10 @@
           {% for article in articles %}
           <tr>
             <td style="text-align:center;">
-              <input type="checkbox" value="{{ article.id }}" onchange="updateSelection()" class="article-checkbox" style="accent-color:var(--ink); cursor:pointer;" />
+              <input type="checkbox" value="{{ article.id }}" onchange="updateSelection()" class="article-checkbox" style="accent-color:var(--white); cursor:pointer;" />
             </td>
             <td>
-              <a href="{{ url_for('articles.view', article_id=article.id) }}" style="display:block; font-family:'Fraunces',serif; font-style:italic; font-size:15px; color:var(--ink); text-decoration:none; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'" title="{{ article.generated_title or article.original_title }}">
+              <a href="{{ url_for('articles.view', article_id=article.id) }}" style="display:block; font-family:var(--font-s); font-style:italic; font-size:15px; color:var(--white); text-decoration:none; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'" title="{{ article.generated_title or article.original_title }}">
                 {{ (article.generated_title or article.original_title or 'Untitled') }}
               </a>
               {% if article.primary_keyword %}
@@ -86,7 +86,7 @@
               {% endif %}
             </td>
             <td>
-              <a href="{{ article.source_url }}" target="_blank" style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; max-width:140px; display:inline-block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-decoration:none;" onmouseover="this.style.color='var(--accent2)'" onmouseout="this.style.color='var(--muted)'" title="{{ article.source_url }}">
+              <a href="{{ article.source_url }}" target="_blank" style="font-size:10px; color:var(--muted); font-family:var(--font-m); max-width:140px; display:inline-block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-decoration:none;" onmouseover="this.style.color='var(--accent2)'" onmouseout="this.style.color='var(--muted)'" title="{{ article.source_url }}">
                 {{ article.source_url }}
               </a>
             </td>
@@ -96,7 +96,7 @@
                 <div style="width:60px; height:4px; background:var(--border); border-radius:2px; overflow:hidden;">
                   <div style="height:100%; border-radius:2px; width:{{ score }}%; background:{% if score >= 70 %}var(--green){% elif score >= 40 %}var(--amber){% else %}var(--accent){% endif %};"></div>
                 </div>
-                <span style="font-size:10px; font-family:'DM Mono',monospace; font-weight:700; color:{% if score >= 70 %}var(--green){% elif score >= 40 %}var(--amber){% else %}var(--accent){% endif %};">{{ score }}</span>
+                <span style="font-size:10px; font-family:var(--font-m); font-weight:700; color:{% if score >= 70 %}var(--green){% elif score >= 40 %}var(--amber){% else %}var(--accent){% endif %};">{{ score }}</span>
               </div>
             </td>
             <td>
@@ -107,34 +107,53 @@
               {% else %}<span class="badge badge-gray">Pending</span>{% endif %}
               
               {% if article.wordpress_id %}
-                <span style="display:block; margin-top:4px; font-size:9px; font-family:'DM Mono',monospace; color:var(--muted);">WP #{{ article.wordpress_id }}</span>
+                <span style="display:block; margin-top:4px; font-size:9px; font-family:var(--font-m); color:var(--muted);">WP #{{ article.wordpress_id }}</span>
               {% endif %}
             </td>
-            <td style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace;">{{ article.created_at.strftime('%b %d, %Y') }}</td>
+            <td style="font-size:10px; color:var(--muted); font-family:var(--font-m);">{{ article.created_at.strftime('%b %d, %Y') }}</td>
             <td>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <a href="{{ url_for('articles.view', article_id=article.id) }}" style="color:var(--muted); padding:4px;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'" title="View/Edit">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <a href="{{ url_for('articles.view', article_id=article.id) }}" 
+                   style="color:var(--white); padding:6px; border:1px solid var(--border); border-radius:4px; background:rgba(255,255,255,0.03); transition:all 0.2s;" 
+                   onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.borderColor='var(--accent2)'" 
+                   onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='var(--border)'" 
+                   title="View/Edit">
                   <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </a>
+                
                 {% if article.status != 'pushed' %}
                 <form action="{{ url_for('articles.push', article_id=article.id) }}" method="POST" style="margin:0;">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  <button type="submit" style="background:none; border:none; color:var(--muted); cursor:pointer; padding:4px;" onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--muted)'" title="Push to WordPress">
+                  <button type="submit" 
+                          style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:4px; color:var(--white); cursor:pointer; padding:6px; transition:all 0.2s;" 
+                          onmouseover="this.style.background='rgba(34,197,94,0.1)'; this.style.borderColor='var(--green)'; this.style.color='var(--green)'" 
+                          onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='var(--border)'; this.style.color='var(--white)'" 
+                          title="Push to WordPress">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                   </button>
                 </form>
                 {% endif %}
+
                 {% if article.status in ['failed', 'failed_scrape', 'failed_ai', 'failed_verification'] %}
                 <form action="{{ url_for('articles.retry', article_id=article.id) }}" method="POST" style="margin:0;">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  <button type="submit" style="background:none; border:none; color:var(--muted); cursor:pointer; padding:4px;" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--muted)'" title="Retry Processing">
+                  <button type="submit" 
+                          style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:4px; color:var(--white); cursor:pointer; padding:6px; transition:all 0.2s;" 
+                          onmouseover="this.style.background='rgba(217,119,6,0.1)'; this.style.borderColor='var(--amber)'; this.style.color='var(--amber)'" 
+                          onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='var(--border)'; this.style.color='var(--white)'" 
+                          title="Retry Processing">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                   </button>
                 </form>
                 {% endif %}
+
                 <form action="{{ url_for('articles.delete', article_id=article.id) }}" method="POST" style="margin:0;" onsubmit="return confirm('Delete this article?')">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  <button type="submit" style="background:none; border:none; color:var(--muted); cursor:pointer; padding:4px;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'" title="Delete">
+                  <button type="submit" 
+                          style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:4px; color:var(--white); cursor:pointer; padding:6px; transition:all 0.2s;" 
+                          onmouseover="this.style.background='rgba(239,68,68,0.1)'; this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'" 
+                          onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='var(--border)'; this.style.color='var(--white)'" 
+                          title="Delete">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </form>
@@ -148,9 +167,9 @@
 
     <!-- Pagination -->
     {% if pagination.pages > 1 %}
-    <div style="padding:16px 24px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-size:11px; font-family:'DM Mono',monospace; color:var(--muted);">
+    <div style="padding:16px 24px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-size:11px; font-family:var(--font-m); color:var(--muted);">
       <div>
-        Showing <span style="color:var(--ink); font-weight:500;">{{ pagination.first_item }}</span> to <span style="color:var(--ink); font-weight:500;">{{ pagination.last_item }}</span> of <span style="color:var(--ink); font-weight:500;">{{ pagination.total }}</span> results
+        Showing <span style="color:var(--white); font-weight:500;">{{ pagination.first_item }}</span> to <span style="color:var(--white); font-weight:500;">{{ pagination.last_item }}</span> of <span style="color:var(--white); font-weight:500;">{{ pagination.total }}</span> results
       </div>
       <div style="display:flex; gap:4px;">
         <!-- Pre/Next simple buttons -->

@@ -7,17 +7,17 @@
   <!-- ── Dashboard Header ── -->
   <div style="background:var(--paper); border:1px solid var(--border); border-radius:6px; padding:24px 32px; display:flex; align-items:center; justify-content:space-between; gap:24px;">
     <div>
-      <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:6px;">Welcome back</div>
-      <h1 style="font-family:'Fraunces',serif; font-size:32px; font-weight:300; color:var(--ink); line-height:1.2;">
-        {{ current_user.full_name or 'Subscriber' }}<span style="font-family:'Fraunces',serif; font-weight:300; font-style:italic; opacity:0.6;">.</span>
+      <div style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:var(--font-m); margin-bottom:6px;">Welcome back</div>
+      <h1 style="font-family:var(--font-s); font-size:32px; font-weight:300; color:var(--white); line-height:1.2;">
+        {{ current_user.full_name or 'Subscriber' }}<span style="font-family:var(--font-s); font-weight:300; font-style:italic; opacity:0.6;">.</span>
       </h1>
-      <p style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">Workspace snapshot for Contexta Engine.</p>
+      <p style="font-size:11px; color:var(--muted); font-family:var(--font-m); margin-top:4px;">Workspace snapshot for Contexta Engine.</p>
     </div>
 
     <div style="display:flex; align-items:center; gap:20px;">
       <div style="text-align:right;">
-        <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:4px;">Active Plan</div>
-        <div style="font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:{% if sub %}var(--green){% else %}var(--accent){% endif %};">
+        <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); font-family:var(--font-m); margin-bottom:4px;">Active Plan</div>
+        <div style="font-family:var(--font-d); font-size:13px; font-weight:700; color:{% if sub %}var(--green){% else %}var(--brand){% endif %};">
           {% if sub %}{{ sub.plan_name }}{% else %}Free Trial{% endif %}
         </div>
       </div>
@@ -25,8 +25,8 @@
       {% if not sub %}
       <div style="width:1px; height:32px; background:var(--border);"></div>
       <a href="{{ url_for('public.index') }}#pricing" class="btn-primary" 
-         style="background:var(--ink); color:var(--paper); padding:10px 20px; font-size:11px; border-radius:4px; font-family:'DM Mono',monospace; text-decoration:none; display:flex; align-items:center; gap:8px; font-weight:600; transition:all 0.2s;"
-         onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--ink)'">
+         style="background:var(--white); color:var(--bg-deep); padding:10px 20px; font-size:11px; border-radius:4px; font-family:var(--font-m); text-decoration:none; display:flex; align-items:center; gap:8px; font-weight:600; transition:all 0.2s;"
+         onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--white)'">
         Upgrade Plan
         <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
       </a>
@@ -77,18 +77,18 @@
   <div id="automation-card" class="section-card">
     <div class="section-header">
       <div style="display:flex; align-items:center; gap:10px;">
-        <div style="width:8px; height:8px; border-radius:2px; background:var(--ink);"></div>
+        <div style="width:8px; height:8px; border-radius:2px; background:var(--white);"></div>
         <span class="section-title">Automation Engine</span>
-        <span style="font-size:10px; color:var(--muted); font-family:'DM Mono',monospace;">End-to-end content generation pipeline</span>
+        <span style="font-size:10px; color:var(--muted); font-family:var(--font-m);">End-to-end content generation pipeline</span>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <div id="status-pill"
-          style="display:flex; align-items:center; gap:6px; padding:4px 10px; border-radius:99px; background:var(--cream); border:1px solid var(--border);">
+          style="display:flex; align-items:center; gap:6px; padding:4px 10px; border-radius:99px; background:var(--bg-lt); border:1px solid var(--border);">
           <span id="status-dot" style="width:6px; height:6px; border-radius:50%; background:#888; display:inline-block;"></span>
-          <span id="status-label" style="font-size:9px; font-family:'DM Mono',monospace; letter-spacing:1.5px; text-transform:uppercase; color:#888;">{{ automation_status | upper }}</span>
+          <span id="status-label" style="font-size:9px; font-family:var(--font-m); letter-spacing:1.5px; text-transform:uppercase; color:#888;">{{ automation_status | upper }}</span>
         </div>
         <button id="force-reset-btn" onclick="resetAutomation()" class="hidden"
-          style="font-size:9px; font-family:'DM Mono',monospace; letter-spacing:1px; text-transform:uppercase; color:var(--accent); background:#fde8e8; border:1px solid #e8c0b8; padding:4px 10px; border-radius:99px; cursor:pointer;">
+          style="font-size:9px; font-family:var(--font-m); letter-spacing:1px; text-transform:uppercase; color:var(--accent); background:#fde8e8; border:1px solid #e8c0b8; padding:4px 10px; border-radius:99px; cursor:pointer;">
           Reset Engine
         </button>
       </div>
@@ -100,42 +100,42 @@
         <!-- Connector line background -->
         <div style="position:absolute; top:22px; left:12%; right:12%; height:1px; background:var(--border); z-index:0;"></div>
         <!-- Progress line -->
-        <div id="progress-line" style="position:absolute; top:22px; left:12%; height:1px; background:var(--ink); z-index:1; width:0%; transition:width 0.5s;"></div>
+        <div id="progress-line" style="position:absolute; top:22px; left:12%; height:1px; background:var(--white); z-index:1; width:0%; transition:width 0.5s;"></div>
 
         <!-- Step 1: RSS Fetch -->
         <div class="pipeline-step" style="z-index:2; position:relative; display:flex; flex-direction:column; align-items:center;">
-          <div id="step1-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s; cursor:default;">
+          <div id="step1-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--bg-deep); transition:all 0.2s; cursor:default;">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7M6 17a1 1 0 110 2 1 1 0 010-2z"/></svg>
           </div>
-          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:'DM Mono',monospace;">RSS Fetch</div>
-          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:#e8f5ed; color:var(--green); font-family:'DM Mono',monospace; margin-top:4px;">{{ feed_count }} src</div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:var(--font-m);">RSS Fetch</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:#e8f5ed; color:var(--green); font-family:var(--font-m); margin-top:4px;">{{ feed_count }} src</div>
         </div>
 
         <!-- Step 2: Extraction -->
         <div class="pipeline-step" style="z-index:2; position:relative; display:flex; flex-direction:column; align-items:center;">
-          <div id="step2-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s;">
+          <div id="step2-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--bg-deep); transition:all 0.2s;">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
           </div>
-          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:'DM Mono',monospace;">Extraction</div>
-          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:var(--cream); color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px;">{{ queued_articles|length }} queued</div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:var(--font-m);">Extraction</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:var(--bg-lt); color:var(--muted); font-family:var(--font-m); margin-top:4px;">{{ queued_articles|length }} queued</div>
         </div>
 
         <!-- Step 3: AI Rewrite -->
         <div class="pipeline-step" style="z-index:2; position:relative; display:flex; flex-direction:column; align-items:center;">
-          <div id="step3-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s;">
+          <div id="step3-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--bg-deep); transition:all 0.2s;">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
           </div>
-          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:'DM Mono',monospace;">AI Rewrite</div>
-          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:#fdf3e0; color:#c8882f; font-family:'DM Mono',monospace; margin-top:4px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ active_model }}">{% if active_model %}{{ active_model.split('/')[-1] }}{% else %}Sonnet{% endif %}</div>
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:var(--font-m);">AI Rewrite</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; background:#fdf3e0; color:#c8882f; font-family:var(--font-m); margin-top:4px; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ active_model }}">{% if active_model %}{{ active_model.split('/')[-1] }}{% else %}Sonnet{% endif %}</div>
         </div>
 
         <!-- Step 4: Publish -->
         <div class="pipeline-step" style="z-index:2; position:relative; display:flex; flex-direction:column; align-items:center;">
-          <div id="step4-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--paper); transition:all 0.2s;">
+          <div id="step4-icon" style="width:44px; height:44px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--bg-deep); transition:all 0.2s;">
             <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
           </div>
-          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:'DM Mono',monospace;">Publish</div>
-          <div style="font-size:9px; padding:2px 6px; border-radius:3px; {% if wp_connected %}background:#e8f5ed; color:var(--green);{% else %}background:#fde8e8; color:var(--accent);{% endif %} font-family:'DM Mono',monospace; margin-top:4px;">
+          <div style="font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); text-align:center; margin-top:10px; font-family:var(--font-m);">Publish</div>
+          <div style="font-size:9px; padding:2px 6px; border-radius:3px; {% if wp_connected %}background:#e8f5ed; color:var(--green);{% else %}background:#fde8e8; color:var(--accent);{% endif %} font-family:var(--font-m); margin-top:4px;">
             {% if wp_connected %}Connected{% else %}Not Linked{% endif %}
           </div>
         </div>
@@ -150,15 +150,15 @@
         <div style="width:7px; height:7px; background:var(--accent2); border-radius:50%; animation:bounce 0.6s 0.4s infinite;"></div>
       </div>
       <div>
-        <div style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent2); font-family:'DM Mono',monospace; font-weight:600;">Processing Workflow</div>
-        <div id="current-processing-title" style="font-size:12px; color:var(--ink); font-family:'DM Mono',monospace; margin-top:3px; font-weight:400;">Initializing engine...</div>
+        <div style="font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent2); font-family:var(--font-m); font-weight:600;">Processing Workflow</div>
+        <div id="current-processing-title" style="font-size:12px; color:var(--white); font-family:var(--font-m); margin-top:3px; font-weight:400;">Initializing engine...</div>
       </div>
     </div>
 
     <!-- Action Bar -->
-    <div style="background:var(--cream); border-top:1px solid var(--border); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div style="background:var(--bg-lt); border-top:1px solid var(--border); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
       <button id="run-btn" onclick="runAutomationNow()" class="btn-primary"
-        style="display:flex; align-items:center; gap:8px; padding:12px 24px; font-size:12px; background:var(--ink); color:var(--paper); border:none; border-radius:4px; font-family:'DM Mono',monospace; cursor:pointer; font-weight:500;">
+        style="display:flex; align-items:center; gap:8px; padding:12px 24px; font-size:12px; background:var(--white); color:var(--bg-deep); border:none; border-radius:4px; font-family:var(--font-m); cursor:pointer; font-weight:500;">
         <svg id="btn-icon-play" width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg>
         <svg id="btn-icon-spin" class="hidden" width="14" height="14" fill="none" viewBox="0 0 24 24" style="display:none;"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity="0.75"/></svg>
         <span id="run-btn-text">Run Automation Now</span>
@@ -168,11 +168,11 @@
       <div style="display:flex; align-items:center; gap:12px; background:var(--surface); padding:8px 16px; border-radius:4px; border:1px solid var(--border);">
         <div style="display:flex; align-items:center; gap:8px;">
           <div id="schedule-dot" style="width:6px; height:6px; border-radius:50%; background:{% if schedule_enabled %}#2a7a4b{% else %}#888{% endif %};"></div>
-          <span style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace; font-weight:500;">Schedule</span>
+          <span style="font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-family:var(--font-m); font-weight:500;">Schedule</span>
         </div>
         <div style="width:1px; height:18px; background:var(--border);"></div>
         <select id="frequency-select" onchange="toggleSchedule()"
-          style="background:transparent; border:none; font-size:11px; font-family:'DM Mono',monospace; color:var(--ink); cursor:pointer; outline:none; font-weight:500;">
+          style="background:transparent; border:none; font-size:11px; font-family:var(--font-m); color:var(--white); cursor:pointer; outline:none; font-weight:500;">
           <option value="15" {% if schedule_frequency=='15' %}selected{% endif %}>Every 15 mins</option>
           <option value="30" {% if schedule_frequency=='30' %}selected{% endif %}>Every 30 mins</option>
           <option value="60" {% if schedule_frequency=='60' %}selected{% endif %}>Every 1 hr</option>
@@ -198,22 +198,22 @@
       <!-- FEED SOURCES -->
       <div class="section-card" style="position:relative;">
         <div class="section-header" style="padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between;">
-          <div class="section-title" style="font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; letter-spacing: 1px;">FEED SOURCES</div>
-          <div class="section-meta" style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: lowercase;">{{ feed_count }} active · syncs every 30 min</div>
+          <div class="section-title" style="font-size: 13px; font-weight: 700; font-family: var(--font-d); letter-spacing: 1px;">FEED SOURCES</div>
+          <div class="section-meta" style="font-family: var(--font-m); font-size: 11px; color: var(--muted); text-transform: lowercase;">{{ feed_count }} active · syncs every 30 min</div>
         </div>
         
         <div style="padding:0; background: var(--surface);">
           {% if recent_feeds %}
             {% for feed in recent_feeds %}
-            <div style="display:flex; align-items:center; gap:16px; padding:16px 20px; border-bottom:1px solid var(--border); transition: background 0.15s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">
-              <div style="width:36px; height:36px; border-radius:4px; background:{% if feed.active %}var(--accent2){% else %}#888{% endif %}; display:flex; align-items:center; justify-content:center; font-size:15px; color:var(--paper); font-family: 'Syne', sans-serif; font-weight:700; flex-shrink:0;">
+            <div style="display:flex; align-items:center; gap:16px; padding:16px 20px; border-bottom:1px solid var(--border); transition: background 0.15s;" onmouseover="this.style.background='var(--bg-lt)'" onmouseout="this.style.background='transparent'">
+              <div style="width:36px; height:36px; border-radius:4px; background:{% if feed.active %}var(--accent2){% else %}#888{% endif %}; display:flex; align-items:center; justify-content:center; font-size:15px; color:var(--bg-deep); font-family: var(--font-d); font-weight:700; flex-shrink:0;">
                 {{ feed.name[0].upper() }}
               </div>
               <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;">
-                <div style="font-size:13px; font-weight:500; font-family: 'DM Mono', monospace; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ feed.name }}</div>
-                <div style="font-size:11px; color:var(--muted); font-family:'DM Mono',monospace;">{{ (feed.url|replace('https://','')|replace('http://','')).rstrip('/') }}</div>
+                <div style="font-size:13px; font-weight:500; font-family: var(--font-m); color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ feed.name }}</div>
+                <div style="font-size:11px; color:var(--muted); font-family:var(--font-m);">{{ (feed.url|replace('https://','')|replace('http://','')).rstrip('/') }}</div>
               </div>
-              <div style="font-family:'Fraunces',serif; font-size:20px; color:var(--muted); font-weight:300; padding-right:12px;">
+              <div style="font-family:var(--font-s); font-size:20px; color:var(--muted); font-weight:300; padding-right:12px;">
                 {{ range(5, 45) | random }} <!-- Placeholder post count matching design -->
               </div>
               <label class="toggle-switch" style="position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0;">
@@ -225,15 +225,15 @@
             </div>
             {% endfor %}
           {% else %}
-            <div style="padding:40px 20px; font-size:12px; color:var(--muted); font-family:'DM Mono',monospace; text-align:center;">
-              <div style="font-family:'Fraunces', serif; font-size:20px; color:var(--ink); margin-bottom:8px;">No feeds configured</div>
+            <div style="padding:40px 20px; font-size:12px; color:var(--muted); font-family:var(--font-m); text-align:center;">
+              <div style="font-family:var(--font-s); font-size:20px; color:var(--white); margin-bottom:8px;">No feeds configured</div>
               Connect your first RSS source to start importing content.
             </div>
           {% endif %}
         </div>
         
         <div style="padding: 16px 20px; background: var(--surface); border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
-          <button onclick="window.location='{{ url_for('client.feeds') }}'" style="display:flex; align-items:center; justify-content:center; padding:18px; border:1px dashed var(--border); border-radius:4px; font-size:13px; color:var(--muted); cursor:pointer; background:transparent; width:100%; font-family:'DM Mono',monospace; transition:all 0.15s;" onmouseover="this.style.borderColor='var(--ink)'; this.style.color='var(--ink)'; this.style.background='var(--cream)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'; this.style.background='transparent'">
+          <button onclick="window.location='{{ url_for('client.feeds') }}'" style="display:flex; align-items:center; justify-content:center; padding:18px; border:1px dashed var(--border); border-radius:4px; font-size:13px; color:var(--muted); cursor:pointer; background:transparent; width:100%; font-family:var(--font-m); transition:all 0.15s;" onmouseover="this.style.borderColor='var(--white)'; this.style.color='var(--white)'; this.style.background='var(--bg-lt)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--muted)'; this.style.background='transparent'">
             + Add RSS Feed
           </button>
         </div>
@@ -247,26 +247,26 @@
         </div>
         
         {% if recently_published_articles %}
-          <div style="display:grid; grid-template-columns:2fr 1fr 100px 80px; padding:10px 20px; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); background:var(--cream);">
+          <div style="display:grid; grid-template-columns:2fr 1fr 100px 80px; padding:10px 20px; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); background:var(--bg-lt);">
             <span>Title</span>
             <span>Source Feed</span>
             <span>Status</span>
             <span>Words</span>
           </div>
           {% for article in recently_published_articles %}
-            <div style="display:grid; grid-template-columns:2fr 1fr 100px 80px; padding:13px 20px; font-size:11px; border-bottom:1px solid var(--border); align-items:center; cursor:pointer;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'" onclick="window.location='{{ url_for('articles.view', article_id=article.id) }}'">
-              <div style="font-family:'Fraunces',serif; font-style:italic; font-weight:300; font-size:14px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:12px;">
+            <div style="display:grid; grid-template-columns:2fr 1fr 100px 80px; padding:13px 20px; font-size:11px; border-bottom:1px solid var(--border); align-items:center; cursor:pointer;" onmouseover="this.style.background='var(--bg-lt)'" onmouseout="this.style.background='transparent'" onclick="window.location='{{ url_for('articles.view', article_id=article.id) }}'">
+              <div style="font-family:var(--font-s); font-style:italic; font-weight:300; font-size:14px; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:12px;">
                 {{ article.generated_title or article.original_title or 'Untitled' }}
               </div>
-              <div style="color:var(--muted); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:12px;">
+              <div style="color:var(--muted); font-family:var(--font-m); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:12px;">
                 {{ article.feed.name if article.feed else 'Unknown' }}
               </div>
               <div><span class="badge badge-blue">Pushed</span></div>
-              <div style="color:var(--muted); font-family:'DM Mono',monospace;">{{ article.word_count or '~' }}w</div>
+              <div style="color:var(--muted); font-family:var(--font-m);">{{ article.word_count or '~' }}w</div>
             </div>
           {% endfor %}
         {% else %}
-          <div style="padding:24px 20px; font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; text-align:center;">
+          <div style="padding:24px 20px; font-size:11px; color:var(--muted); font-family:var(--font-m); text-align:center;">
             No articles published to your output targets yet.
           </div>
         {% endif %}
@@ -280,29 +280,29 @@
       <!-- QUEUE -->
       <div class="section-card">
         <div class="section-header" style="padding: 16px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between;">
-          <div class="section-title" style="font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; letter-spacing: 1px;">PUBLISH QUEUE</div>
-          <div class="section-meta" style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: lowercase;">{{ queued_articles|length }} items</div>
+          <div class="section-title" style="font-size: 13px; font-weight: 700; font-family: var(--font-d); letter-spacing: 1px;">PUBLISH QUEUE</div>
+          <div class="section-meta" style="font-family: var(--font-m); font-size: 11px; color: var(--muted); text-transform: lowercase;">{{ queued_articles|length }} items</div>
         </div>
         
         <div style="padding:0; background: var(--surface);">
           {% if queued_articles %}
             {% for article in queued_articles %}
-              <div style="padding:16px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'" onclick="window.location='{{ url_for('articles.view', article_id=article.id) }}'">
+              <div style="padding:16px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='var(--bg-lt)'" onmouseout="this.style.background='transparent'" onclick="window.location='{{ url_for('articles.view', article_id=article.id) }}'">
                 <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:8px;">
-                  <div style="font-family:'Fraunces',serif; font-style:italic; font-size:16px; font-weight:300; line-height:1.3; color:var(--ink); flex:1;">
+                  <div style="font-family:var(--font-s); font-style:italic; font-size:16px; font-weight:300; line-height:1.3; color:var(--white); flex:1;">
                     {{ article.generated_title or article.original_title or 'Untitled Article' }}
                   </div>
                   {% if article.status == 'pushed' %}
-                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:#e8f5ed; color:var(--green); font-family:'DM Mono',monospace;">Ready</span>
+                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:#e8f5ed; color:var(--green); font-family:var(--font-m);">Ready</span>
                   {% elif article.status == 'generated' %}
-                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:#fdf3e0; color:#c8882f; font-family:'DM Mono',monospace;">Review</span>
+                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:#fdf3e0; color:#c8882f; font-family:var(--font-m);">Review</span>
                   {% elif article.status == 'pending' %}
-                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:#fde8e8; color:var(--accent); font-family:'DM Mono',monospace;">Pending</span>
+                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:#fde8e8; color:var(--accent); font-family:var(--font-m);">Pending</span>
                   {% else %}
-                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:var(--paper); color:var(--muted); font-family:'DM Mono',monospace;">{{ article.status | capitalize }}</span>
+                    <span style="font-size:10px; padding:4px 8px; border-radius:3px; white-space:nowrap; flex-shrink:0; background:var(--bg-deep); color:var(--muted); font-family:var(--font-m);">{{ article.status | capitalize }}</span>
                   {% endif %}
                 </div>
-                <div style="font-size:11px; color:var(--muted); display:flex; gap:12px; font-family:'DM Mono',monospace;">
+                <div style="font-size:11px; color:var(--muted); display:flex; gap:12px; font-family:var(--font-m);">
                   <span>{{ article.feed.name if article.feed else 'Unknown Source' }}</span>
                   <span>{{ article.word_count or '~800' }} words</span>
                   <span>{% if article.status == 'pushed' %}published{% elif article.status == 'generated' %}awaiting review{% else %}processing{% endif %}</span>
@@ -310,8 +310,8 @@
               </div>
             {% endfor %}
           {% else %}
-             <div style="padding:40px 20px; font-size:12px; color:var(--muted); font-family:'DM Mono',monospace; text-align:center;">
-                <div style="font-family:'Fraunces', serif; font-size:20px; color:var(--ink); margin-bottom:8px;">Queue empty</div>
+             <div style="padding:40px 20px; font-size:12px; color:var(--muted); font-family:var(--font-m); text-align:center;">
+                <div style="font-family:var(--font-s); font-size:20px; color:var(--ink); margin-bottom:8px;">Queue empty</div>
                 No items currently processing in the pipeline.
              </div>
           {% endif %}
@@ -321,48 +321,48 @@
       <!-- CONFIG QUICK PANEL -->
       <div class="section-card">
         <div class="section-header" style="padding: 18px 20px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; justify-content: space-between;">
-          <div class="section-title" style="font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; letter-spacing: 1px;">QUICK CONFIG</div>
-          <button onclick="window.location='{{ url_for('client.settings') }}'" style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); padding: 4px 12px; border: 1px solid var(--border); border-radius: 4px; background: transparent; cursor: pointer;">Edit</button>
+          <div class="section-title" style="font-size: 13px; font-weight: 700; font-family: var(--font-d); letter-spacing: 1px;">QUICK CONFIG</div>
+          <button onclick="window.location='{{ url_for('client.settings') }}'" style="font-family: var(--font-m); font-size: 11px; color: var(--muted); padding: 4px 12px; border: 1px solid var(--border); border-radius: 4px; background: transparent; cursor: pointer;">Edit</button>
         </div>
         
         <div style="background: var(--surface);">
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:var(--font-m);">
             <span style="color:var(--muted);">AI Model</span>
-            <div style="background:var(--cream); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:12px; display:flex; align-items:center; gap:8px;">
-              Claude Sonnet
+            <div style="background:var(--bg-lt); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:12px; display:flex; align-items:center; gap:8px;">
+              {{ config.OPENROUTER_DEFAULT_MODEL | replace('openai/','') | replace('anthropic/','') | title }}
               <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </div>
           </div>
           
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:var(--font-m);">
             <span style="color:var(--muted);">Rewrite Style</span>
-            <div style="background:var(--cream); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:12px; display:flex; align-items:center; gap:8px;">
-              Informative Editorial
+            <div style="background:var(--bg-lt); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:12px; display:flex; align-items:center; gap:8px;">
+              {{ config.TONE | title }}
               <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </div>
           </div>
           
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:var(--font-m);">
             <span style="color:var(--muted);">Min Word Count</span>
-            <span style="color:var(--ink); font-weight:500;">800 words</span>
+            <span style="color:var(--ink); font-weight:500;">{{ config.MIN_WORD_COUNT }} words</span>
           </div>
 
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:var(--font-m);">
             <span style="color:var(--muted);">Auto-publish</span>
             <span style="color:var(--green); font-weight:500;">Enabled</span>
           </div>
 
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:var(--font-m);">
             <span style="color:var(--muted);">Human Review</span>
             <span style="color:var(--accent); font-weight:500;">Required for >2,000w</span>
           </div>
           
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:'DM Mono',monospace;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--border); font-size:13px; font-family:var(--font-m);">
             <span style="color:var(--muted);">Publish Target</span>
             <span style="color:var(--ink); font-weight:500;">{% if wp_connected %}WordPress{% else %}Not Linked{% endif %}</span>
           </div>
           
-          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; font-size:13px; font-family:'DM Mono',monospace;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 20px; font-size:13px; font-family:var(--font-m);">
             <span style="color:var(--muted);">Daily Limit</span>
             <span style="color:var(--ink); font-weight:500;">{% if article_limit == -1 %}Unlimited{% else %}{{ article_limit }} posts/day{% endif %}</span>
           </div>
@@ -463,7 +463,10 @@
     try {
       const res = await fetch('/api/run-automation', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token() }}'
+        },
         body: JSON.stringify({ auto_push: false })
       });
       const data = await res.json();
@@ -484,7 +487,10 @@
   async function resetAutomation() {
     if (!confirm('Force reset engine?')) return;
     try {
-      const res = await fetch('/api/reset-automation', { method: 'POST' });
+      const res = await fetch('/api/reset-automation', { 
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+      });
       const data = await res.json();
       if (data.success) { 
         setRunningState(false); 
@@ -552,7 +558,10 @@
     try {
       await fetch('/api/toggle-schedule', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token() }}'
+        },
         body: JSON.stringify({ enabled, frequency: parseInt(frequency) })
       });
     } catch(e) {}

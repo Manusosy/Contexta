@@ -13,12 +13,25 @@ def push_to_wordpress(article, rewritten_data: dict) -> dict:
     Push rewritten content to WordPress via REST API.
     Node 5 Specification: Map fields → categories/tags → meta → publish (draft).
     """
-    wp_url = (getattr(config, "WP_URL", "") or Setting.get("wp_url", "")).rstrip("/")
-    wp_user = getattr(config, "WP_USER", "") or Setting.get("wp_user", "")
-    wp_password = getattr(config, "WP_APP_PASSWORD", "") or Setting.get("wp_password", "")
+    # 1. Determine Credentials source (User vs Global)
+    user = article.feed.user if article.feed and article.feed.user else None
+    
+    if user and user.wp_url:
+        wp_url = user.wp_url.rstrip("/")
+        wp_user = user.wp_user
+        wp_password = user.wp_password # Property handles decryption
+    else:
+        wp_url = (getattr(config, "WP_URL", "") or Setting.get("wp_url", "")).rstrip("/")
+        wp_user = getattr(config, "WP_USER", "") or Setting.get("wp_user", "")
+        # Global password from Setting might be encrypted? 
+        # For consistency, let's treat the Global WP Password in Settings as potentially encrypted too.
+        raw_pw = getattr(config, "WP_APP_PASSWORD", "") or Setting.get("wp_password", "")
+        from flask import current_app
+        from utils.security import decrypt_data
+        wp_password = decrypt_data(raw_pw, current_app.config.get("SECRET_KEY", "dev-secret") if current_app else "dev-secret")
     
     if not all([wp_url, wp_user, wp_password]):
-        _log("WordPress push skipped — incomplete credentials", "warning")
+        _log(f"WordPress push skipped for {article.id} — incomplete credentials", "warning")
         return {"success": False, "error": "WP Credentials missing"}
 
     auth = HTTPBasicAuth(wp_user, wp_password)

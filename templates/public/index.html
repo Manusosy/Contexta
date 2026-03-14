@@ -1,392 +1,650 @@
-{% extends "public_base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contexta | Enterprise AI Automation Infrastructure</title>
+<meta name="description" content="Contexta is the enterprise AI automation infrastructure that thinks before it acts. Drop it into your stack and watch your operations run themselves.">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}" />
+<script src="https://unpkg.com/lucide@latest"></script>
 
-{% block title %}Contexta — AI Editorial Automation{% endblock %}
 
-{% block content %}
+<script>
+  (function() {
+    var theme = localStorage.getItem('theme');
+    var isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.classList.remove('dark');
+    }
+  })();
+</script>
 
-<!-- Navigation Header -->
-<header
-    class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16 sm:h-20">
-            <!-- Logo -->
-            <div class="flex-shrink-0 flex items-center gap-3">
-                <div
-                    class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all overflow-hidden bg-white">
-                    {% if Setting.get('site_logo') %}
-                    <img src="{{ Setting.get('site_logo') }}" alt="Logo" class="w-full h-full object-contain">
-                    {% else %}
-                    <div
-                        class="w-full h-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    {% endif %}
-                </div>
-                <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{{
-                    Setting.get('site_name', 'Contexta') }}</span>
-            </div>
+</head>
+<body>
 
-            <!-- Desktop Nav -->
-            <nav class="hidden md:flex flex-1 justify-center space-x-8">
-                <a href="#features"
-                    class="text-sm font-medium tracking-wide text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Features</a>
-                <a href="#how-it-works"
-                    class="text-sm font-medium tracking-wide text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">How
-                    it Works</a>
-                <a href="#pricing"
-                    class="text-sm font-medium tracking-wide text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Pricing</a>
-            </nav>
-
-            <!-- Auth Buttons -->
-            <div class="hidden sm:flex items-center gap-4">
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('client.index') }}"
-                    class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 transition-all hover:shadow-brand-500/25 cursor-pointer">
-                    Go to Dashboard
-                </a>
-                {% else %}
-                <a href="{{ url_for('auth.login') }}"
-                    class="text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Log
-                    in</a>
-                <a href="{{ url_for('auth.register') }}"
-                    class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 transition-all hover:shadow-brand-500/25 cursor-pointer">
-                    Get Started
-                </a>
-                {% endif %}
-            </div>
-
-            <!-- Mobile menu button -->
-            <div class="flex sm:hidden">
-                <a href="{{ url_for('client.index') if current_user.is_authenticated else url_for('auth.register') }}"
-                    class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 mr-2">
-                    {{ 'Dashboard' if current_user.is_authenticated else 'Start' }}
-                </a>
-            </div>
-        </div>
+<nav id="mainNav">
+  <a href="{{ url_for('public.index') }}" class="logo">
+    <div class="logo-mark">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <rect x="1" y="1" width="4.5" height="4.5" fill="white"/>
+        <rect x="7.5" y="1" width="4.5" height="4.5" fill="white" opacity="0.5"/>
+        <rect x="1" y="7.5" width="4.5" height="4.5" fill="white" opacity="0.5"/>
+        <rect x="7.5" y="7.5" width="4.5" height="4.5" fill="white"/>
+      </svg>
     </div>
-</header>
-
-<!-- Hero Section -->
-<main class="flex-1 pt-20">
-    <div class="relative pt-24 pb-20 sm:pt-32 sm:pb-24 lg:pb-32 overflow-hidden">
-
-        <!-- Abstract gradient background -->
-        <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80 pointer-events-none"
-            aria-hidden="true">
-            <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-                style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)">
-            </div>
-        </div>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-            <div class="mx-auto max-w-3xl">
-                <!-- Badge -->
-                <div class="mb-8 flex justify-center">
-                    <span
-                        class="relative rounded-full px-3 py-1.5 text-xs font-semibold leading-6 text-brand-600 dark:text-brand-400 ring-1 ring-inset ring-brand-600/20 dark:ring-brand-500/20 bg-brand-50 dark:bg-brand-900/10 backdrop-blur-sm">
-                        Enterprise Grade. AI Powered.
-                    </span>
-                </div>
-
-                <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-8">
-                    Turn raw feeds into <span
-                        class="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-indigo-600">curated
-                        editorial</span> content.
-                </h1>
-
-                <p
-                    class="text-lg sm:text-xl text-slate-600 dark:text-slate-300 mb-10 leading-relaxed max-w-2xl mx-auto">
-                    Contexta automatically monitors your RSS pipelines, drafts rich, SEO-optimized articles, applies
-                    structured data, and publishes directly to your CMS.
-                </p>
-
-                <div class="mt-10 flex items-center justify-center gap-x-6">
-                    <a href="{{ url_for('auth.register') }}"
-                        class="rounded-xl bg-brand-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg hover:bg-brand-500 hover:shadow-brand-500/30 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600">
-                        Start your workspace
-                    </a>
-                    <a href="#features"
-                        class="text-base font-semibold leading-6 text-slate-900 dark:text-white hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
-                        Learn more <span aria-hidden="true" class="ml-1">→</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Dashboard Preview Image mock -->
-            <div class="mt-20 sm:mt-24 lg:mt-28 relative max-w-5xl mx-auto">
-                <div class="rounded-2xl bg-white/5 p-2 ring-1 ring-white/10 ring-inset shadow-2xl backdrop-blur-xl">
-                    <div
-                        class="rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full aspect-video shadow-inner overflow-hidden flex flex-col items-center justify-center relative">
-                        <!-- Simulated Dashboard UI Graphic -->
-                        <div
-                            class="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-[#0b1121]">
-                        </div>
-                        <!-- UI Wireframes elements -->
-                        <div
-                            class="absolute top-0 left-0 bottom-0 w-48 border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 hidden md:block">
-                        </div>
-                        <div
-                            class="absolute top-0 left-0 right-0 h-12 border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50">
-                        </div>
-                        <div
-                            class="relative z-10 p-8 rounded-lg border border-brand-500/30 bg-brand-50/50 dark:bg-brand-900/20 backdrop-blur w-3/4 shadow-lg flex items-center gap-4">
-                            <div
-                                class="w-10 h-10 rounded-full border-2 border-brand-500 border-t-transparent animate-spin">
-                            </div>
-                            <div class="text-left">
-                                <span class="block text-sm font-bold text-slate-800 dark:text-slate-200">Article
-                                    generation in progress...</span>
-                                <span class="block text-xs text-slate-500 dark:text-slate-400">Contexta AI Engine</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bottom gradient -->
-        <div class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)] pointer-events-none"
-            aria-hidden="true">
-            <div class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
-                style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)">
-            </div>
-        </div>
-    </div>
-</main>
-
-<!-- Features Section -->
-<section id="features" class="py-24 bg-white dark:bg-slate-900 relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16">
-            <h2 class="text-base font-bold tracking-wide text-brand-600 dark:text-brand-400 uppercase mb-3">Enterprise
-                Standard</h2>
-            <p
-                class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl text-balance">
-                Everything you need to run an automated newsroom.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14">
-
-            <!-- Feature 1 -->
-            <div class="flex flex-col">
-                <div
-                    class="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 text-indigo-600 dark:text-indigo-400">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z">
-                        </path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Automated Aggregation</h3>
-                <p class="text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">Connect limitless RSS feeds. Our
-                    engine pulls, deduplicates via URL normalization, and intelligently parses dense raw articles to
-                    extract pure facts.</p>
-            </div>
-
-            <!-- Feature 2 -->
-            <div class="flex flex-col">
-                <div
-                    class="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800/30 text-brand-600 dark:text-brand-400">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
-                        </path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Bring Your Own AI Key</h3>
-                <p class="text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">Plug in your OpenRouter API key.
-                    Configure custom prompts, parameters, and style restraints while bypassing aggressive platform
-                    markups.</p>
-            </div>
-
-            <!-- Feature 3 -->
-            <div class="flex flex-col">
-                <div
-                    class="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 text-emerald-600 dark:text-emerald-400">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">End-to-End Publishing</h3>
-                <p class="text-slate-600 dark:text-slate-400 leading-relaxed max-w-md">Once generated, validated
-                    narratives are seamlessly pushed to connected WordPress sites mapped to accurate dynamic categories.
-                </p>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-<!-- Pricing Section -->
-<section id="pricing" class="py-24 bg-slate-50 dark:bg-slate-950 relative overflow-hidden" x-data="{ annual: false }">
-    <!-- Background Decor -->
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 pointer-events-none">
-        <div class="absolute top-[-10%] left-[-20%] w-[60%] h-[60%] bg-brand-500/5 blur-[120px] rounded-full"></div>
-        <div class="absolute bottom-[-10%] right-[-20%] w-[60%] h-[60%] bg-indigo-500/5 blur-[120px] rounded-full">
-        </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center max-w-3xl mx-auto mb-16">
-            <h2 class="text-base font-bold tracking-tight text-brand-600 dark:text-brand-400 uppercase mb-4">Pricing
-                Plans</h2>
-            <p class="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                Scalable Automation for <span
-                    class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600">Every
-                    Newsroom</span>
-            </p>
-
-            <!-- Toggle Switch (Dribbble Style) -->
-            <div class="mt-12 flex items-center justify-center gap-6">
-                <span class="text-sm font-bold tracking-tight"
-                    :class="!annual ? 'text-slate-900 dark:text-white' : 'text-slate-400'">Annual <span
-                        class="text-brand-500 ml-1">-10%</span></span>
-                <button @click="annual = !annual"
-                    class="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none bg-slate-200 dark:bg-slate-800">
-                    <div class="absolute top-1 left-1 w-5 h-5 bg-brand-600 rounded-full transition-transform duration-300 shadow-lg"
-                        :class="annual ? 'translate-x-7' : 'translate-x-0'"></div>
-                </button>
-                <span class="text-sm font-bold tracking-tight"
-                    :class="annual ? 'text-slate-900 dark:text-white' : 'text-slate-400'">Monthly</span>
-            </div>
-            <p class="mt-4 text-xs text-slate-500 font-medium italic">Billed annually. 10% savings for upfront payment.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch pt-8">
-            {% set monthly_tiers = tiers | selectattr('interval', 'equalto', 'monthly') | list %}
-            {% set yearly_tiers = tiers | selectattr('interval', 'equalto', 'yearly') | list %}
-
-            {% for i in range(3) %}
-            {% set m_tier = monthly_tiers[i] if i < monthly_tiers|length else none %} {% set y_tier=yearly_tiers[i] if i
-                < yearly_tiers|length else none %} {% if m_tier %} <div class="relative p-10 rounded-[40px] transition-all duration-500 flex flex-col h-full border-2
-                {% if m_tier.is_featured %}
-                bg-brand-600 text-white shadow-[0_32px_64px_-16px_rgba(37,99,235,0.35)] scale-105 z-10 border-brand-500
-                {% else %}
-                bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-xl hover:shadow-2xl hover:-translate-y-2
-                {% endif %}">
-                {% if m_tier.is_featured %}
-                <div class="absolute top-8 right-8">
-                    <span
-                        class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-orange-500 text-[10px] font-black uppercase tracking-widest shadow-lg">
-                        <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                                d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z">
-                            </path>
-                        </svg>
-                        Popular
-                    </span>
-                </div>
-                {% endif %}
-
-                <div class="mb-8">
-                    <h3
-                        class="text-xl font-bold mb-1 {% if not m_tier.is_featured %}text-brand-600 dark:text-brand-400{% endif %}">
-                        {{ m_tier.name }}</h3>
-                    <p
-                        class="text-sm font-medium {% if m_tier.is_featured %}text-white/70{% else %}text-slate-500{% endif %}">
-                        {{ m_tier.name }} for business just getting started</p>
-
-                    <div class="mt-8 flex flex-col">
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-5xl font-black" x-text="!annual ? '${{ " {:0,.0f}".format(y_tier.price if
-                                y_tier else m_tier.price*10) }}' : '${{ "{:0,.2f}".format(m_tier.price) }}'"></span>
-                            <span class=" text-sm font-bold opacity-70" x-text="!annual ? '/yr' : '/mo'"></span>
-                        </div>
-                        <p class="mt-2 text-[11px] font-bold opacity-60">+ $0.50 Per Extra Article</p>
-                    </div>
-
-                    <div
-                        class="mt-6 flex items-center gap-3 py-3 px-4 rounded-2xl {% if m_tier.is_featured %}bg-white/10{% else %}bg-slate-50 dark:bg-slate-800{% endif %}">
-                        <svg class="w-5 h-5 {% if m_tier.is_featured %}text-white{% else %}text-brand-600{% endif %}"
-                            fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="text-xs font-bold">{{ m_tier.article_limit if m_tier.article_limit != -1 else
-                            'Unlimited' }} Guaranteed Articles*</span>
-                    </div>
-                </div>
-
-                <div class="mt-4 mb-10">
-                    <a href="{{ url_for('auth.register', tier=m_tier.id if annual else (y_tier.id if y_tier else m_tier.id)) }}"
-                        class="block w-full py-4 px-6 rounded-2xl text-center text-sm font-black transition-all duration-300
-                        {% if m_tier.is_featured %}
-                        bg-white text-brand-600 hover:bg-slate-100 shadow-xl
-                        {% else %}
-                        bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-600/20
-                        {% endif %}">
-                        Talk to Us
-                    </a>
-                </div>
-
-                <div class="flex-grow">
-                    <div
-                        class="h-px w-full {% if m_tier.is_featured %}bg-white/20{% else %}bg-slate-100 dark:bg-slate-800{% endif %} mb-8">
-                    </div>
-                    <h4 class="text-xs font-black uppercase tracking-widest mb-6 opacity-80">Everything in {{
-                        m_tier.name }}:</h4>
-                    <ul class="space-y-4">
-                        {% for feature in m_tier.features %}
-                        <li class="flex items-start gap-3">
-                            <div
-                                class="mt-1 w-4 h-4 rounded-full flex items-center justify-center {% if m_tier.is_featured %}bg-white/20{% else %}bg-slate-900 dark:bg-white text-white dark:text-slate-900{% endif %}">
-                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                        d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                            <span
-                                class="text-xs font-bold leading-relaxed {% if m_tier.is_featured %}text-white/90{% else %}text-slate-700 dark:text-slate-300{% endif %}">{{
-                                feature.feature_text }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-    </div>
-
-    <div class="mt-20 text-center max-w-2xl mx-auto">
-        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">* Coverage guarantee is over the
-            course of the term selected.</p>
-        <p class="text-xs text-slate-500 font-medium">If we fail to deliver the quantity of coverage we give you your
-            money back.</p>
-    </div>
-    </div>
-</section>
-
-<div
-    class="mt-20 flex flex-col sm:flex-row items-center justify-center gap-12 py-8 px-12 rounded-[40px] bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
-    <div class="flex items-center gap-4">
-        <div class="flex -space-x-3">
-            <img class="w-10 h-10 rounded-full border-4 border-white dark:border-slate-800 object-cover"
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&h=100&auto=format&fit=crop"
-                alt="User">
-            <img class="w-10 h-10 rounded-full border-4 border-white dark:border-slate-800 object-cover"
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&h=100&auto=format&fit=crop"
-                alt="User">
-            <img class="w-10 h-10 rounded-full border-4 border-white dark:border-slate-800 object-cover"
-                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&h=100&auto=format&fit=crop"
-                alt="User">
-        </div>
-        <p class="text-sm font-bold text-slate-900 dark:text-white">Trusted by 2,000+ publishers</p>
-    </div>
-    <div class="hidden sm:block h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
-    <div class="flex items-center gap-6 opacity-40 grayscale group-hover:grayscale-0 transition-all">
-        <span class="text-lg font-black tracking-tighter">THE NEWS</span>
-        <span class="text-lg font-black tracking-tighter italic underline decoration-brand-500">DIGITAL</span>
-        <span class="text-lg font-black tracking-tighter opacity-50">PRESS.CO</span>
-    </div>
+    Contexta
+  </a>
+  <div class="nav-center" id="navLinks">
+    <a href="#platform">Platform</a>
+    <a href="#lexkenya">LexKenya</a>
+    <a href="#developers">Developers</a>
+  </div>
+  <div class="nav-right">
+    <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+      <div id="themeIconSun" style="display:none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </div>
+      <div id="themeIconMoon" style="display:none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </div>
+    </button>
+    <a href="{{ url_for('auth.login') }}" class="btn-nav-ghost">Sign In</a>
+    <a href="{{ url_for('auth.register') }}" class="btn-nav-cta">Get Access</a>
+    <button id="navToggle" class="nav-hamburger" aria-label="Toggle navigation" onclick="toggleMobileNav()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div id="mobileNav" class="mobile-nav-drawer">
+  <a href="#platform" onclick="closeMobileNav()">Platform</a>
+  <a href="#lexkenya" onclick="closeMobileNav()">LexKenya</a>
+  <a href="#developers" onclick="closeMobileNav()">Developers</a>
+  <a href="{{ url_for('auth.login') }}" class="mobile-nav-cta">Sign In</a>
+  <a href="{{ url_for('auth.register') }}" class="mobile-nav-cta mobile-nav-cta-primary">Get Access</a>
 </div>
-</div>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-scanner"></div>
+  <div class="geo-bg">
+    <div class="geo-circle geo-c1"></div>
+    <div class="geo-circle geo-c2"></div>
+    <div class="geo-circle geo-c3"></div>
+    <div class="geo-line geo-l1"></div>
+    <div class="geo-line geo-l2"></div>
+  </div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-tag reveal-up">Automation That Understands Context</div>
+      <h1 class="reveal-up d-1" id="typing-hero">Plug In. Let Intelligence Take Over.</h1>
+      <p class="hero-sub reveal-up d-2">Contexta is the automation infrastructure that thinks before it acts. Drop it into your stack and watch your operations run themselves with zero configuration overhead.</p>
+      <div class="hero-actions reveal-up d-3">
+        <a href="{{ url_for('auth.register') }}" class="btn-primary">Get Instant Access <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 6.5h11M7.5 2l4.5 4.5L7.5 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a href="#pipeline" class="btn-secondary">See It In Action</a>
+      </div>
+      <div class="hero-proof">
+        <div class="hero-proof-label">Built for forward-thinking teams</div>
+        <div class="logo-ticker-container">
+          <div class="logo-ticker">
+            <span class="proof-logo">Content Teams</span><span class="proof-logo">Media Companies</span><span class="proof-logo">Law Firms</span><span class="proof-logo">Marketing Agencies</span><span class="proof-logo">Publishers</span>
+            <span class="proof-logo">Content Teams</span><span class="proof-logo">Media Companies</span><span class="proof-logo">Law Firms</span><span class="proof-logo">Marketing Agencies</span><span class="proof-logo">Publishers</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="stats-panel">
+        <div class="panel-bar">
+          <span class="panel-title">Contexta Platform · Preview</span>
+          <span class="panel-status"><span class="status-dot"></span>All systems operational</span>
+        </div>
+        <div class="panel-metrics">
+          <div class="metric"><div class="metric-val"><span class="count-up" data-count="10">0</span><span style="font-size:1.2rem;color:var(--text-muted)">×</span></div><div class="metric-label">Faster than in-house builds</div></div>
+          <div class="metric"><div class="metric-val"><span style="font-size:1.5rem">Zero</span></div><div class="metric-label">Engineering overhead</div></div>
+        </div>
+        <div class="panel-agents">
+          <div class="agent-row"><div class="agent-indicator ind-green"></div><div class="agent-name">Content Publisher</div><div class="agent-action">Published 14 articles</div><div class="agent-tag tag-running">Running</div></div>
+          <div class="agent-row"><div class="agent-indicator ind-coral"></div><div class="agent-name">LexKenya · Research</div><div class="agent-action">Retrieved 23 citations</div><div class="agent-tag tag-active">Active</div></div>
+          <div class="agent-row"><div class="agent-indicator ind-yellow"></div><div class="agent-name">Market Intelligence</div><div class="agent-action">Monitoring sources</div><div class="agent-tag tag-standby">Standby</div></div>
+        </div>
+        <div class="panel-footer"><span class="pf-text">Illustrative · Typical deployment</span><a href="#lexkenya" class="pf-link">View LexKenya →</a></div>
+      </div>
+    </div>
+  </div>
 </section>
 
-{% endblock %}
+<!-- INTELLIGENCE PULSE (STATS) -->
+<section class="pulse-section">
+  <div class="pulse-inner">
+    <div class="pulse-item reveal-up d-1">
+      <div class="pulse-val">10<span class="pulse-unit">×</span></div>
+      <div class="pulse-desc">Faster deployment vs. building<br>automation in-house</div>
+    </div>
+    <div class="pulse-item reveal-up d-2">
+      <div class="pulse-val">Zero</div>
+      <div class="pulse-desc">Engineering overhead to get<br>your first agent live</div>
+    </div>
+    <div class="pulse-item reveal-up d-3">
+      <div class="pulse-val">99.9<span class="pulse-unit">%</span></div>
+      <div class="pulse-desc">Uptime SLA backed by<br>enterprise infrastructure</div>
+    </div>
+    <div class="pulse-item reveal-up d-4">
+      <div class="pulse-val">1M<span class="pulse-unit">+</span></div>
+      <div class="pulse-desc">Automated decisions<br>processed every month</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section how section-center" id="platform">
+  <div class="section-inner">
+    <div class="section-label reveal-up">How It Works</div>
+    <h2 class="section-h2 reveal-up d-1">Plug In Once. Run Forever.</h2>
+    <p class="section-body reveal-up d-2">No engineering sprints or configuration marathons required. Connect Contexta to your stack and let the intelligence layer handle every operation from that point forward.</p>
+    <div class="how-grid" style="text-align: left;">
+      <div class="how-card reveal-up d-1"><div class="how-num">01</div><div class="how-title">Connect Your Stack</div><div class="how-desc">Link Contexta to your data sources like CRMs, databases, and document libraries. A single integration provides full platform access.</div></div>
+      <div class="how-card reveal-up d-2"><div class="how-num">02</div><div class="how-title">Select Your Agent</div><div class="how-desc">Choose from our library of intelligent agents. Each one is production-ready and context-aware from the moment it's activated.</div></div>
+      <div class="how-card reveal-up d-3"><div class="how-num">03</div><div class="how-title">Activate & Scale</div><div class="how-desc">Deploy and watch. Contexta's engine reads every signal to execute the right action at the right time, continuously and autonomously.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section class="section modules-section section-center">
+  <div class="section-inner">
+    <div class="section-label reveal-up">The Platform</div>
+    <h2 class="section-h2 reveal-up d-1">Four Layers. One System.</h2>
+    <p class="section-body reveal-up d-2">Contexta ships as a complete intelligence stack. Each layer is production-hardened and works out of the box.</p>
+    <div class="modules-grid" style="text-align: left;">
+
+      <!-- C1: Contexta Core -->
+      <div class="mod-card c1 reveal-up d-1">
+        <div class="mod-visual">
+          <div class="mod-viz-bars">
+            <div class="mod-viz-bar"><div class="mod-viz-dot"></div><div class="mod-viz-track"><div class="mod-viz-progress"></div></div><span class="mod-viz-label">Intent: publish</span></div>
+            <div class="mod-viz-bar"><div class="mod-viz-dot"></div><div class="mod-viz-track"><div class="mod-viz-progress"></div></div><span class="mod-viz-label">Score: 0.94</span></div>
+            <div class="mod-viz-bar"><div class="mod-viz-dot"></div><div class="mod-viz-track"><div class="mod-viz-progress"></div></div><span class="mod-viz-label">Latency: 340ms</span></div>
+          </div>
+        </div>
+        <div class="mod-content">
+          <div class="mod-glow"></div>
+          <div class="mod-eyebrow">Core Engine</div>
+          <div class="mod-name">Contexta Core</div>
+          <p class="mod-desc">The reasoning engine that reads incoming signals, evaluates context against historical patterns, and determines the optimal action — before anything executes.</p>
+          <ul class="mod-list">
+            <li>Contextual reasoning at inference time</li>
+            <li>Intent and trend detection</li>
+            <li>Real-time decision scoring</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- C2: Contexta Flow -->
+      <div class="mod-card c2 reveal-up d-2">
+        <div class="mod-visual">
+          <div class="mod-viz-diagram">
+            <div class="mod-node">SOURCE</div>
+            <div class="mod-line"></div>
+            <div class="mod-node active">AI NODE</div>
+            <div class="mod-line"></div>
+            <div class="mod-node">OUTPUT</div>
+          </div>
+        </div>
+        <div class="mod-content">
+          <div class="mod-glow"></div>
+          <div class="mod-eyebrow">Visual Interface</div>
+          <div class="mod-name">Contexta Flow</div>
+          <p class="mod-desc">For teams that want visibility into every automation running across your organisation — live status, execution history, and full decision audit trails.</p>
+          <ul class="mod-list">
+            <li>Real-time pipeline visibility</li>
+            <li>Pre-built automation templates</li>
+            <li>Team collaboration and audit logs</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- C3: Contexta Agents -->
+      <div class="mod-card c3 reveal-up d-3">
+        <div class="mod-visual">
+          <div class="mod-viz-stats">
+            <div class="mod-stat-row"><div class="mod-stat-info"><div class="mod-stat-dot" style="background:var(--success);box-shadow:0 0 8px var(--success-dim)"></div><span class="mod-stat-name">Content Publisher</span></div><span class="mod-stat-tag" style="background:var(--success-dim);color:var(--success-lt)">Running</span></div>
+            <div class="mod-stat-row"><div class="mod-stat-info"><div class="mod-stat-dot" style="background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,0.4)"></div><span class="mod-stat-name">Market Intelligence</span></div><span class="mod-stat-tag" style="background:rgba(239,68,68,0.15);color:#f87171">Active</span></div>
+            <div class="mod-stat-row"><div class="mod-stat-info"><div class="mod-stat-dot" style="background:var(--warning);box-shadow:0 0 8px var(--warning-dim)"></div><span class="mod-stat-name">LexKenya Research</span></div><span class="mod-stat-tag" style="background:var(--warning-dim);color:var(--warning-lt)">Standby</span></div>
+          </div>
+        </div>
+        <div class="mod-content">
+          <div class="mod-glow"></div>
+          <div class="mod-eyebrow">Autonomous Agents</div>
+          <div class="mod-name">Contexta Agents</div>
+          <p class="mod-desc">Pre-trained autonomous agents ready for production. Content, marketing, research, and CRM each ship fully configured and context-aware from day one.</p>
+          <ul class="mod-list">
+            <li>Content &amp; publishing automation</li>
+            <li>Market intelligence agents</li>
+            <li>LexKenya legal research agent</li>
+            <li>CRM and operations agents</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- C4: Contexta API -->
+      <div class="mod-card c4 reveal-up d-4">
+        <div class="mod-visual">
+          <div class="mod-viz-code">
+            <span class="tc">const result = <span class="tk">await</span> ctx</span><br/>
+            &nbsp;&nbsp;.agents.<span class="ts">activate</span>({<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;agent:&nbsp;&nbsp;<span class="ts">'content-pub'</span>,<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;source: <span class="ts">'rss://feeds.io'</span>,<br/>
+            &nbsp;&nbsp;&nbsp;&nbsp;output: <span class="ts">'cms://blog'</span><br/>
+            &nbsp;&nbsp;});<br/><br/>
+            <span class="comment">// Context engine responds:</span><br/>
+            <span class="comment">// { relevance: <span style="color:#86efac">0.94</span>,</span><br/>
+            <span class="comment">//&nbsp;&nbsp; intent: <span style="color:#86efac">"publish"</span> }</span>
+          </div>
+        </div>
+        <div class="mod-content">
+          <div class="mod-glow"></div>
+          <div class="mod-eyebrow">Developer API</div>
+          <div class="mod-name">Contexta API</div>
+          <p class="mod-desc">A clean, well-documented API for teams embedding Contexta's intelligence into their own products. REST, webhooks, event-driven — built for production workloads.</p>
+          <ul class="mod-list">
+            <li>REST &amp; webhook-based triggers</li>
+            <li>Contextual reasoning endpoints</li>
+            <li>Enterprise SLA guarantees</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section class="section pipeline-section" id="pipeline">
+  <div class="section-inner">
+    <div class="section-label reveal-up">In Practice</div>
+    <h2 class="section-h2 reveal-up d-1">From Raw Signal<br />to <em>Published Output</em></h2>
+    <p class="section-body reveal-up d-2">A real-world example of Contexta running a complete content operation end-to-end without a single human touchpoint.</p>
+    <div class="pipeline-wrap">
+      <div class="pipeline-steps">
+        <div class="pip-step reveal-up d-1"><div class="pip-dot">01</div><div class="pip-body"><div class="pip-name">Signal Detection</div><div class="pip-desc">Continuously monitors your configured sources including RSS feeds, APIs, and databases.</div></div></div>
+        <div class="pip-step reveal-up d-2"><div class="pip-dot">02</div><div class="pip-body"><div class="pip-name">Content Extraction</div><div class="pip-desc">Raw content is ingested, cleaned, and prepared for analysis.</div></div></div>
+        <div class="pip-step ai reveal-up d-3"><div class="pip-dot">03</div><div class="pip-body"><div class="pip-name">Relevance Decision</div><div class="pip-desc">The context engine evaluates topic relevance, audience fit, and timing.</div><div class="pip-badge">AI Decision Point</div></div></div>
+        <div class="pip-step ai reveal-up d-4"><div class="pip-dot">04</div><div class="pip-body"><div class="pip-name">Content Generation</div><div class="pip-desc">Rewrites and optimises for your brand voice and SEO requirements.</div><div class="pip-badge">AI Generation</div></div></div>
+        <div class="pip-step ai reveal-up d-5"><div class="pip-dot">05</div><div class="pip-body"><div class="pip-name">Asset Creation</div><div class="pip-desc">Supporting imagery and metadata generated automatically.</div><div class="pip-badge">AI Production</div></div></div>
+        <div class="pip-step reveal-up d-6"><div class="pip-dot">06</div><div class="pip-body"><div class="pip-name">Publish &amp; Distribute</div><div class="pip-desc">Pushed to your CMS and distributed across every configured channel.</div></div></div>
+      </div>
+      <div class="reveal-up d-2">
+        <div class="result-card">
+          <div class="result-bar"><span>Context Engine Output</span><span class="result-live"><span class="status-dot"></span>Live</span></div>
+          <div class="result-body">
+            <div class="result-row"><span class="result-key">relevance_score</span><span class="result-val hi" style="color:#4ade80">0.94</span></div>
+            <div class="result-row"><span class="result-key">intent</span><span class="result-val coral" style="color:#60a5fa">"publish"</span></div>
+            <div class="result-row"><span class="result-key">audience_fit</span><span class="result-val hi" style="color:#4ade80">0.89</span></div>
+            <div class="result-row"><span class="result-key">seo_score</span><span class="result-val" style="color:#fbbf24">88 / 100</span></div>
+            <div class="result-row"><span class="result-key">actions</span><span class="result-val coral" style="color:#60a5fa">["rewrite","image","post"]</span></div>
+            <div class="result-row"><span class="result-key">latency_ms</span><span class="result-val">340ms</span></div>
+            <div class="result-row"><span class="result-key">status</span><span class="result-val hi" style="color:#4ade80">"completed"</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LEXKENYA -->
+<section class="lexkenya-section bg-img-section" id="lexkenya" style="background-image: url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=2000');">
+  <div class="lex-glow"></div>
+  <div class="lex-inner">
+    <div class="section-label reveal-up" style="margin-bottom:16px;">Introducing LexKenya <span class="beta-inline" title="Module — Now Available">Beta</span></div>
+    <h2 class="section-h2 reveal-up d-1">Constitutional Intelligence<br />for Kenyan Advocates</h2>
+    <p class="section-body reveal-up d-2">LexKenya is Contexta's domain-specific AI module built for Kenya's legal sector. Instant constitutional research, precise citations, and an AI booking agent delivered as a plug-and-play add-on your firm activates in minutes.</p>
+    <div class="lex-grid">
+      <div class="lex-chat reveal-up d-1" id="lex-chat-trigger">
+        <div class="chat-bar">
+          <div class="chat-bar-title">LexKenya <span>· Constitution of Kenya 2010</span></div>
+          <div class="chat-badge">Beta</div>
+        </div>
+        <div class="chat-messages" id="lex-messages">
+          <!-- User msg 1 -->
+          <div class="chat-msg user" data-delay="800">
+            <div class="chat-avatar av-user">A</div>
+            <div class="chat-bubble bubble-user">Retrieve provisions on the right to fair trial.</div>
+          </div>
+          
+          <!-- Typing indicator -->
+          <div class="typing-dots" id="lex-typing"><span></span><span></span><span></span></div>
+
+          <!-- Lex msg 1 -->
+          <div class="chat-msg lex-response" data-delay="1500">
+            <div class="chat-avatar av-lex">L</div>
+            <div class="chat-bubble bubble-lex">
+              Under Chapter 4, the Bill of Rights, I've identified the following:
+              <div class="bubble-cite"><strong>Article 50 | Fair Hearing</strong>Every person has the right to have any dispute resolved in a fair and public hearing before a court or independent and impartial tribunal.</div>
+            </div>
+          </div>
+
+          <!-- User msg 2 -->
+          <div class="chat-msg user" data-delay="2000">
+            <div class="chat-avatar av-user">A</div>
+            <div class="chat-bubble bubble-user">Any Bill of Rights cross-references?</div>
+          </div>
+
+          <!-- Lex msg 2 -->
+          <div class="chat-msg lex-response" data-delay="1500">
+            <div class="chat-avatar av-lex">L</div>
+            <div class="chat-bubble bubble-lex">
+              Both fall under Chapter 4 (The Bill of Rights). Related provisions: Article 25 (non-derogable rights) and Article 22 (enforcement of rights). Citation export ready as PDF.
+              <div class="bubble-cite"><strong>Article 47 | Fair Administrative Action</strong>Every person has the right to administrative action that is expeditious, efficient, lawful, reasonable and procedurally fair.</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" type="text" placeholder="Access Kenyan Legal Intelligence…" disabled />
+          <button class="chat-send">Ask</button>
+        </div>
+      </div>
+      <div>
+        <div class="lex-feats reveal-up d-2">
+          <div class="lex-feat"><div class="lex-feat-head"><div class="lex-feat-num">01</div><div class="lex-feat-title">Constitutional Retrieval</div></div><div class="lex-feat-desc">Conduct semantic searches across all 260+ articles of the Constitution of Kenya 2010 to find precise citations and plain-language explanations in seconds.</div></div>
+          <div class="lex-feat"><div class="lex-feat-head"><div class="lex-feat-num">02</div><div class="lex-feat-title">AI Voice Booking Agent</div></div><div class="lex-feat-desc">A human-sounding AI agent that manages client scheduling around the clock, featuring SMS confirmations and automatic calendar syncing.</div></div>
+          <div class="lex-feat"><div class="lex-feat-head"><div class="lex-feat-num">03</div><div class="lex-feat-title">Court-Ready Export</div></div><div class="lex-feat-desc">Export retrieved provisions directly to PDF or Word with a single click. Every document includes necessary article references and chapter context for case preparation.</div></div>
+          <div class="lex-feat"><div class="lex-feat-head"><div class="lex-feat-num">04</div><div class="lex-feat-title">English &amp; Swahili</div></div><div class="lex-feat-desc">Full bilingual support across the chat interface, voice booking agent, and all export documents. Built for Kenya's legal environment from the ground up.</div></div>
+        </div>
+        <div class="lex-mods reveal-up d-3">
+          <div class="lex-mod"><div class="lex-mod-name">Research Bot</div><div class="lex-mod-desc">Web, app, or Telegram access for instant constitutional queries</div></div>
+          <div class="lex-mod"><div class="lex-mod-name">Voice Booking</div><div class="lex-mod-desc">AI voice calls for client scheduling with Africa's Talking SMS</div></div>
+          <div class="lex-mod"><div class="lex-mod-name">Case Summaries</div><div class="lex-mod-desc">Auto-generated case prep documents from retrieved provisions</div></div>
+          <div class="lex-mod"><div class="lex-mod-name">Calendar Sync</div><div class="lex-mod-desc">Google &amp; Outlook integration with automated reminders</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEVELOPERS -->
+<section class="section dev-section" id="developers">
+  <div class="section-inner">
+    <div class="dev-inner">
+      <div>
+        <div class="section-label reveal-up">Developer Access</div>
+        <h2 class="section-h2 reveal-up d-1">An API That Gets Out of Your Way</h2>
+        <p class="section-body reveal-up d-2">Direct access to the context engine. Clean, documented, production-ready. Build intelligence into your own products in an afternoon.</p>
+        <div class="dev-feats">
+          <div class="dev-feat reveal-up d-1"><div class="dev-feat-n">01</div><div><div class="dev-feat-title">Trigger Any Workflow</div><div class="dev-feat-desc">Fire automations programmatically via REST or webhooks. Full response includes context metadata.</div></div></div>
+          <div class="dev-feat reveal-up d-2"><div class="dev-feat-n">02</div><div><div class="dev-feat-title">Embed Contextual Reasoning</div><div class="dev-feat-desc">Call the context engine directly and get structured intelligence back in your own applications.</div></div></div>
+          <div class="dev-feat reveal-up d-3"><div class="dev-feat-n">03</div><div><div class="dev-feat-title">Event-Driven Architecture</div><div class="dev-feat-desc">Subscribe to execution events and build reactive systems on top of Contexta's intelligence layer.</div></div></div>
+        </div>
+      </div>
+      <div class="code-window reveal-up d-2">
+        <div class="code-titlebar"><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div><span class="code-fname">contexta.js</span></div>
+<pre><span class="tk">import</span> Contexta <span class="tk">from</span> <span class="ts">'@contexta/sdk'</span>;
+
+<span class="tc">// Instantiate once, use everywhere</span>
+<span class="tk">const</span> ctx = <span class="tk">new</span> <span class="tf">Contexta</span>({
+  apiKey: process.env.<span class="tp">CONTEXTA_KEY</span>,
+  region: <span class="ts">'af-east-1'</span>
+});
+
+<span class="tc">// Activate LexKenya research agent</span>
+<span class="tk">const</span> result = <span class="tk">await</span> ctx.agents.<span class="tf">activate</span>({
+  agent:  <span class="ts">'lexkenya-research'</span>,
+  query:  <span class="ts">'right to fair trial'</span>,
+  corpus: <span class="ts">'constitution-ke-2010'</span>
+});
+
+<span class="tc">// Returns structured citations</span>
+console.<span class="tf">log</span>(result.citations);
+<span class="tc">// → [</span>
+<span class="tc">//  { article: <span class="tn">50</span>, title: <span class="ts">"Fair Hearing"</span>, ... },</span>
+<span class="tc">//  { article: <span class="tn">47</span>, title: <span class="ts">"Fair Admin Action"</span> }</span>
+<span class="tc">// ]</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="section why-section">
+  <div class="section-inner">
+    <div class="section-label reveal-up">Why Contexta</div>
+    <h2 class="section-h2 reveal-up d-1">The Infrastructure<br /><em>Serious Teams Choose</em></h2>
+    <div class="why-grid">
+      <div class="why-card reveal-up d-1"><div class="why-icon"><i data-lucide="zap"></i></div><div class="why-title">Live in Minutes, Not Months</div><div class="why-desc">Pre-built agents mean your first automation is live the same day — no sprint planning and no onboarding marathon.</div></div>
+      <div class="why-card reveal-up d-2"><div class="why-icon"><i data-lucide="brain"></i></div><div class="why-title">Decisions That Improve Over Time</div><div class="why-desc">The context engine learns from every execution, continuously refining its judgment to match your desired outcomes.</div></div>
+      <div class="why-card reveal-up d-3"><div class="why-icon"><i data-lucide="activity"></i></div><div class="why-title">Full Observability</div><div class="why-desc">Every decision is logged, explained, and auditable. Black boxes do not belong in enterprise infrastructure.</div></div>
+      <div class="why-card reveal-up d-4"><div class="why-icon"><i data-lucide="shield"></i></div><div class="why-title">Built for Security</div><div class="why-desc">Role-based access controls, data isolation, and secure architecture at every layer — built enterprise-ready from the ground up.</div></div>
+      <div class="why-card reveal-up d-5"><div class="why-icon"><i data-lucide="refresh-cw"></i></div><div class="why-title">Zero Maintenance Overhead</div><div class="why-desc">We manage the infrastructure and model updates so your team can focus on outcomes rather than operations.</div></div>
+      <div class="why-card reveal-up d-6"><div class="why-icon"><i data-lucide="layers"></i></div><div class="why-title">Scales With Your Business</div><div class="why-desc">Contexta handles volume without performance degradation, whether you're running one agent or hundreds.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section bg-img-section" style="background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=2000');">
+  <div class="cta-glow"></div>
+  <div class="section-label reveal-up" style="justify-content:center;">Ready to Deploy</div>
+  <h2 class="cta-h2 reveal-up d-1">Your Operations,<br /><em>Running Themselves.</em></h2>
+  <p class="cta-sub reveal-up d-2">Join the teams using Contexta to move faster, operate leaner, and stay ahead without the engineering overhead.</p>
+  <div class="cta-actions reveal-up d-3">
+    <a href="{{ url_for('auth.register') }}" class="btn-primary">Get Instant Access <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 6.5h11M7.5 2l4.5 4.5L7.5 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <a href="mailto:hello@contexta.ai" class="btn-secondary">Talk to Sales</a>
+  </div>
+  <p class="cta-note reveal-up d-4">No credit card required &nbsp;·&nbsp; Free trial included &nbsp;·&nbsp; Enterprise plans available</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-contours"></div>
+  <div class="footer-top">
+    <div class="f-brand-col">
+      <div class="f-brand-name"><div class="logo-mark"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="4.5" height="4.5" fill="white"/><rect x="7.5" y="1" width="4.5" height="4.5" fill="white" opacity="0.5"/><rect x="1" y="7.5" width="4.5" height="4.5" fill="white" opacity="0.5"/><rect x="7.5" y="7.5" width="4.5" height="4.5" fill="white"/></svg></div>Contexta</div>
+      <p class="f-tagline">Automation That Understands Context</p>
+    </div>
+    <div class="f-col"><h5>Platform</h5><ul><li><a href="#platform">Contexta Core</a></li><li><a href="#platform">Contexta Flow</a></li><li><a href="#platform">Contexta Agents</a></li><li><a href="#lexkenya">LexKenya <span class="beta-tag">Beta</span></a></li></ul></div>
+    <div class="f-col"><h5>Company</h5><ul><li><a href="#">About</a></li><li><a href="#">Blog</a></li><li><a href="mailto:hello@contexta.ai">Contact</a></li><li><a href="mailto:support@contexta.ai">Support</a></li></ul></div>
+    <div class="f-col"><h5>Legal</h5><ul><li><a href="{{ url_for('public.terms') }}">Terms of Service</a></li><li><a href="{{ url_for('public.privacy') }}">Privacy Policy</a></li></ul></div>
+    <div class="f-newsletter">
+      <h5>Stay Updated</h5>
+      <p>Get the latest infrastructure updates delivered to your inbox.</p>
+      <form class="f-news-form" id="newsletterForm" onsubmit="handleNewsletter(event)">
+        <input type="email" id="newsletterEmail" placeholder="Email address" required>
+        <button type="submit" id="newsletterBtn">Subscribe</button>
+      </form>
+      <p id="newsletterConfirm" style="display:none;font-size:12px;color:var(--success-lt);margin-top:8px;">✓ You're on the list. We'll be in touch.</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-socials">
+      <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.96 0-1.75-.79-1.75-1.75s.79-1.75 1.75-1.75 1.75.79 1.75 1.75-.79 1.75-1.75 1.75zm13.5 12.27h-3v-5.6c0-3.37-4-3.11-4 0v5.6h-3v-11h3v1.76c1.39-2.58 7-2.78 7 2.47v6.77z"/></svg></a>
+      <a href="#" aria-label="X (Twitter)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+      <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 00-2.122 2.136C0 8.084 0 12 0 12s0 3.916.502 5.814a3.016 3.016 0 002.122 2.136c1.871.55 9.376.55 9.376.55s7.505 0 9.377-.55a3.016 3.016 0 002.122-2.136C24 15.916 24 12 24 12s0-3.916-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+      <a href="#" aria-label="Reddit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 11.5c0-1.65-1.35-3-3-3-.96 0-1.86.48-2.42 1.24-1.64-1-3.75-1.64-6.07-1.72.08-1.1.4-3.05 1.52-3.7.72-.4 1.73-.24 3 .5C17.2 6.3 18.46 7.5 20 7.5c1.65 0 3-1.35 3-3s-1.35-3-3-3c-1.38 0-2.54.94-2.88 2.22-1.43-.72-2.64-.8-3.6-.25-1.64.94-1.95 3.47-2 4.55-2.33.08-4.45.7-6.1 1.72C4.86 8.98 3.96 8.5 3 8.5c-1.65 0-3 1.35-3 3 0 1.32.84 2.44 2.05 2.84-.03.22-.05.44-.05.66 0 3.86 4.5 7 10 7s10-3.14 10-7c0-.22-.02-.44-.05-.66 1.2-.4 2.05-1.54 2.05-2.84zM2.3 11.5c0-.98.8-1.78 1.78-1.78.68 0 1.28.4 1.58.98-.95.82-1.66 1.83-2.06 2.94-.78-.26-1.3-.98-1.3-2.14zm13.3 5.4c-1.07 1.07-2.84 1.1-3.6.1-1.05 1-2.84 1-3.8 0l-.13-.13c-.3-.3-.3-.78 0-1.08s.78-.3 1.08 0c.5.54 1.38.54 1.88 0l.13-.13c.4-.4.98-.6 1.52-.6s1.12.2 1.52.6l.04.04c.3.3.78.3 1.08 0s.3-.78 0-1.08l-.13-.13zm2.5-3.3c-.66 0-1.2-.54-1.2-1.2s.54-1.2 1.2-1.2 1.2.54 1.2 1.2-.54 1.2-1.2 1.2zm-9.2-2.4c.66 0 1.2.54 1.2 1.2s-.54 1.2-1.2 1.2-1.2-.54-1.2-1.2.54-1.2 1.2-1.2zm12.8 1.4c-.4.1-1.1-1-2.05-2.94.3-.58.9-.98 1.58-.98.98 0 1.78.8 1.78 1.78 0 1.16-.5 1.88-1.3 2.14z"/></svg></a>
+    </div>
+    <span class="f-copy">© <span id="cyear">2026</span> Contexta, Inc. All rights reserved.</span>
+  </div>
+</footer>
+
+<script>
+lucide.createIcons();
+// UNIFIED ANIMATION ENGINE
+const ui = {
+  themeToggle: document.getElementById('themeToggle'),
+  iconSun: document.getElementById('themeIconSun'),
+  iconMoon: document.getElementById('themeIconMoon'),
+  typingHero: document.getElementById('typing-hero'),
+  lexMsgContainer: document.getElementById('lex-messages'),
+  lexTyping: document.getElementById('lex-typing')
+};
+
+// 1. Theme Logic
+function updateThemeIcon() {
+  const isDark = document.documentElement.classList.contains('dark');
+  if (ui.iconSun && ui.iconMoon) {
+    ui.iconSun.style.display = isDark ? 'flex' : 'none';
+    ui.iconMoon.style.display = isDark ? 'none' : 'flex';
+  }
+}
+if(ui.themeToggle) {
+  ui.themeToggle.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateThemeIcon();
+  });
+  updateThemeIcon();
+}
+
+// 2. Typing Effect Engine
+function typeText(el, text, speed = 40, callback) {
+  el.textContent = '';
+  el.classList.add('typing-cursor');
+  let i = 0;
+  function type() {
+    if (i < text.length) {
+      el.textContent += text.charAt(i);
+      i++;
+      setTimeout(type, speed);
+    } else {
+      el.classList.remove('typing-cursor');
+      if (callback) callback();
+    }
+  }
+  type();
+}
+
+// 3. Counter Engine (Fixed Zero issue)
+function animateCounter(el) {
+  const target = parseFloat(el.getAttribute('data-count'));
+  const decimals = parseInt(el.getAttribute('data-decimals')) || 0;
+  const suffix = el.getAttribute('data-suffix') || '';
+  const duration = 2000;
+  const startTime = performance.now();
+
+  function update(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 4);
+    const current = (eased * target).toFixed(decimals);
+    el.textContent = parseFloat(current).toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    }) + suffix;
+    
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// 4. LexKenya Chat Sequencer
+let chatStarted = false;
+async function startLexSequencer() {
+  if (chatStarted) return;
+  chatStarted = true;
+  
+  const msgs = ui.lexMsgContainer.querySelectorAll('.chat-msg');
+  const typing = ui.lexTyping;
+
+  for (const msg of msgs) {
+    const delay = parseInt(msg.getAttribute('data-delay')) || 500;
+    
+    // If it's a Lex response, show typing first
+    if (msg.classList.contains('lex-response')) {
+      typing.classList.add('active');
+      await new Promise(r => setTimeout(r, 1200));
+      typing.classList.remove('active');
+    }
+    
+    await new Promise(r => setTimeout(r, delay));
+    msg.classList.add('active');
+    
+    // Highlight citations if present
+    const cites = msg.querySelectorAll('.bubble-cite');
+    for (const cite of cites) {
+      await new Promise(r => setTimeout(r, 600));
+      cite.classList.add('active');
+    }
+  }
+}
+
+// 5. Intersection Observer (The Brain)
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      
+      // Reveal Logic
+      if (el.classList.contains('reveal-up') || el.classList.contains('reveal-left')) {
+        el.classList.add('on');
+        
+        // Specific hooks
+        if (el.id === 'typing-hero') {
+          const originalText = el.textContent;
+          typeText(el, originalText, 35);
+        }
+        if (el.id === 'lex-chat-trigger') {
+          startLexSequencer();
+        }
+      }
+      
+      // Counter Logic
+      if (el.classList.contains('count-up')) {
+        animateCounter(el);
+      }
+      
+      observer.unobserve(el);
+    }
+  });
+}, { threshold: 0.15 });
+
+// Initialize observers
+document.querySelectorAll('.reveal-up, .reveal-left, .count-up').forEach(el => observer.observe(el));
+
+// Nav scroll effect
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+});
+
+// Update Copyright
+if(document.getElementById('cyear')) {
+  document.getElementById('cyear').textContent = new Date().getFullYear();
+}
+
+// Mobile Nav
+function toggleMobileNav() {
+  const drawer = document.getElementById('mobileNav');
+  const isOpen = drawer.classList.toggle('open');
+  document.getElementById('navToggle').classList.toggle('active', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+function closeMobileNav() {
+  document.getElementById('mobileNav').classList.remove('open');
+  document.getElementById('navToggle').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Newsletter
+function handleNewsletter(e) {
+  e.preventDefault();
+  const email = document.getElementById('newsletterEmail').value;
+  if (!email) return;
+  document.getElementById('newsletterBtn').textContent = '...';
+  // Placeholder: replace with real API call
+  setTimeout(() => {
+    document.getElementById('newsletterForm').style.display = 'none';
+    document.getElementById('newsletterConfirm').style.display = 'block';
+  }, 800);
+}
+</script>
+</body>
+</html>

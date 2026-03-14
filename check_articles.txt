@@ -1,5 +1,0 @@
-ID: 1, Status: failed, Ext: 5772, Cnt: 0, Err: AI rewriter failed to produce content
-ID: 2, Status: pending, Ext: 221, Cnt: 0, Err: None
-ID: 3, Status: pending, Ext: 218, Cnt: 0, Err: None
-ID: 4, Status: pending, Ext: 195, Cnt: 0, Err: None
-ID: 5, Status: pending, Ext: 127, Cnt: 0, Err: None
